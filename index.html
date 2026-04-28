@@ -1603,20 +1603,20 @@ BETA VERSION • IN DEVELOPMENT
   <!-- BUTTON -->
   <div id="aiBtn" onclick="toggleAI()">
     <img id="aiIcon" src="https://cdn-icons-png.flaticon.com/512/4712/4712109.png">
-    <span id="aiText">Groq</span>
+    <span id="aiText">Qwen</span>
   </div>
 
   <!-- DROPDOWN -->
   <div id="aiMenu">
     
-    <div onclick="setAPI('groq')">
-      <img src="https://cdn-icons-png.flaticon.com/512/4712/4712109.png">
-      Groq
+    <div onclick="setAPI('qwen')">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/6/69/Qwen_logo.svg">
+      Qwen
     </div>
 
-    <div onclick="setAPI('qwen')">
-      <img src="https://cdn-icons-png.flaticon.com/512/4712/4712035.png">
-      Qwen
+    <div onclick="setAPI('groq')">
+      <img src="https://avatars.githubusercontent.com/u/139895814?s=200&v=4">
+      Groq
     </div>
 
   </div>
@@ -1636,19 +1636,6 @@ BETA VERSION • IN DEVELOPMENT
   min-width:80px;
 ">
     
-    <div onclick="setAPI('groq')" style="
-      display:flex;
-      align-items:center;
-      gap:5px;
-      padding:5px;
-      font-size:10px;
-      cursor:pointer;
-    ">
-      <img src="https://cdn-icons-png.flaticon.com/512/4712/4712109.png"
-           style="width:11px;height:11px;">
-      Groq
-    </div>
-
     <div onclick="setAPI('qwen')" style="
       display:flex;
       align-items:center;
@@ -1657,9 +1644,22 @@ BETA VERSION • IN DEVELOPMENT
       font-size:10px;
       cursor:pointer;
     ">
-      <img src="https://cdn-icons-png.flaticon.com/512/4712/4712035.png"
+      <img src="https://upload.wikimedia.org/wikipedia/commons/6/69/Qwen_logo.svg"
            style="width:11px;height:11px;">
       Qwen
+    </div>
+
+    <div onclick="setAPI('groq')" style="
+      display:flex;
+      align-items:center;
+      gap:5px;
+      padding:5px;
+      font-size:10px;
+      cursor:pointer;
+    ">
+      <img src="https://avatars.githubusercontent.com/u/139895814?s=200&v=4"
+           style="width:11px;height:11px;">
+      Groq
     </div>
 
   </div>
@@ -2326,8 +2326,8 @@ function enableReply(text){
 let currentAPI = "groq";
 
 const icons = {
-  groq: "https://cdn-icons-png.flaticon.com/512/4712/4712109.png",
-  qwen: "https://cdn-icons-png.flaticon.com/512/4712/4712035.png"
+  qwen: "https://upload.wikimedia.org/wikipedia/commons/6/69/Qwen_logo.svg",
+  groq: "https://avatars.githubusercontent.com/u/139895814?s=200&v=4"
 };
 
 // TOGGLE MENU
