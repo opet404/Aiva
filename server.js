@@ -6,9 +6,9 @@ const path = require("path");
 const app = express();
 const PORT = 3000;
 
-// 🔑 API KEYS
-const GROQ_KEY = "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";
-const QWEN_KEY = "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";
+// 🔑 API KEY
+const GROQ_API_KEY = "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";
+const OPENROUTER_API_KEY = "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";
 
 // 🧠 MEMORY
 let chatHistory = [];
@@ -23,11 +23,13 @@ app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "index.html"));
 });
 
-// 🔥 CHAT API (DUAL AI)
+// ============================
+// 🚀 CHAT API
+// ============================
 app.post("/chat", async (req, res) => {
   try {
     const userMessage = req.body?.message;
-    const selectedAPI = req.body?.api || "groq"; // default groq
+    const selectedAPI = req.body?.api || "groq";
 
     if (!userMessage) {
       return res.json({ reply: "Pesan kosong!" });
@@ -40,54 +42,75 @@ app.post("/chat", async (req, res) => {
       chatHistory = chatHistory.slice(-12);
     }
 
-    let response;
+    let url, model, headers, systemPrompt;
 
-    // =========================
-    // 🔥 GROQ
-    // =========================
+    // ============================
+    // 🔁 SWITCH API + STYLE
+    // ============================
     if (selectedAPI === "groq") {
-      response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${GROQ_KEY}`,
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          model: "llama-3.1-8b-instant",
-          temperature: 0.7,
-          max_tokens: 1024,
-          messages: [
-            { role: "system", content: systemPrompt() },
-            ...chatHistory
-          ]
-        })
-      });
+      url = "https://api.groq.com/openai/v1/chat/completions";
+      model = "llama-3.1-8b-instant";
+
+      headers = {
+        "Authorization": `Bearer ${GROQ_API_KEY}`,
+        "Content-Type": "application/json"
+      };
+
+      // 🔴 STYLE GROQ
+      systemPrompt = `
+Kamu adalah AIVA.
+
+Gaya:
+- Santai, natural, seperti ngobrol
+- Sedikit ekspresif (wah, anjir, mantap jika cocok)
+- Jawaban ringkas tapi jelas
+- Ikuti gaya bahasa user
+`;
+
+    } else if (selectedAPI === "qwen") {
+      url = "https://openrouter.ai/api/v1/chat/completions";
+      model = "qwen/qwen3-next-80b-a3b";
+
+      headers = {
+        "Authorization": `Bearer ${OPENROUTER_API_KEY}`,
+        "Content-Type": "application/json"
+      };
+
+      // 🔵 STYLE QWEN
+      systemPrompt = `
+Kamu adalah AIVA.
+
+Gaya:
+- Lebih rapi dan terstruktur
+- Bahasa jelas dan sedikit formal
+- Penjelasan lebih lengkap
+- Hindari slang berlebihan
+`;
     }
 
-    // =========================
-    // 🔥 QWEN (OPENROUTER)
-    // =========================
-    else if (selectedAPI === "qwen") {
-      response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${QWEN_KEY}`,
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          model: "qwen/qwen3:free",
-          temperature: 0.7,
-          max_tokens: 1024,
-          messages: [
-            { role: "system", content: systemPrompt() },
-            ...chatHistory
-          ]
-        })
-      });
-    }
+    // ============================
+    // 📡 FETCH AI
+    // ============================
+    const response = await fetch(url, {
+      method: "POST",
+      headers: headers,
+      body: JSON.stringify({
+        model: model,
+        temperature: 0.7,
+        max_tokens: 1024,
+        messages: [
+          {
+            role: "system",
+            content: systemPrompt
+          },
+          ...chatHistory
+        ]
+      })
+    });
 
     const data = await response.json();
 
+    // ❌ ERROR HANDLE
     if (!data || !data.choices) {
       return res.json({
         reply: "Error API: " + JSON.stringify(data)
@@ -108,33 +131,9 @@ app.post("/chat", async (req, res) => {
   }
 });
 
-// 🔥 SYSTEM PROMPT (biar ga duplikat)
-function systemPrompt() {
-  return `
-Kamu adalah AIVA (Artificial Intelligence Virtual Assistant).
-
-Karakter:
-- Pintar, cepat, realistis
-- Natural seperti manusia
-- Santai tapi tetap cerdas
-- Tidak kaku
-
-Aturan:
-- Jawaban singkat tapi jelas
-- Ikuti bahasa user
-- Jangan halusinasi
-- Fokus bantu user
-
-Tambahan gaya bahasa:
-- Ikuti gaya "gw/lu" atau formal sesuai user
-
-Tambahan emosi:
-- Gunakan ekspresi ringan (wah, anjir, dll) sesuai konteks
-- Jangan berlebihan
-`;
-}
-
-// 🚀 START
+// ============================
+// 🚀 START SERVER
+// ============================
 app.listen(PORT, () => {
   console.log(`🔥 AIVA jalan di http://localhost:${PORT}`);
 });
