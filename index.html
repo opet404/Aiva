@@ -1494,6 +1494,90 @@ body::before{
   opacity:0.8;
 }
 
+#aiSwitcher{
+  position:absolute;
+  right:50px;
+  top:50%;
+  transform:translateY(-50%);
+  z-index:999;
+}
+
+/* BUTTON */
+#aiBtn{
+  display:flex;
+  align-items:center;
+  gap:4px;
+  padding:3px 6px;
+  border-radius:8px;
+  background:rgba(17,24,39,0.9);
+  border:1px solid rgba(255,255,255,0.1);
+  cursor:pointer;
+}
+
+#aiBtn img{
+  width:12px;
+  height:12px;
+}
+
+#aiBtn span{
+  font-size:10px;
+  color:#e5e7eb;
+}
+
+/* DROPDOWN */
+#aiMenu{
+  position:absolute;
+  top:110%;
+  right:0;
+  background:#111827;
+  border:1px solid rgba(255,255,255,0.1);
+  border-radius:8px;
+  overflow:hidden;
+  min-width:80px;
+
+  /* 🔥 ANIMASI */
+  opacity:0;
+  transform:translateY(-6px) scale(0.95);
+  pointer-events:none;
+  transition:all 0.18s ease;
+}
+
+/* SHOW STATE */
+#aiMenu.show{
+  opacity:1;
+  transform:translateY(0) scale(1);
+  pointer-events:auto;
+}
+
+/* ITEM */
+#aiMenu div{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  padding:6px;
+  font-size:11px;
+  cursor:pointer;
+}
+
+#aiMenu div:hover{
+  background:rgba(255,255,255,0.05);
+}
+
+#aiMenu img{
+  width:12px;
+  height:12px;
+}
+
+/* ANIMASI SWITCH */
+#aiIcon, #aiText{
+  transition:all 0.2s ease;
+}
+
+.switching{
+  transform:scale(0.7);
+  opacity:0;
+}
+
 <div style="
 display:inline-block;
 padding:4px 10px;
@@ -1514,13 +1598,80 @@ BETA VERSION • IN DEVELOPMENT
 
 <header>
     
+<div id="aiSwitcher">
+  
+  <!-- BUTTON -->
+  <div id="aiBtn" onclick="toggleAI()">
+    <img id="aiIcon" src="https://cdn-icons-png.flaticon.com/512/4712/4712109.png">
+    <span id="aiText">Groq</span>
+  </div>
+
+  <!-- DROPDOWN -->
+  <div id="aiMenu">
+    
+    <div onclick="setAPI('groq')">
+      <img src="https://cdn-icons-png.flaticon.com/512/4712/4712109.png">
+      Groq
+    </div>
+
+    <div onclick="setAPI('qwen')">
+      <img src="https://cdn-icons-png.flaticon.com/512/4712/4712035.png">
+      Qwen
+    </div>
+
+  </div>
+
+</div>
+
+  <!-- DROPDOWN -->
+ <div id="aiMenu" style="
+  display:none;
+  position:absolute; /* 🔥 penting */
+  top:110%; /* 🔥 paksa ke bawah */
+  right:0;
+  background:#111827;
+  border:1px solid rgba(255,255,255,0.08);
+  border-radius:7px;
+  overflow:hidden;
+  min-width:80px;
+">
+    
+    <div onclick="setAPI('groq')" style="
+      display:flex;
+      align-items:center;
+      gap:5px;
+      padding:5px;
+      font-size:10px;
+      cursor:pointer;
+    ">
+      <img src="https://cdn-icons-png.flaticon.com/512/4712/4712109.png"
+           style="width:11px;height:11px;">
+      Groq
+    </div>
+
+    <div onclick="setAPI('qwen')" style="
+      display:flex;
+      align-items:center;
+      gap:5px;
+      padding:5px;
+      font-size:10px;
+      cursor:pointer;
+    ">
+      <img src="https://cdn-icons-png.flaticon.com/512/4712/4712035.png"
+           style="width:11px;height:11px;">
+      Qwen
+    </div>
+
+  </div>
+</div>
+    
 <div class="menu-btn" onclick="toggleSidebar()"></div>
 
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
     
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     
-AIVA Beta 2.0
+AIVA 3.0
 <div class="settings" onclick="togglePanel()"></div>
 </header>
 
@@ -2171,6 +2322,47 @@ function enableReply(text){
   // optional: tampilkan indikator di input
   input.placeholder = "Replying to: " + text.slice(0,30) + "...";
 }
+
+let currentAPI = "groq";
+
+const icons = {
+  groq: "https://cdn-icons-png.flaticon.com/512/4712/4712109.png",
+  qwen: "https://cdn-icons-png.flaticon.com/512/4712/4712035.png"
+};
+
+// TOGGLE MENU
+function toggleAI(){
+  document.getElementById("aiMenu").classList.toggle("show");
+}
+
+// SET API
+function setAPI(api){
+  const icon = document.getElementById("aiIcon");
+  const text = document.getElementById("aiText");
+
+  icon.classList.add("switching");
+  text.classList.add("switching");
+
+  setTimeout(() => {
+    currentAPI = api;
+
+    icon.src = icons[api];
+    text.innerText = api.charAt(0).toUpperCase() + api.slice(1);
+
+    localStorage.setItem("api", api);
+
+    icon.classList.remove("switching");
+    text.classList.remove("switching");
+  }, 120);
+
+  document.getElementById("aiMenu").classList.remove("show");
+}
+
+// LOAD
+window.onload = () => {
+  const saved = localStorage.getItem("api");
+  setAPI(saved || "groq");
+};
 
 </script>
 
