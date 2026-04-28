@@ -1,0 +1,2178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+<title>AIVA Beta</title>
+
+<style>
+
+/* ===== THEME ===== */
+:root{
+--bg:#0b0f14;
+--panel:rgba(17,24,39,0.75);
+--text:#e6edf3;
+--user:#2563eb;
+--border:rgba(255,255,255,0.08);
+}
+
+.light{
+  background:
+    radial-gradient(circle at 20% 20%, rgba(37,99,235,0.15), transparent 40%),
+    radial-gradient(circle at 80% 80%, rgba(59,130,246,0.1), transparent 50%),
+    #f4f6fb;
+}
+
+*{box-sizing:border-box}
+
+html,body{
+margin:0;
+height:100%;
+overflow:hidden;
+font-family:system-ui;
+background:var(--bg);
+color:var(--text);
+
+/* 👇 tambahan vibe chat modern */
+background-image:
+radial-gradient(circle at top left, rgba(37,99,235,0.15), transparent 40%),
+radial-gradient(circle at bottom right, rgba(59,130,246,0.12), transparent 50%);
+}
+
+#inputBox{
+position:sticky;
+bottom:0;
+z-index:9999;
+}
+
+/* ===== LAYOUT ===== */
+body{
+display:flex;
+flex-direction:column;
+}
+
+/* ===== HEADER ===== */
+header{
+display:flex;
+justify-content:center;
+align-items:center;
+position:relative;
+padding:14px;
+background:var(--panel);
+border-bottom:1px solid var(--border);
+font-weight:700;
+letter-spacing:3px;
+z-index:10000;
+}
+
+/* SETTINGS ICON */
+.settings{
+position:absolute;
+right:14px;
+width:26px;
+height:26px;
+cursor:pointer;
+transition:transform .2s ease;
+}
+
+.settings::before{
+content:"";
+position:absolute;
+width:100%;
+height:100%;
+border:2px solid #2563eb;
+border-radius:50%;
+animation:spin 3.5s linear infinite;
+box-shadow:0 0 10px rgba(37,99,235,0.4);
+}
+
+.settings::after{
+content:"";
+position:absolute;
+top:50%;
+left:50%;
+transform:translate(-50%,-50%);
+width:8px;
+height:8px;
+background:#2563eb;
+border-radius:50%;
+}
+
+.settings:active{
+transform:scale(0.85);
+}
+
+@keyframes spin{
+from{transform:rotate(0deg)}
+to{transform:rotate(360deg)}
+}
+
+/* ===== CHAT AREA ===== */
+#chat{
+  flex:1;
+  overflow-y:auto;
+  padding:14px;
+
+  display:flex;
+  flex-direction:column;
+  justify-content:flex-start; /* 👈 ubah ini */
+
+  gap:10px;
+}
+
+/* ===== MESSAGE ===== */
+.msg{
+max-width:75%;
+padding:12px 14px;
+margin:4px 0;
+font-size:14px;
+line-height:1.5;
+white-space:pre-wrap;
+word-break:break-word;
+border-radius:14px;
+animation:fadeIn .15s ease;
+}
+
+/* USER (kanan - biru clean) */
+.user{
+background:#2563eb;
+color:#fff;
+align-self:flex-end;
+border-radius:14px 14px 4px 14px;
+box-shadow:0 2px 10px rgba(37,99,235,0.2);
+}
+
+/* AI (kiri - clean card) */
+.ai{
+background:var(--panel);
+color:var(--text);
+align-self:flex-start;
+border:1px solid var(--border);
+border-radius:14px 14px 14px 4px;
+}
+
+/* animasi halus */
+@keyframes fadeIn{
+from{opacity:0;transform:translateY(6px);}
+to{opacity:1;transform:translateY(0);}
+}
+
+/* hover glow ringan */
+.ai:hover{
+box-shadow:0 0 22px rgba(37,99,235,0.35);
+}
+
+/* ===== TEXT ===== */
+.text{
+margin-bottom:6px;
+line-height:1.4;
+}
+
+/* ===== CODE BOX ===== */
+.code-box{
+background:#000;
+border:1px solid #333;
+border-radius:10px;
+margin-top:8px;
+overflow:auto;
+}
+
+.code-header{
+display:flex;
+justify-content:space-between;
+padding:6px 10px;
+background:#0f172a;
+font-size:12px;
+color:#94a3b8;
+}
+
+.copy-btn{
+background:#2563eb;
+border:none;
+color:white;
+padding:4px 8px;
+border-radius:6px;
+cursor:pointer;
+}
+
+pre{
+margin:0;
+padding:10px;
+font-size:13px;
+color:#e5e7eb;
+white-space:pre;
+overflow-x:auto;
+}
+
+/* ===== INPUT ===== */
+#inputBox{
+padding:12px;
+background:transparent;
+border-top:1px solid var(--border);
+}
+
+/* container utama kayak ChatGPT */
+.input-wrapper{
+display:flex;
+align-items:flex-end;
+gap:8px;
+
+background:var(--panel);
+border:1px solid var(--border);
+border-radius:18px;
+
+padding:8px 10px;
+
+box-shadow:0 8px 25px rgba(0,0,0,0.15);
+backdrop-filter: blur(10px);
+}
+
+/* textarea modern */
+#text{
+flex:1;
+border:none;
+outline:none;
+resize:none;
+
+max-height:120px;
+min-height:24px;
+
+background:transparent;
+color:var(--text);
+
+font-size:14px;
+line-height:1.4;
+padding:6px;
+
+/* 🔥 FONT CHATGPT STYLE */
+font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+letter-spacing:0.2px;
+}
+
+/* tombol kirim jadi bulat kecil di kanan */
+.send{
+  opacity:0.4;
+  pointer-events:none;
+  transition:0.2s;
+}
+
+.send.active{
+  opacity:1;
+  pointer-events:auto;
+}
+
+/* kalau kosong */
+.send:disabled{
+  opacity:0.4 !important;
+  background:#2563eb !important;
+  pointer-events:none;
+}
+
+/* kalau aktif */
+.send:not(:disabled){
+  opacity:1;
+  background:#2563eb;
+  pointer-events:auto;
+}
+
+.send:hover{
+transform:scale(1.05);
+}
+
+/* stop button sama style */
+.stop{
+width:42px;
+height:42px;
+border-radius:50%; /* 🔥 bulat */
+border:none;
+
+background:#ef4444; /* merah */
+
+display:none;
+align-items:center;
+justify-content:center;
+
+cursor:pointer;
+box-shadow:0 0 12px rgba(239,68,68,0.5);
+transition:0.2s;
+}
+
+.stop img{
+width:18px;
+height:18px;
+object-fit:contain;
+
+/* 🔥 jadi putih */
+filter: brightness(0) invert(1);
+
+pointer-events:none;
+transition:0.2s;
+}
+
+.stop:hover{
+transform:scale(1.08);
+box-shadow:0 0 18px rgba(239,68,68,0.7);
+}
+
+.stop:hover img{
+transform:scale(1.1);
+}
+
+/* ===== PANEL ===== */
+#panel{
+position:fixed;
+top:60px;
+right:12px;
+display:none;
+z-index:9999;
+}
+
+#panel button{
+display:block;
+margin:6px 0;
+padding:8px 10px;
+width:140px;
+border:none;
+border-radius:10px;
+background:rgba(37,99,235,0.9);
+color:white;
+backdrop-filter:blur(6px);
+}
+
+/* ===== THINKING ===== */
+.dot{
+display:inline-block;
+animation:blink 1s infinite;
+}
+
+@keyframes blink{
+0%{opacity:0.2}
+50%{opacity:1}
+100%{opacity:0.2}
+}
+
+/* ===== SCROLLBAR (OPTIONAL CLEAN) ===== */
+#chat::-webkit-scrollbar{
+width:6px;
+}
+
+#chat::-webkit-scrollbar-thumb{
+background:rgba(37,99,235,0.4);
+border-radius:10px;
+}
+
+.thinking-simple{
+display:inline-flex;
+align-items:center;
+gap:6px;
+
+padding:6px 10px;        /* diperkecil */
+border-radius:10px;
+
+font-size:12px;          /* lebih kecil */
+line-height:1;
+
+opacity:0.9;
+
+border:1px solid rgba(37,99,235,0.2);
+box-shadow:0 0 8px rgba(37,99,235,0.12);
+
+backdrop-filter: blur(3px);
+
+max-width:fit-content;   /* biar nggak melebar */
+}
+
+.thinking-simple{
+display:flex;
+justify-content:center;   /* horizontal tengah */
+align-items:center;       /* vertical tengah */
+text-align:center;
+
+padding:6px 10px;
+border-radius:10px;
+
+font-size:12px;
+line-height:1;
+
+opacity:0.9;
+
+border:1px solid rgba(37,99,235,0.2);
+box-shadow:0 0 8px rgba(37,99,235,0.12);
+
+backdrop-filter: blur(3px);
+
+max-width:fit-content;
+margin:6px 0;
+}
+
+.thinking-text{
+display:flex;
+align-items:center;
+justify-content:center;
+gap:4px;
+width:100%;
+}
+
+#text{
+flex:1;
+padding:12px;
+border-radius:10px;
+border:1px solid var(--border);
+background:transparent;
+color:var(--text);
+
+resize:none;          /* ❌ tidak bisa di tarik manual */
+overflow-y:auto;      /* ✔ scroll kalau terlalu panjang */
+max-height:120px;     /* batas tinggi */
+line-height:1.4;
+}
+
+.send{
+background:#2563eb;
+color:white;
+border:none;
+padding:12px;
+border-radius:10px;
+width:44px;
+height:44px;
+display:flex;
+align-items:center;
+justify-content:center;
+cursor:pointer;
+position:relative;
+}
+
+.send img{
+width:18px;
+height:18px;
+object-fit:contain;
+
+/* 🔥 ubah jadi putih */
+filter: brightness(0) invert(1);
+
+pointer-events:none;
+transition:0.2s;
+}
+
+/* hover effect */
+.send:hover{
+box-shadow:0 0 12px rgba(37,99,235,0.5);
+transform:scale(1.05);
+}
+
+.stop{
+background:#ff3b3b;
+border:none;
+width:42px;
+height:42px;
+display:none;
+align-items:center;
+justify-content:center;
+cursor:pointer;
+border-radius:10px;
+transition:0.2s ease;
+position:relative;
+}
+
+/* kotak putih di tengah */
+.stop::before{
+content:"";
+width:10px;
+height:10px;
+background:#ffffff;
+border-radius:2px;
+}
+
+/* hover */
+.stop:hover{
+transform:scale(1.05);
+box-shadow:0 0 12px rgba(255,59,59,0.5);
+}
+
+#welcome{
+position:fixed;
+inset:0;
+background:var(--bg);
+display:flex;
+flex-direction:column;
+align-items:center;
+justify-content:center;
+z-index:99999;
+text-align:center;
+}
+
+.logo{
+width:130px;
+height:130px;
+border-radius:20px;
+box-shadow:0 0 25px rgba(37,99,235,0.6);
+
+/* ✨ ANIMASI NGAMBANG */
+animation:float 3s ease-in-out infinite;
+}
+
+#welcome{
+position:fixed;
+inset:0;
+background:var(--bg);
+display:flex;
+flex-direction:column;
+align-items:center;
+justify-content:center;
+z-index:99999;
+text-align:center;
+overflow:hidden;
+}
+
+/* LOGO ENTRY ANIMATION */
+.logo{
+width:130px;
+height:130px;
+border-radius:20px;
+box-shadow:0 0 25px rgba(37,99,235,0.6);
+
+/* masuk dulu baru float */
+opacity:0;
+transform:translateY(30px) scale(0.9);
+
+animation:
+logoIn 0.8s ease forwards,
+float 3s ease-in-out infinite 0.8s,
+glow 2s ease-in-out infinite 0.8s;
+}
+
+/* MASUK ANIMASI */
+@keyframes logoIn{
+to{
+opacity:1;
+transform:translateY(0) scale(1);
+}
+}
+
+/* FLOAT */
+@keyframes float{
+0%{transform:translateY(0px)}
+50%{transform:translateY(-15px)}
+100%{transform:translateY(0px)}
+}
+
+/* GLOW */
+@keyframes glow{
+0%{box-shadow:0 0 15px rgba(37,99,235,0.3)}
+50%{box-shadow:0 0 30px rgba(37,99,235,0.7)}
+100%{box-shadow:0 0 15px rgba(37,99,235,0.3)}
+}
+
+/* ===== TITLE ANIMATION ===== */
+.title{
+margin:15px 0 5px;
+font-size:32px;
+letter-spacing:4px;
+color:#2563eb;
+text-shadow:0 0 10px rgba(37,99,235,0.4);
+
+/* smooth masuk */
+opacity:0;
+transform:translateY(20px);
+animation:fadeUp 1s ease forwards 0.3s, textGlow 2.5s ease-in-out infinite;
+}
+
+/* ===== SUBTITLE ===== */
+.subtitle{
+font-size:14px;
+opacity:0.8;
+letter-spacing:1px;
+
+/* smooth masuk lebih lambat */
+opacity:0;
+transform:translateY(20px);
+animation:fadeUp 1s ease forwards 0.8s;
+}
+
+/* FADE + SLIDE */
+@keyframes fadeUp{
+to{
+opacity:1;
+transform:translateY(0);
+}
+}
+
+/* TEXT GLOW PULSE */
+@keyframes textGlow{
+0%{text-shadow:0 0 5px rgba(37,99,235,0.2)}
+50%{text-shadow:0 0 18px rgba(37,99,235,0.6)}
+100%{text-shadow:0 0 5px rgba(37,99,235,0.2)}
+}
+
+/* ===== CLOSE ANIMATION ===== */
+#welcome.hide{
+animation:exit 0.9s ease forwards;
+}
+
+@keyframes exit{
+0%{
+opacity:1;
+transform:scale(1);
+filter:blur(0px);
+}
+100%{
+opacity:0;
+transform:scale(1.2);
+filter:blur(10px);
+}
+}
+
+body{
+font-family:'Poppins', system-ui;
+}
+
+/* TITLE AIVA */
+.title{
+font-family:'Orbitron', sans-serif;
+letter-spacing:5px;
+font-weight:700;
+}
+
+/* SUBTITLE */
+.subtitle{
+font-family:'Poppins', sans-serif;
+font-weight:300;
+}
+
+/* ===== THEME ===== */
+:root{
+--bg:#0b0f14;
+--panel:#111827;
+--text:#e6edf3;
+--user:#2563eb;
+--border:#1f2937;
+}
+
+.light{
+--bg:#f5f5f5;
+--panel:#ffffff;
+--text:#111;
+--user:#2563eb;
+--border:#ddd;
+}
+
+/* ===== BASE ===== */
+*{box-sizing:border-box}
+
+html,body{
+margin:0;
+height:100%;
+overflow:hidden;
+font-family:system-ui;
+background:var(--bg);
+color:var(--text);
+}
+
+/* ===== HEADER ===== */
+header{
+display:flex;
+justify-content:center;
+align-items:center;
+position:relative;
+padding:14px;
+background:var(--panel);
+border-bottom:1px solid var(--border);
+font-weight:700;
+letter-spacing:3px;
+}
+
+/* ===== MENU BUTTON (TITIK 3) ===== */
+.menu-btn{
+position:absolute;
+left:18px;              /* tidak mepet kiri */
+top:52%;                /* sedikit naik biar center */
+transform:translateY(-50%);
+width:38px;
+height:38px;
+border-radius:10px;
+cursor:pointer;
+display:flex;
+align-items:center;
+justify-content:center;
+transition:0.25s ease;
+}
+
+/* 3 titik pakai CSS */
+.menu-btn::before{
+content:"";
+width:4px;
+height:4px;
+background:#2563eb;
+border-radius:50%;
+box-shadow:
+0 7px 0 #2563eb,
+0 -7px 0 #2563eb;
+}
+
+/* hover effect halus */
+.menu-btn:hover{
+background:rgba(37,99,235,0.15);
+transform:translateY(-50%) scale(1.05);
+}
+
+/* active feel */
+.menu-btn:active{
+transform:translateY(-50%) scale(0.95);
+}
+
+#sidebar{
+  position:fixed;
+  top:0;
+  left:-260px;
+  width:240px;
+  height:100%;
+
+  background:rgba(17,24,39,0.75); /* semi transparan */
+  backdrop-filter:blur(14px);
+
+  border-right:1px solid rgba(255,255,255,0.08);
+
+  transition:0.35s cubic-bezier(0.22, 1, 0.36, 1);
+  z-index:99999;
+  overflow:hidden;
+
+box-shadow: 8px 0 40px rgba(0,0,0,0.6); /* depth */
+}
+
+#sidebar::after{
+  content:"";
+  position:absolute;
+  top:0;
+  right:0;
+  width:2px;
+  height:100%;
+
+  background:linear-gradient(
+    to bottom,
+    transparent,
+    #2563eb,
+    transparent
+  );
+
+  opacity:0.6;
+}
+
+/* open state */
+#sidebar.active{
+left:0;
+}
+
+/* HEADER */
+.sidebar-header{
+  padding:20px;
+  font-size:20px;
+  font-weight:700;
+  letter-spacing:4px;
+
+  font-family:'Orbitron', sans-serif;
+  color:#60a5fa;
+
+  display:inline-block;
+
+  animation:
+    glowPulse 2s ease-in-out infinite alternate,
+    floatText 3s ease-in-out infinite;
+}
+
+@keyframes glowPulse{
+  0%{
+    text-shadow:
+      0 0 4px rgba(37,99,235,0.4),
+      0 0 8px rgba(37,99,235,0.3);
+  }
+  100%{
+    text-shadow:
+      0 0 12px rgba(37,99,235,0.9),
+      0 0 24px rgba(37,99,235,0.6);
+  }
+}
+
+/* ITEM LIST */
+.sidebar-item{
+  display:flex;
+  align-items:center;
+  gap:12px;
+
+  padding:14px 16px;
+  font-size:14px;
+  font-family:'Inter', sans-serif;
+  font-weight:500;
+
+  color:#cbd5e1;
+
+  cursor:pointer;
+  border-radius:12px;
+  margin:6px 10px;
+
+  transition:all 0.25s ease;
+}
+
+.sidebar-item:hover{
+  background:rgba(37,99,235,0.15);
+  color:#fff;
+  transform:translateX(6px);
+
+  box-shadow:0 0 15px rgba(37,99,235,0.3);
+}
+
+.sidebar-item.active{
+  background:rgba(37,99,235,0.2);
+  color:#3b82f6;
+  box-shadow:0 0 12px rgba(37,99,235,0.5);
+}
+
+/* ===== ABOUT PAGE ===== */
+#aboutPage{
+  position:fixed;
+  inset:0;
+
+  overflow-y:auto; /* 🔥 ini kuncinya */
+
+  display:none;
+  z-index:100000;
+}
+
+#aboutPage{
+  background:
+    radial-gradient(circle at top, rgba(37,99,235,0.15), transparent 50%),
+    linear-gradient(180deg, #0b0f14, #020617);
+
+  color:#e6edf3;
+}
+
+body.light #aboutPage{
+  background:
+    radial-gradient(circle at top, rgba(37,99,235,0.08), transparent 50%),
+    #f4f6fb !important;
+}
+
+body.light .about-blue{
+  color:#93c5fd !important;
+}
+
+body.light #aboutPage .about-content{
+  background: rgba(17,24,39,0.9) !important;
+  color:#e6edf3 !important;
+  border:1px solid rgba(255,255,255,0.08);
+}
+
+body.light #aboutPage .about-section{
+  background: rgba(255,255,255,0.05) !important;
+  color:#e5e7eb !important;
+}
+
+body.light #aboutPage p{
+  color:#e5e7eb !important;
+}
+
+body.light #aboutPage,
+body.light #aboutPage .about-content,
+body.light #aboutPage .about-section{
+  background-color:transparent !important;
+}
+
+/* ===== FIX LIGHT MODE ABOUT ===== */
+
+/* 🌤️ LIGHT MODE - PREMIUM SOFT BG */
+body.light #aboutPage{
+  background:
+    radial-gradient(circle at 15% 20%, rgba(37,99,235,0.18), transparent 45%),
+    radial-gradient(circle at 85% 80%, rgba(59,130,246,0.15), transparent 55%),
+    linear-gradient(180deg, #f8fafc, #eef2ff) !important;
+}
+
+/* 🔥 isi tetap gelap (jangan berubah) */
+body.light #aboutPage .about-content{
+  background: rgba(0,0,0,0.85) !important;
+  color: #e6edf3 !important;
+}
+
+/* section dalam kotak tetap gelap */
+body.light #aboutPage .about-section{
+  background: rgba(255,255,255,0.05) !important;
+}
+
+/* 🔥 text jangan pudar */
+body.light #aboutPage .about-desc,
+body.light #aboutPage .about-section p{
+  color: #e6edf3 !important;
+  opacity: 1 !important;
+}
+
+/* 🔥 text biru jangan berubah jadi putih */
+body.light #aboutPage .about-blue{
+  color: #60a5fa !important;
+}
+
+.about-content{
+  width:90%;
+  max-width:380px;
+  margin:60px auto;
+  padding:20px;
+
+  border-radius:16px;
+
+  background: rgba(255,255,255,0.04);
+
+  border:1px solid rgba(255,255,255,0.06);
+
+  backdrop-filter: blur(10px);
+
+  display:flex;
+  flex-direction:column;
+  gap:14px;
+
+  text-align:left;
+}
+
+/* CONTAINER */
+.about-content{
+  width:90%;
+  max-width:380px;
+  margin:80px auto;
+  padding:22px;
+
+  border-radius:18px;
+
+  display:flex;
+  flex-direction:column;
+  gap:14px;
+
+  text-align:left;
+}
+
+/* deskripsi awal */
+.about-desc,
+.about-section p{
+  font-size:13px;
+  line-height:1.7;
+  color:#e5e7eb;
+}
+
+.light .about-desc,
+.light .about-section p{
+  color:#333;
+}
+
+/* section biar ga numpuk */
+.about-section{
+  padding:8px 10px;
+  border-radius:10px;
+
+  background:rgba(255,255,255,0.02); /* super subtle */
+}
+
+/* judul kecil */
+.about-section h3{
+  font-size:14px;
+  color:#60a5fa;
+  margin-bottom:4px;
+}
+
+/* isi text */
+.about-section p{
+  font-size:13px;
+  line-height:1.6;
+  margin:0;
+  opacity:0.9;
+}
+
+.support-card{
+  width:90%;
+  max-width:340px;
+
+  margin:auto;
+  padding:20px;
+
+  border-radius:18px;
+
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:10px;
+}
+
+.about-content:hover,
+.support-card:hover{
+  transform: translateY(-6px) scale(1.01);
+  box-shadow:
+    0 0 60px rgba(37,99,235,0.35),
+    inset 0 0 25px rgba(255,255,255,0.08);
+}
+
+.about-content h2{
+  font-size:24px;
+  margin-bottom:4px;
+}
+
+.support-title{
+  background: linear-gradient(90deg,#60a5fa,#2563eb);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+
+  text-shadow: 0 0 20px rgba(37,99,235,0.5);
+}
+
+/* ANIMASI MASUK */
+#aboutPage.show .about-content{
+animation:aboutIn 0.4s ease forwards;
+}
+
+/* ANIMASI KELUAR */
+#aboutPage.hide .about-content{
+animation:aboutOut 0.3s ease forwards;
+}
+
+/* TITLE */
+.about-content h2{
+color:#2563eb;
+font-size:28px;
+letter-spacing:3px;
+margin-bottom:12px;
+font-family:'Orbitron', sans-serif;
+}
+
+/* TEXT BIRU */
+.about-blue{
+  color:#93c5fd;
+}
+
+body.light .about-white{
+  opacity:1 !important;
+}
+
+body.light #aboutPage{
+  color:#111;
+}
+
+body.light .about-content{
+  background: #ffffff; /* solid putih */
+  color:#111;          /* text jadi gelap */
+}
+
+/* CREATED */
+.created{
+margin-top:16px;
+font-size:12px;
+color:#94a3b8;
+opacity:0.8;
+letter-spacing:1px;
+}
+
+/* BACK BUTTON */
+.about-back{
+  position:sticky;
+  top:10px;
+  align-self:flex-start;
+}
+
+.about-back::before{
+content:"";
+position:absolute;
+top:50%;
+left:50%;
+transform:translate(-50%,-50%) rotate(45deg);
+width:10px;
+height:10px;
+border-left:2px solid #fff;
+border-top:2px solid #fff;
+}
+
+.about-back:hover{
+background:rgba(255,255,255,0.1);
+}
+
+/* ANIMASI */
+@keyframes aboutIn{
+from{
+opacity:0;
+transform:translateY(25px) scale(0.95);
+}
+to{
+opacity:1;
+transform:translateY(0) scale(1);
+}
+}
+
+@keyframes aboutOut{
+from{
+opacity:1;
+transform:translateY(0) scale(1);
+}
+to{
+opacity:0;
+transform:translateY(25px) scale(0.95);
+}
+}
+
+.sidebar-header{
+background:linear-gradient(90deg, rgba(37,99,235,0.15), transparent);
+}
+
+#welcomeChat{
+  position:fixed;
+  inset:0;
+
+  display:flex;
+  flex-direction:column;
+
+  justify-content:center; /* 🔥 vertikal tengah */
+  align-items:center;     /* 🔥 horizontal tengah */
+
+  text-align:center;
+
+  z-index:1000;
+  background:var(--bg);
+
+  gap:8px; /* jarak antar elemen */
+}
+
+.welcome-img{
+  width:140px;
+  height:140px;
+
+  object-fit:cover;
+  border-radius:18px;
+
+  display:block;
+}
+
+/* TITLE */
+.welcome-title{
+font-size:28px;
+color:#2563eb;
+font-family:'Orbitron', sans-serif;
+letter-spacing:3px;
+animation:fadeUp 1s ease;
+}
+
+/* SUBTITLE */
+.welcome-subtitle{
+font-size:13px;
+color:#2563eb;
+opacity:0.8;
+animation:fadeUp 1.2s ease;
+}
+
+/* ANIMASI MASUK */
+@keyframes fadeUp{
+from{
+opacity:0;
+transform:translateY(15px);
+}
+to{
+opacity:1;
+transform:translateY(0);
+}
+}
+
+/* FLOAT GAMBAR */
+@keyframes float{
+0%{transform:translateY(0)}
+50%{transform:translateY(-10px)}
+100%{transform:translateY(0)}
+}
+
+/* ===== HILANG SMOOTH ===== */
+#welcomeChat.hide{
+opacity:0;
+transform:scale(1.1);
+filter:blur(8px);
+transition:0.7s ease;
+pointer-events:none;
+}
+
+#welcomeLogo{
+  transition: 0.5s ease;
+}
+
+/* animasi saat ganti mode */
+.logo-switch{
+  opacity:0;
+  transform:scale(0.85);
+  filter:blur(6px);
+}
+
+body{
+  transition: background 0.6s ease, color 0.6s ease;
+}
+
+.mode-switch{
+  transition: background-color 0.6s ease, color 0.6s ease;
+}
+
+#welcomeLogo{
+  transition: 0.5s ease;
+}
+
+.logo-switch{
+  opacity:0;
+  transform:scale(0.85);
+  filter:blur(6px);
+}
+
+/* ===== SUPPORT PAGE ===== */
+#supportPage{
+position:fixed;
+inset:0;
+background:linear-gradient(135deg,#0b0f14,#0f172a);
+backdrop-filter: blur(12px);
+display:none;
+z-index:100000;
+}
+
+/* ANIMASI */
+#supportPage.show .support-content{
+animation:fadeIn 0.4s ease forwards;
+}
+
+#supportPage.hide .support-content{
+animation:fadeOut 0.3s ease forwards;
+}
+
+/* CENTER */
+.support-content{
+height:100%;
+display:flex;
+align-items:center;
+justify-content:center;
+}
+
+/* CARD PREMIUM */
+.support-card{
+background:rgba(255,255,255,0.05);
+border:1px solid rgba(255,255,255,0.08);
+padding:22px;
+border-radius:20px;
+text-align:center;
+box-shadow:0 0 40px rgba(37,99,235,0.25);
+max-width:320px;
+}
+
+/* QRIS */
+.qris-img{
+  width:100%;
+  max-width:180px;   /* 🔥 batas biar ga kegedean */
+  height:auto;
+
+  border-radius:14px;
+  margin:0 auto 16px;
+
+  display:block;
+
+  box-shadow:0 0 20px rgba(37,99,235,0.25);
+}
+
+.qris-img:hover{
+  transform: scale(1.05);
+}
+
+/* TITLE */
+.support-title{
+color:#2563eb;
+font-size:20px;
+font-weight:700;
+margin-top:8px;
+font-family:'Orbitron', sans-serif;
+}
+
+/* KETERANGAN */
+.support-text{
+color:#d1d5db;
+font-size:13px;
+line-height:1.5;
+margin-top:8px;
+}
+
+/* SUB INFO */
+.support-subtext{
+margin-top:12px;
+font-size:12px;
+color:#9ca3af;
+}
+
+/* PAYMENT TAGS */
+.payment-tags{
+margin-top:8px;
+font-size:11px;
+color:#60a5fa;
+opacity:0.9;
+letter-spacing:1px;
+}
+
+/* BACK BUTTON */
+.support-back{
+position:absolute;
+top:14px;
+left:14px;
+width:36px;
+height:36px;
+cursor:pointer;
+}
+
+.support-back::before{
+content:"";
+position:absolute;
+top:50%;
+left:50%;
+transform:translate(-50%,-50%) rotate(45deg);
+width:10px;
+height:10px;
+border-left:2px solid #fff;
+border-top:2px solid #fff;
+}
+
+/* ANIMATION */
+@keyframes fadeIn{
+from{opacity:0; transform:scale(0.92);}
+to{opacity:1; transform:scale(1);}
+}
+
+@keyframes fadeOut{
+from{opacity:1; transform:scale(1);}
+to{opacity:0; transform:scale(1.05);}
+}
+
+/* ANIMASI */
+@keyframes popIn{
+from{opacity:0; transform:scale(0.9);}
+to{opacity:1; transform:scale(1);}
+}
+
+@keyframes popOut{
+from{opacity:1; transform:scale(1);}
+to{opacity:0; transform:scale(1.05);}
+}
+
+/* ANIMATION */
+@keyframes inSupport{
+from{opacity:0;transform:translateY(25px) scale(0.95);}
+to{opacity:1;transform:translateY(0) scale(1);}
+}
+
+@keyframes outSupport{
+from{opacity:1;transform:translateY(0) scale(1);}
+to{opacity:0;transform:translateY(25px) scale(0.95);}
+}
+
+/* FLOAT */
+@keyframes float{
+0%{transform:translateY(0)}
+50%{transform:translateY(-8px)}
+100%{transform:translateY(0)}
+}
+
+.msg:hover{
+cursor:pointer;
+opacity:0.95;
+}
+
+.typing-dots{
+display:flex;
+align-items:center;
+gap:6px;
+padding:6px 10px;
+}
+
+.typing-dots span{
+width:6px;
+height:6px;
+border-radius:50%;
+background:var(--text);
+
+opacity:0.3;
+animation:blink 1.4s infinite;
+}
+
+.typing-dots span:nth-child(2){
+animation-delay:0.2s;
+}
+
+.typing-dots span:nth-child(3){
+animation-delay:0.4s;
+}
+
+@keyframes blink{
+0%, 80%, 100%{ opacity:0.3; transform:scale(1); }
+40%{ opacity:1; transform:scale(1.3); }
+}
+
+.send{
+opacity:0.4;
+pointer-events:none;
+transition:0.2s;
+}
+
+/* kalau aktif */
+.send.active{
+opacity:1;
+pointer-events:auto;
+}
+
+.sidebar {
+  font-family: 'Poppins', sans-serif;
+}
+
+body{
+  background:
+    radial-gradient(circle at 20% 20%, rgba(37,99,235,0.25), transparent 40%),
+    radial-gradient(circle at 80% 80%, rgba(59,130,246,0.2), transparent 50%),
+    radial-gradient(circle at 50% 50%, rgba(99,102,241,0.1), transparent 60%),
+    #0b0f14;
+
+  animation: bgMove 12s ease-in-out infinite alternate;
+}
+
+@keyframes bgMove{
+  0%{
+    background-position: 20% 20%, 80% 80%, 50% 50%;
+  }
+  100%{
+    background-position: 30% 30%, 70% 70%, 60% 60%;
+  }
+}
+
+body::after{
+  content:"";
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+
+  background-image: url("https://grainy-gradients.vercel.app/noise.svg");
+  opacity:0.05;
+}
+
+body::before{
+  content:"";
+  position:fixed;
+  width:400px;
+  height:400px;
+  background: radial-gradient(circle, rgba(37,99,235,0.25), transparent 60%);
+  pointer-events:none;
+  transform:translate(-50%, -50%);
+  left:var(--x);
+  top:var(--y);
+}
+
+#welcome,
+#welcomeChat{
+  background:
+    radial-gradient(circle at 20% 20%, rgba(37,99,235,0.25), transparent 40%),
+    radial-gradient(circle at 80% 80%, rgba(59,130,246,0.2), transparent 50%),
+    #0b0f14;
+}
+
+.light #welcome,
+.light #welcomeChat{
+  background:
+    radial-gradient(circle at 20% 20%, rgba(37,99,235,0.15), transparent 40%),
+    radial-gradient(circle at 80% 80%, rgba(59,130,246,0.1), transparent 50%),
+    #f4f6fb;
+}
+
+.divider{
+  border:none;
+  height:1px;
+  background:rgba(255,255,255,0.08);
+  margin:8px 0;
+}
+
+.support-text{
+  font-size:13px;
+  line-height:1.6;
+  text-align:center;
+}
+
+.support-subtext{
+  font-size:12px;
+  opacity:0.8;
+}
+
+<div style="
+display:inline-block;
+padding:4px 10px;
+margin-bottom:10px;
+border-radius:8px;
+font-size:11px;
+color:#ffd54a;
+border:1px solid #ffd54a;
+text-shadow:0 0 6px rgba(255,213,74,0.5);
+">
+BETA VERSION • IN DEVELOPMENT
+</div>
+
+</style>
+</head>
+
+<body>
+
+<header>
+    
+<div class="menu-btn" onclick="toggleSidebar()"></div>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+    
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    
+AIVA Beta 2.0
+<div class="settings" onclick="togglePanel()"></div>
+</header>
+
+<div id="welcomeChat">
+<img id="welcomeLogo" class="welcome-img" src="" style="width:200px;height:200px;object-fit:cover;">
+  <div class="welcome-title">AIVA</div>
+  <div class="welcome-subtitle">Ask AI anything</div>
+</div>
+
+<div id="welcome">
+  <img class="logo" src="https://i.ibb.co.com/XrH4nnQy/file-0000000005a87208a1ebd9aff2438f5f.png" alt="Logo">
+
+  <h1 class="title">AIVA</h1>
+  <p class="subtitle">Artificial Intelligence Virtual Assistant</p>
+</div>
+
+<div id="sidebar">
+  <div class="sidebar-header">AIVA</div>
+
+  <div class="sidebar-item" onclick="openAbout()">About AIVA</div>
+  <div class="sidebar-item" onclick="openSupport()">Support Me</div>
+
+</div>
+
+<div id="aboutPage">
+  <div class="about-content">
+
+    <div class="about-back" onclick="closeAbout()"></div>
+
+    <h2>AIVA</h2>
+
+    <p class="about-desc">
+      AIVA (Artificial Intelligence Virtual Assistant) adalah sistem AI modern yang dirancang untuk memberikan pengalaman interaksi yang cepat, ringan, dan futuristik di berbagai perangkat.
+    </p>
+
+    <div class="about-section">
+      <h3>⚡ Fungsi</h3>
+      <p>
+        AIVA berfungsi sebagai asisten digital yang dapat membantu menjawab pertanyaan, memberikan ide, membantu coding, serta mendukung aktivitas kreatif pengguna secara real-time.
+      </p>
+    </div>
+
+    <div class="about-section">
+      <h3>🎨 Desain</h3>
+      <p>
+        AIVA dibangun dengan fokus pada desain UI/UX yang bersih, animasi yang halus, dan performa yang ringan agar tetap nyaman digunakan di perangkat mobile maupun desktop.
+      </p>
+    </div>
+
+    <div class="about-section">
+      <h3>🚧 Status</h3>
+      <p>
+        Sistem ini masih dalam tahap pengembangan (beta), sehingga beberapa fitur mungkin belum sepenuhnya stabil dan akan terus diperbarui secara berkala.
+      </p>
+    </div>
+
+    <div class="about-section">
+      <h3>🚀 Pengembangan</h3>
+      <p>
+        Ke depannya, AIVA akan dikembangkan dengan fitur seperti multi-model AI, voice assistant, integrasi API eksternal, serta sistem memori percakapan yang lebih cerdas dan personal.
+      </p>
+    </div>
+
+    <div class="created">
+      Created by opetxdy • AIVA is still in development
+    </div>
+
+  </div>
+</div>
+
+<div id="supportPage">
+  <div class="support-content">
+
+    <div class="support-back" onclick="closeSupport()"></div>
+
+    <div class="support-card">
+
+      <img class="qris-img" src="https://i.ibb.co.com/nMyRhYN0/Picsart-26-04-15-11-19-47-389-2.jpg">
+
+      <div class="support-title">Support Me</div>
+
+<div class="support-text">
+  Terima kasih atas dukungan kamu 🙏<br>
+  Dukungan ini membantu saya untuk terus berkembang dan berkarya.
+      </div>
+
+      <div class="support-subtext">
+        ⚡ Payment via Indonesia E-Wallet
+      </div>
+
+      <div class="payment-tags">
+        DANA • GoPay • OVO • LinkAja • BCA • BRI • Mandiri
+      </div>
+
+    </div>
+
+  </div>
+</div>
+
+<div id="panel">
+<button onclick="dark()">Night Mode</button>
+<button onclick="light()">Light Mode</button>
+</div>
+
+<div id="chat"></div>
+
+<div id="inputBox">
+  <div class="input-wrapper">
+
+    <textarea id="text" placeholder="Message..." rows="1"></textarea>
+
+ <button class="send" id="sendBtn">
+  <img src="https://cdn-icons-png.flaticon.com/512/3682/3682321.png">
+</button>
+    <button class="stop" id="stopBtn" onclick="stopAI()" aria-label="stop">
+  <img src="https://cdn-icons-png.flaticon.com/512/1828/1828665.png">
+</button>
+
+  </div>
+</div>
+
+<script>
+    
+    const darkLogo = "https://i.ibb.co.com/W4xKmqMn/Picsart-26-04-26-12-18-48-581.png";
+const lightLogo = "https://i.ibb.co.com/xK1Tyg24/Picsart-26-04-26-09-51-22-649.png"; // ganti kalau punya versi beda
+
+const welcomeLogo = document.getElementById("welcomeLogo");
+    window.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("sendBtn").addEventListener("click", send);
+});
+
+const API_URL = "/chat";
+
+let isGenerating = false;
+
+const chat = document.getElementById("chat");
+const panel = document.getElementById("panel");
+const input = document.getElementById("text");
+const sendBtn = document.querySelector(".send");
+const stopBtn = document.querySelector(".stop");
+
+/* ===== UPDATE BUTTON ===== */
+function updateSendButton(){
+  const isEmpty = input.value.trim() === "";
+
+  if(isEmpty || isGenerating){
+    sendBtn.classList.remove("active");
+
+    // 🔥 paksa mati total
+    sendBtn.disabled = true;
+    sendBtn.style.opacity = "0.4";
+  }else{
+    sendBtn.classList.add("active");
+
+    // 🔥 nyala
+    sendBtn.disabled = false;
+    sendBtn.style.opacity = "1";
+  }
+}
+
+/* ===== INPUT ===== */
+input.addEventListener("input", updateSendButton);
+
+/* ===== SEND ===== */
+function sendMessage(){
+  if(input.value.trim() === "") return;
+
+  isGenerating = true;
+  updateSendButton();
+
+  // kirim pesan...
+
+  input.value = "";
+  updateSendButton();
+}
+
+/* ===== STOP ===== */
+stopBtn.addEventListener("click", () => {
+  isGenerating = false;
+  updateSendButton();
+});
+
+/* ===== AI DONE ===== */
+function finishAI(){
+  isGenerating = false;
+  updateSendButton();
+}
+
+/* ===== ENTER ===== */
+input.addEventListener("keydown", function(e){
+  if(e.key === "Enter" && !e.shiftKey){
+    e.preventDefault();
+    sendMessage();
+  }
+});
+
+/* ===== INIT ===== */
+updateSendButton();
+
+let controller=null;
+let stopTyping=false;
+let typingTimer = null;
+let replyTarget = null;
+
+/* AUTO SCROLL CONTROL */
+let autoScrollEnabled = true;
+
+chat.addEventListener("scroll",()=>{
+let nearBottom = chat.scrollHeight - chat.scrollTop - chat.clientHeight < 80;
+autoScrollEnabled = nearBottom;
+});
+
+function autoScroll(){
+if(autoScrollEnabled){
+chat.scrollTop = chat.scrollHeight;
+}
+}
+
+/* UI PANEL */
+function togglePanel(){
+panel.style.display = panel.style.display==="block"?"none":"block";
+}
+
+function dark(){
+document.body.classList.remove("light");
+panel.style.display="none";
+}
+
+function light(){
+document.body.classList.add("light");
+panel.style.display="none";
+}
+
+/* LOCK SYSTEM */
+function setLock(state){
+input.disabled = state;
+sendBtn.disabled = state;
+input.style.opacity = state ? "0.6" : "1";
+sendBtn.style.opacity = state ? "0.6" : "1";
+}
+
+/* ESCAPE */
+function escapeHtml(t){
+return t.replace(/</g,"&lt;").replace(/>/g,"&gt;");
+}
+
+/* RENDER MESSAGE (CODE BOX SUPPORT) */
+function renderMessage(text){
+
+let parts=text.split("```");
+let html="";
+
+for(let i=0;i<parts.length;i++){
+
+if(i%2===0){
+if(parts[i].trim()){
+html+=`<div class="text">${escapeHtml(parts[i])}</div>`;
+}
+}else{
+
+let code=parts[i].replace(/</g,"&lt;").replace(/>/g,"&gt;");
+const id="c"+Math.random().toString(36).substr(2,8);
+
+setTimeout(()=>{
+let btn=document.getElementById(id);
+if(btn){
+btn.onclick=()=>{
+navigator.clipboard.writeText(code);
+btn.innerText="Copied";
+setTimeout(()=>btn.innerText="Copy",1000);
+};
+}
+},50);
+
+html+=`
+<div class="code-box">
+<div class="code-header">
+<span>Code</span>
+<button class="copy-btn" id="${id}">Copy</button>
+</div>
+<pre>${code}</pre>
+</div>`;
+}
+}
+
+return html;
+}
+
+/* ADD MESSAGE */
+function add(text,type){
+let d=document.createElement("div");
+d.className="msg "+type;
+
+d.innerHTML=renderMessage(text);
+
+/* 🔥 klik message untuk reply */
+d.onclick = () => {
+  replyTarget = text;
+  input.placeholder = "Replying: " + text.slice(0,30) + "...";
+};
+
+chat.appendChild(d);
+autoScroll();
+}
+
+/* THINKING (NEW ANIMATION) */
+function thinking(){
+
+let d=document.createElement("div");
+d.className="msg ai thinking-simple";
+
+d.innerHTML = `
+<div class="typing-dots">
+  <span></span>
+  <span></span>
+  <span></span>
+</div>
+`;
+
+chat.appendChild(d);
+autoScroll();
+return d;
+}
+
+/* SEND */
+function send(){
+
+replyTarget = null;
+input.placeholder = "Message...";
+
+/* safety */
+if(isGenerating) return;
+
+/* hide welcome safely */
+if(typeof removeWelcome === "function"){
+  removeWelcome();
+}
+
+let msg = input.value.trim();
+if(!msg) return;
+
+/* user message */
+add(msg,"user");
+
+input.value="";
+input.style.height = "auto";
+
+/* 🔥 START AI STATE */
+setLock(true);
+isGenerating = true;
+stopTyping = false;
+stopBtn.style.display = "inline-block";
+
+controller = new AbortController();
+
+/* loading UI */
+
+/* debug (optional) */
+console.log("SEND CLICKED:", msg);
+
+/* 🔥 FETCH */
+let load = thinking();
+
+fetch(API_URL, {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+  message: msg,
+  reply: replyTarget
+})
+})
+.then(r => r.json())
+.then(d => {
+
+  load.remove();
+
+  let dEl = document.createElement("div");
+  dEl.className = "msg ai";
+  chat.appendChild(dEl);
+
+  // ❌ HAPUS finishAI DI SINI
+  typeText(dEl, d.reply, 0, finishAI);
+
+})
+
+}
+
+input.addEventListener("keydown", (e)=>{
+if(e.key === "Enter" && !e.shiftKey){
+e.preventDefault();
+send();
+}
+});
+
+/* FINISH AI */
+function finishAI(){
+  // 🔥 reset state AI dulu
+  isGenerating = false;
+  stopTyping = false;
+  controller = null;
+
+  // 🔥 UI reset
+  setLock(false);
+  stopBtn.style.display = "none";
+  sendBtn.style.display = "flex"; // pastiin tombol send balik
+
+  // 🔥 update tombol (INI KUNCI)
+  updateSendButton();
+
+  // 🔥 scroll terakhir
+  autoScroll();
+}
+
+input.focus();
+
+/* STOP BUTTON (FIXED FULL STOP) */
+function stopAI(){
+
+if(!isGenerating) return;
+
+stopTyping = true;
+isGenerating = false;
+
+/* 🔥 HARD KILL typing loop */
+clearTimeout(typingTimer);
+typingTimer = null;
+
+/* abort fetch kalau masih jalan */
+if(controller){
+controller.abort();
+controller = null;
+}
+
+setLock(false);
+stopBtn.style.display = "none";
+
+/* hapus thinking */
+let thinkingBox = document.querySelector(".thinking-simple");
+if(thinkingBox) thinkingBox.remove();
+
+/* stop output langsung */
+add("Stopped by user","ai");
+}
+
+/* ===== TYPE TEXT FIX (CUT INSTANT STOP) ===== */
+function typeText(el, text, i = 0, done){
+
+/* STOP GLOBAL CHECK */
+if(stopTyping || !isGenerating){
+if(done) done();
+return;
+}
+
+if(i === 0) el.innerHTML = "";
+
+/* typing loop */
+typingTimer = setTimeout(() => {
+
+/* stop check lagi */
+if(stopTyping || !isGenerating){
+if(done) done();
+return;
+}
+
+if(i < text.length){
+
+/* lebih smooth: ambil substring */
+el.innerHTML = renderMessage(text.substring(0, i));
+
+typeText(el, text, i + 2, done);
+
+}else{
+
+/* final render full */
+el.innerHTML = renderMessage(text);
+
+if(done) done();
+}
+
+}, 8);
+}
+
+input.addEventListener("input", () => {
+input.style.height = "auto";
+input.style.height = input.scrollHeight + "px";
+});
+
+window.addEventListener("load", () => {
+  const w = document.getElementById("welcome");
+
+  setTimeout(() => {
+    if (!w) return;
+
+    w.classList.add("hide");
+
+    setTimeout(() => {
+      w.remove();
+    }, 900);
+
+  }, 2000);
+});
+
+setTimeout(() => {
+  const w = document.getElementById("welcome");
+  if (w) w.style.display = "none";
+}, 4000);
+
+const aboutPage = document.getElementById("aboutPage");
+
+function openAbout(){
+aboutPage.classList.remove("hide");
+aboutPage.classList.add("show");
+aboutPage.style.display = "block";
+}
+
+function closeAbout(){
+aboutPage.classList.remove("show");
+aboutPage.classList.add("hide");
+
+/* tunggu animasi selesai baru hide */
+setTimeout(()=>{
+aboutPage.style.display = "none";
+},250);
+}
+
+const sidebar = document.getElementById("sidebar");
+
+/* OPEN / CLOSE */
+function toggleSidebar(){
+sidebar.classList.toggle("active");
+}
+
+/* ===== SWIPE CONTROL (FIXED) ===== */
+let startX = 0;
+let currentX = 0;
+let dragging = false;
+
+sidebar.addEventListener("touchstart",(e)=>{
+dragging = true;
+startX = e.touches[0].clientX;
+sidebar.style.transition = "none";
+});
+
+sidebar.addEventListener("touchmove",(e)=>{
+if(!dragging) return;
+
+currentX = e.touches[0].clientX;
+let move = currentX - startX;
+
+/* hanya geser kalau lagi open */
+if(sidebar.classList.contains("active")){
+if(move < 0){
+sidebar.style.left = move + "px";
+}
+}
+});
+
+/* ===== AUTO SNAP CLOSE (FIXED LOGIC) ===== */
+sidebar.addEventListener("touchend",()=>{
+dragging = false;
+sidebar.style.transition = "0.35s cubic-bezier(0.22, 1, 0.36, 1)";
+
+let left = parseInt(sidebar.style.left || "0");
+
+/* kalau digeser jauh → CLOSE */
+if(left < -80){
+sidebar.classList.remove("active");
+}
+
+/* reset posisi */
+sidebar.style.left = "";
+});
+
+autoScrollEnabled = true;
+
+function removeWelcome(){
+const w = document.getElementById("welcomeChat");
+if(!w) return;
+
+w.classList.add("hide");
+
+setTimeout(()=> w.remove(), 700);
+}
+
+function dark(){
+document.body.classList.add("light"); // hapus dulu
+panel.style.display="none";
+
+document.body.classList.remove("mode-switch");
+void document.body.offsetWidth; // trigger reflow biar smooth
+
+document.body.classList.remove("light");
+switchLogo(darkLogo);
+}
+
+function light(){
+document.body.classList.add("mode-switch");
+panel.style.display="none";
+
+document.body.classList.remove("light");
+void document.body.offsetWidth;
+
+document.body.classList.add("light");
+switchLogo(lightLogo);
+}
+
+window.addEventListener("DOMContentLoaded", () => {
+  if(document.body.classList.contains("light")){
+    welcomeLogo.src = lightLogo;
+  } else {
+    welcomeLogo.src = darkLogo;
+  }
+});
+
+function switchLogo(newSrc){
+  welcomeLogo.classList.add("logo-switch");
+
+  setTimeout(()=>{
+    welcomeLogo.src = newSrc;
+
+    welcomeLogo.onload = () => {
+      welcomeLogo.classList.remove("logo-switch");
+    };
+
+  },250);
+}
+
+const supportPage = document.getElementById("supportPage");
+
+function openSupport(){
+supportPage.classList.remove("hide");
+supportPage.classList.add("show");
+supportPage.style.display = "block";
+}
+
+function closeSupport(){
+supportPage.classList.remove("show");
+supportPage.classList.add("hide");
+
+setTimeout(()=>{
+supportPage.style.display = "none";
+},300);
+}
+
+function enableReply(text){
+  replyTarget = text;
+
+  // optional: tampilkan indikator di input
+  input.placeholder = "Replying to: " + text.slice(0,30) + "...";
+}
+
+</script>
+
+</body>
+</html>
