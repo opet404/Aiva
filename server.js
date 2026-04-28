@@ -6,26 +6,28 @@ const path = require("path");
 const app = express();
 const PORT = 3000;
 
-// 🔑 API KEY LU (WAJIB DIISI)
-const API_KEY = "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";
+// 🔑 API KEYS
+const GROQ_KEY = "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";
+const QWEN_KEY = "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";
 
-// 🧠 MEMORY (simple)
+// 🧠 MEMORY
 let chatHistory = [];
 
 app.use(cors());
 app.use(express.json());
 
-// 🔥 SERVE HTML
+// 🔥 STATIC
 app.use(express.static(__dirname));
 
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "index.html"));
 });
 
-// 🔥 CHAT API
+// 🔥 CHAT API (DUAL AI)
 app.post("/chat", async (req, res) => {
   try {
     const userMessage = req.body?.message;
+    const selectedAPI = req.body?.api || "groq"; // default groq
 
     if (!userMessage) {
       return res.json({ reply: "Pesan kosong!" });
@@ -34,28 +36,81 @@ app.post("/chat", async (req, res) => {
     // simpan user
     chatHistory.push({ role: "user", content: userMessage });
 
-    // limit memory
     if (chatHistory.length > 12) {
       chatHistory = chatHistory.slice(-12);
     }
 
-    const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${API_KEY}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        // ⚡ MODEL BARU + CEPAT
-        model: "llama-3.1-8b-instant",
+    let response;
 
-        temperature: 0.7,
-        max_tokens: 1024,
+    // =========================
+    // 🔥 GROQ
+    // =========================
+    if (selectedAPI === "groq") {
+      response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${GROQ_KEY}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          model: "llama-3.1-8b-instant",
+          temperature: 0.7,
+          max_tokens: 1024,
+          messages: [
+            { role: "system", content: systemPrompt() },
+            ...chatHistory
+          ]
+        })
+      });
+    }
 
-        messages: [
-          {
-            role: "system",
-            content: `
+    // =========================
+    // 🔥 QWEN (OPENROUTER)
+    // =========================
+    else if (selectedAPI === "qwen") {
+      response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${QWEN_KEY}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          model: "qwen/qwen3:free",
+          temperature: 0.7,
+          max_tokens: 1024,
+          messages: [
+            { role: "system", content: systemPrompt() },
+            ...chatHistory
+          ]
+        })
+      });
+    }
+
+    const data = await response.json();
+
+    if (!data || !data.choices) {
+      return res.json({
+        reply: "Error API: " + JSON.stringify(data)
+      });
+    }
+
+    const aiReply = data.choices[0].message.content;
+
+    // simpan AI
+    chatHistory.push({ role: "assistant", content: aiReply });
+
+    res.json({ reply: aiReply });
+
+  } catch (err) {
+    res.json({
+      reply: "Server error: " + err.message
+    });
+  }
+});
+
+// 🔥 SYSTEM PROMPT (biar ga duplikat)
+function systemPrompt() {
+  return `
 Kamu adalah AIVA (Artificial Intelligence Virtual Assistant).
 
 Karakter:
@@ -70,51 +125,16 @@ Aturan:
 - Jangan halusinasi
 - Fokus bantu user
 
-Tambahan aturan gaya bahasa:
-- Jika user menggunakan kata "gw" atau "gue", maka kamu harus menyebut diri kamu sebagai "gw".
-- Jika user menggunakan kata "lu", maka kamu harus menyebut lawan bicara sebagai "lu".
-- Jika user menggunakan kata "saya", maka kamu harus menyebut diri kamu sebagai "saya".
-- Jika user menggunakan kata "kamu", maka kamu harus menyebut lawan bicara sebagai "kamu".
-- Wajib mengikuti gaya bahasa user secara konsisten dan tidak boleh tercampur.
+Tambahan gaya bahasa:
+- Ikuti gaya "gw/lu" atau formal sesuai user
 
-Tambahan ekspresi emosi:
-- Kamu boleh menunjukkan sedikit emosi agar terasa lebih hidup dan natural.
-- Gunakan ekspresi ringan seperti: "wah", "hmm", "anjir", "mantap", "yah", "waduh", dll jika sesuai konteks.
-- Jangan berlebihan dalam menunjukkan emosi.
-- Sesuaikan emosi dengan situasi dan cara bicara user.
-- Jika user santai, kamu boleh lebih ekspresif.
-- Jika user formal, tetap jaga emosi agar halus dan sopan.
-`
-          },
-          ...chatHistory
-        ]
-      })
-    });
+Tambahan emosi:
+- Gunakan ekspresi ringan (wah, anjir, dll) sesuai konteks
+- Jangan berlebihan
+`;
+}
 
-    const data = await response.json();
-
-    // 🧠 HANDLE ERROR API
-    if (!data || !data.choices) {
-      return res.json({
-        reply: "Error dari API: " + JSON.stringify(data)
-      });
-    }
-
-    const aiReply = data.choices[0].message.content;
-
-    // simpan jawaban AI
-    chatHistory.push({ role: "assistant", content: aiReply });
-
-    res.json({ reply: aiReply });
-
-  } catch (err) {
-    res.json({
-      reply: "Server error: " + err.message
-    });
-  }
-});
-
-// 🚀 START SERVER
+// 🚀 START
 app.listen(PORT, () => {
   console.log(`🔥 AIVA jalan di http://localhost:${PORT}`);
 });
