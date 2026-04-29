@@ -235,13 +235,16 @@ header {
 =========================== */
 #sidebar {
   position: fixed;
-  top: 0; left: calc(-1 * var(--sidebar-w));
+  top: 0;
+  left: calc(-1 * var(--sidebar-w));
   width: var(--sidebar-w);
   height: 100%;
   z-index: 99999;
-  background: rgba(5, 8, 20, 0.92);
+
+  background: var(--surface); /* ✅ fix utama */
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
+
   border-right: 1px solid var(--glass-border);
   transition: left 0.38s var(--transition);
   display: flex;
@@ -947,6 +950,51 @@ pre {
 .light #supportPage { background: linear-gradient(180deg, #eef0fa, #f4f6fb); }
 .light .about-section, .light .support-card { background: rgba(255,255,255,0.8); }
 .light .about-section p, .light .about-desc, .light .support-text { color: #555; }
+
+.light #sidebar {
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(28px);
+  -webkit-backdrop-filter: blur(28px);
+
+  border-right: 1px solid rgba(0,0,0,0.08);
+
+  box-shadow: 
+    0 10px 30px rgba(0,0,0,0.08),
+    0 0 0 1px rgba(255,255,255,0.4) inset;
+}
+
+.light #sidebar {
+  background: linear-gradient(
+    180deg,
+    rgba(255,255,255,0.85),
+    rgba(245,247,255,0.75)
+  );
+}
+
+.light .sidebar-item {
+  color: #222;
+}
+
+.light .sidebar-item:hover {
+  background: rgba(59,110,245,0.08);
+  color: #000;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.06);
+}
+
+.light .sidebar-item .icon {
+  background: rgba(0,0,0,0.04);
+  border: 1px solid rgba(0,0,0,0.08);
+}
+
+.light #sidebar::after {
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    rgba(59,110,245,0.4),
+    transparent
+  );
+  opacity: 0.3;
+}
 </style>
 </head>
 <body>
