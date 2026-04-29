@@ -1439,7 +1439,7 @@ function stopAI(){
   if(controller){ controller.abort(); controller = null; }
   document.querySelectorAll(".thinking-bubble").forEach(b => b.remove());
   stopBtn.style.display = "none";
-  add("⏹ Dihentikan oleh pengguna.", "ai");
+  add("Dihentikan oleh pengguna.", "ai");
   updateSendButton();
 }
 
