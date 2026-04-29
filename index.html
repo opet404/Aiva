@@ -1494,6 +1494,7 @@ body::before{
   opacity:0.8;
 }
 
+/* posisi */
 #aiSwitcher{
   position:absolute;
   right:50px;
@@ -1502,80 +1503,168 @@ body::before{
   z-index:999;
 }
 
-/* BUTTON */
+/* button */
 #aiBtn{
   display:flex;
   align-items:center;
   gap:4px;
-  padding:3px 6px;
-  border-radius:8px;
-  background:rgba(17,24,39,0.9);
-  border:1px solid rgba(255,255,255,0.1);
+  padding:4px 6px;
+  border-radius:7px;
   cursor:pointer;
+  font-size:10px;
 }
 
-#aiBtn img{
+/* icon */
+#aiBtn img,
+#aiMenu img{
   width:12px;
   height:12px;
+  object-fit:contain;
 }
 
-#aiBtn span{
-  font-size:10px;
-  color:#e5e7eb;
-}
-
-/* DROPDOWN */
+/* dropdown */
 #aiMenu{
+  display:none;
   position:absolute;
   top:110%;
   right:0;
-  background:#111827;
-  border:1px solid rgba(255,255,255,0.1);
-  border-radius:8px;
+  border-radius:7px;
   overflow:hidden;
-  min-width:80px;
-
-  /* 🔥 ANIMASI */
-  opacity:0;
-  transform:translateY(-6px) scale(0.95);
-  pointer-events:none;
-  transition:all 0.18s ease;
+  min-width:85px;
 }
 
-/* SHOW STATE */
-#aiMenu.show{
-  opacity:1;
-  transform:translateY(0) scale(1);
-  pointer-events:auto;
+/* item */
+#aiMenu div{
+  display:flex;
+  align-items:center;
+  gap:5px;
+  padding:5px;
+  font-size:10px;
+  cursor:pointer;
 }
 
-/* ITEM */
+/* kasih tau browser support dua mode */
+:root{
+  color-scheme: light dark;
+}
+
+/* ========================= */
+/* BASE STYLE */
+/* ========================= */
+
+#aiBtn, #aiMenu{
+  outline:1px solid rgba(0,0,0,0.08);
+  outline-offset:2px;
+}
+
+/* dropdown */
+#aiMenu{
+  display:none;
+  position:absolute;
+  top:110%;
+  right:0;
+  min-width:90px;
+  overflow:hidden;
+}
+
+/* item list */
 #aiMenu div{
   display:flex;
   align-items:center;
   gap:6px;
-  padding:6px;
+  padding:6px 8px;
   font-size:11px;
   cursor:pointer;
+  transition:background 0.15s ease;
 }
 
+/* ========================= */
+/* ☀️ LIGHT */
+/* ========================= */
+
+html[data-theme="light"] #aiBtn,
+html[data-theme="light"] #aiMenu{
+  background:#ffffff;
+  color:#111111;
+  border:1px solid rgba(0,0,0,0.1);
+  box-shadow:0 4px 12px rgba(0,0,0,0.08);
+}
+
+html[data-theme="light"] #aiBtn *,
+html[data-theme="light"] #aiMenu *{
+  color:#111111;
+}
+
+/* hover light */
+html[data-theme="light"] #aiMenu div:hover{
+  background:rgba(0,0,0,0.05);
+}
+
+/* ========================= */
+/* 🌙 DARK */
+/* ========================= */
+
+html[data-theme="dark"] #aiBtn,
+html[data-theme="dark"] #aiMenu{
+  background:#111827 !important;
+  color:#ffffff !important;
+
+  border:none !important;
+  outline:none !important;
+
+  box-shadow:
+    0 0 0 2px #3b82f6 !important, /* 🔵 garis biru */
+    0 4px 16px rgba(0,0,0,0.5) !important;
+}
+
+html[data-theme="dark"] #aiBtn *,
+html[data-theme="dark"] #aiMenu *{
+  color:#ffffff;
+}
+
+/* hover dark */
+html[data-theme="dark"] #aiMenu div:hover{
+  background:rgba(255,255,255,0.08);
+}
+
+/* ========================= */
+/* SHOW DROPDOWN */
+/* ========================= */
+
+#aiMenu.show{
+  display:block;
+}
+
+/* hover */
 #aiMenu div:hover{
-  background:rgba(255,255,255,0.05);
+  background:rgba(0,0,0,0.05);
 }
 
-#aiMenu img{
-  width:12px;
-  height:12px;
+@media (prefers-color-scheme: dark){
+  #aiMenu div:hover{
+    background:rgba(255,255,255,0.08);
+  }
 }
 
-/* ANIMASI SWITCH */
-#aiIcon, #aiText{
+/* animasi */
+#aiBtn, #aiMenu{
   transition:all 0.2s ease;
 }
 
+/* show dropdown */
+#aiMenu.show{
+  display:block;
+}
+
+/* animasi keluar */
 .switching{
-  transform:scale(0.7);
   opacity:0;
+  transform:scale(0.8);
+}
+
+/* animasi normal (balik masuk) */
+#aiIcon, #aiText{
+  transition:all 0.2s ease;
 }
 
 <div style="
@@ -1598,11 +1687,13 @@ BETA VERSION • IN DEVELOPMENT
 
 <header>
     
+    <meta name="color-scheme" content="light dark">
+    
 <div id="aiSwitcher">
-  
+
   <!-- BUTTON -->
   <div id="aiBtn" onclick="toggleAI()">
-    <img id="aiIcon" src="https://cdn-icons-png.flaticon.com/512/4712/4712109.png">
+    <img id="aiIcon" src="https://upload.wikimedia.org/wikipedia/commons/6/69/Qwen_logo.svg">
     <span id="aiText">Qwen</span>
   </div>
 
@@ -1621,48 +1712,6 @@ BETA VERSION • IN DEVELOPMENT
 
   </div>
 
-</div>
-
-  <!-- DROPDOWN -->
- <div id="aiMenu" style="
-  display:none;
-  position:absolute; /* 🔥 penting */
-  top:110%; /* 🔥 paksa ke bawah */
-  right:0;
-  background:#111827;
-  border:1px solid rgba(255,255,255,0.08);
-  border-radius:7px;
-  overflow:hidden;
-  min-width:80px;
-">
-    
-    <div onclick="setAPI('qwen')" style="
-      display:flex;
-      align-items:center;
-      gap:5px;
-      padding:5px;
-      font-size:10px;
-      cursor:pointer;
-    ">
-      <img src="https://upload.wikimedia.org/wikipedia/commons/6/69/Qwen_logo.svg"
-           style="width:11px;height:11px;">
-      Qwen
-    </div>
-
-    <div onclick="setAPI('groq')" style="
-      display:flex;
-      align-items:center;
-      gap:5px;
-      padding:5px;
-      font-size:10px;
-      cursor:pointer;
-    ">
-      <img src="https://avatars.githubusercontent.com/u/139895814?s=200&v=4"
-           style="width:11px;height:11px;">
-      Groq
-    </div>
-
-  </div>
 </div>
     
 <div class="menu-btn" onclick="toggleSidebar()"></div>
