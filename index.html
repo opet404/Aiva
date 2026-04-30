@@ -1405,7 +1405,7 @@ async function cvConvert(){
   let data;
   try {
     cvAnimateBar(55, 300);
-    const resp = await fetch(`/convert?url=${encodeURIComponent(url)}&audio=0`);
+    const resp = await fetch(`/api/convert?url=${encodeURIComponent(url)}&audio=0`);
     data = await resp.json();
   } catch(e) {
     cvSetError(true,"Gagal terhubung ke server. Cek koneksi internet.");
@@ -1443,6 +1443,10 @@ async function cvConvert(){
       a.className = "cv-dl-btn hd";
       a.href = item.url;
       a.innerHTML = `<div class="cv-dl-left">${dlIcon} ${item.label}</div><span class="cv-dl-badge">MP4</span>`;
+      a.addEventListener("click", (e) => {
+        e.preventDefault();
+        window.location.href = item.url;
+      });
       grid.appendChild(a);
     });
   } else {
@@ -1452,6 +1456,10 @@ async function cvConvert(){
       a.className = "cv-dl-btn hd";
       a.href = data.dlUrl;
       a.innerHTML = `<div class="cv-dl-left">${dlIcon} Download Video — HD, No Watermark</div><span class="cv-dl-badge">MP4 ⭐</span>`;
+      a.addEventListener("click", (e) => {
+        e.preventDefault();
+        window.location.href = data.dlUrl;
+      });
       grid.appendChild(a);
     }
     // Audio MP3
@@ -1465,7 +1473,7 @@ async function cvConvert(){
         a.style.opacity="0.6";
         a.querySelector(".cv-dl-badge").textContent="...";
         try {
-          const r = await fetch(data.audioUrl.replace("/api/convert", "/convert"));
+          const r = await fetch(data.audioUrl);
           const d = await r.json();
           if(d.dlUrl){ window.location.href = d.dlUrl; }
           else { cvSetError(true, d.error || "Gagal ambil audio"); }
