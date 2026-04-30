@@ -228,6 +228,22 @@ header{
   color:rgba(255,255,255,0.2);text-transform:uppercase;flex-shrink:0;
 }
 
+/* Mode Switch */
+.sb-mode-wrap{display:flex;gap:6px;padding:4px 10px 10px;flex-shrink:0}
+.sb-mode-btn{
+  flex:1;display:flex;align-items:center;justify-content:center;gap:6px;
+  padding:8px 6px;border-radius:10px;cursor:pointer;
+  font-size:10px;font-weight:600;color:rgba(255,255,255,0.35);
+  background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);
+  transition:all 0.2s;letter-spacing:0.3px;
+}
+.sb-mode-btn svg{width:12px;height:12px;stroke:currentColor;stroke-width:2;flex-shrink:0}
+.sb-mode-btn:hover{background:rgba(61,114,246,0.12);color:rgba(255,255,255,0.6)}
+.sb-mode-btn.active{
+  background:rgba(61,114,246,0.2);border-color:rgba(61,114,246,0.4);
+  color:#a8c1ff;
+}
+
 /* History scroll */
 .sb-history{
   flex:1;overflow-y:auto;overflow-x:hidden;
@@ -618,6 +634,33 @@ header{
 .ai .msg-time{color:var(--muted);text-align:left}
 .text{line-height:1.7}
 
+/* Multi-model answer row */
+.multi-row{
+  display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;
+  padding:0 8px 4px;animation:msgIn 0.28s var(--ease);
+}
+@media(max-width:600px){.multi-row{grid-template-columns:1fr}}
+.multi-card{
+  background:var(--ai-bg);border:1px solid var(--gb);border-radius:var(--r-md);
+  padding:14px;display:flex;flex-direction:column;gap:8px;
+  backdrop-filter:blur(14px);transition:box-shadow 0.2s;
+}
+.multi-card:hover{box-shadow:0 0 24px rgba(61,114,246,0.15)}
+.multi-card-hdr{
+  display:flex;align-items:center;gap:7px;
+  padding-bottom:8px;border-bottom:1px solid var(--gb);
+}
+.multi-card-hdr img{width:16px;height:16px;border-radius:4px;object-fit:contain}
+.multi-card-label{font-size:10px;font-weight:700;letter-spacing:1.5px;color:var(--muted);text-transform:uppercase}
+.multi-card-body{font-size:13px;line-height:1.7;color:var(--text);flex:1}
+.multi-card-time{font-size:10px;color:var(--muted);margin-top:4px}
+.multi-loading{
+  display:flex;align-items:center;gap:5px;padding:6px 0;
+}
+.multi-card.groq-card{border-color:rgba(61,114,246,0.2)}
+.multi-card.qwen-card{border-color:rgba(114,72,245,0.2)}
+.multi-card.gemini-card{border-color:rgba(66,133,244,0.2)}
+
 /* Typing */
 .typing-bubble{
   align-self:flex-start;background:var(--ai-bg);border:1px solid var(--gb);
@@ -719,6 +762,18 @@ pre{margin:0;padding:14px;font-family:var(--FM);font-size:12px;line-height:1.7;c
     </div>
   </div>
 
+  <div class="sb-section-label">Mode Chat</div>
+  <div class="sb-mode-wrap">
+    <div class="sb-mode-btn active" id="modeSingle" onclick="setChatMode('single')">
+      <svg viewBox="0 0 24 24" fill="none"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      Chat Biasa
+    </div>
+    <div class="sb-mode-btn" id="modeMulti" onclick="setChatMode('multi')">
+      <svg viewBox="0 0 24 24" fill="none"><rect x="2" y="3" width="6" height="14" rx="2"/><rect x="9" y="3" width="6" height="14" rx="2"/><rect x="16" y="3" width="6" height="14" rx="2"/></svg>
+      Multi Model
+    </div>
+  </div>
+
   <div class="sb-section-label">Chat History</div>
   <div class="sb-history" id="sbHistory">
     <div class="sb-empty">No chats yet</div>
@@ -759,6 +814,7 @@ pre{margin:0;padding:14px;font-family:var(--FM);font-size:12px;line-height:1.7;c
     <div id="aiMenu">
       <div onclick="setAPI('groq')"><img src="https://avatars.githubusercontent.com/u/139895814?s=200&v=4"> Groq</div>
       <div onclick="setAPI('qwen')"><img src="https://upload.wikimedia.org/wikipedia/commons/6/69/Qwen_logo.svg"> Qwen</div>
+      <div onclick="setAPI('gemini')"><img src="https://www.gstatic.com/lamda/images/gemini_sparkle_v002_d4735304ff6292a690345.svg"> Gemini</div>
     </div>
   </div>
   <div class="settings-btn" onclick="togglePanel()">
@@ -937,7 +993,8 @@ const DARK_LOGO  = "https://i.ibb.co.com/SD7LZgmv/Picsart-26-04-29-23-27-26-445.
 const LIGHT_LOGO = "https://i.ibb.co.com/XrH4nnQy/file-0000000005a87208a1ebd9aff2438f5f.png";
 const AI_ICONS   = {
   groq: "https://avatars.githubusercontent.com/u/139895814?s=200&v=4",
-  qwen: "https://upload.wikimedia.org/wikipedia/commons/6/69/Qwen_logo.svg"
+  qwen: "https://upload.wikimedia.org/wikipedia/commons/6/69/Qwen_logo.svg",
+  gemini: "https://www.gstatic.com/lamda/images/gemini_sparkle_v002_d4735304ff6292a690345.svg"
 };
 
 /* ======================== STATE ======================== */
@@ -945,7 +1002,8 @@ let isGenerating = false, stopTyping = false;
 let typingTimer = null, controller = null;
 let autoScrollEnabled = true;
 let currentAPI = "groq";
-let sessions = [];   // [{id, title, messages:[{role,text,time}]}]
+let chatMode = "single"; // "single" | "multi"
+let sessions = [];   // [{id, title, messages:[{role,text,time,type?}], mode?}]
 let activeId  = null;
 
 /* ======================== DOM ======================== */
@@ -1143,6 +1201,19 @@ function setAPI(api, save=true){
   if(save) localStorage.setItem("api", api);
 }
 
+/* ======================== CHAT MODE ======================== */
+function setChatMode(mode){
+  chatMode = mode;
+  localStorage.setItem("chatMode", mode);
+  document.getElementById("modeSingle").classList.toggle("active", mode==="single");
+  document.getElementById("modeMulti").classList.toggle("active", mode==="multi");
+  // Show/hide AI switcher — irrelevant in multi mode
+  document.getElementById("aiSwitcher").style.opacity = mode==="multi" ? "0.35" : "1";
+  document.getElementById("aiSwitcher").style.pointerEvents = mode==="multi" ? "none" : "";
+  closeSidebar();
+  newChat();
+}
+
 /* ======================== ABOUT / SUPPORT ======================== */
 function openAbout(){
   const p = document.getElementById("aboutPage");
@@ -1284,6 +1355,14 @@ function send(){
   const msg=inputEl.value.trim();
   if(!msg) return;
 
+  // Auto-detect video link & open converter
+  if(isVideoLink(msg)){
+    inputEl.value=""; inputEl.style.height="auto"; updateSend();
+    openConverter();
+    document.getElementById("cvInput").value = msg;
+    return;
+  }
+
   if(!activeId) newSession();
   removeWelcome();
 
@@ -1294,13 +1373,25 @@ function send(){
   isGenerating=true; stopTyping=false;
   stopBtn.style.display="flex"; sendBtn.disabled=true;
 
+  if(chatMode === "multi"){
+    sendMulti(msg);
+  } else {
+    sendSingle(msg);
+  }
+}
+
+function isVideoLink(txt){
+  return /https?:\/\/(www\.)?(tiktok\.com|vm\.tiktok\.com|youtu\.be|youtube\.com|instagram\.com|twitter\.com|x\.com|facebook\.com|fb\.watch|fb\.com|redd\.it|reddit\.com)/.test(txt);
+}
+
+function sendSingle(msg){
   controller=new AbortController();
   const loader=showThinking();
 
   fetch(API_URL,{
     method:"POST",
     headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({message:msg}),
+    body:JSON.stringify({message:msg, api:currentAPI, sessionId:activeId}),
     signal:controller.signal
   })
   .then(r=>r.json())
@@ -1324,6 +1415,57 @@ function send(){
       finishAI();
     }
   });
+}
+
+async function sendMulti(msg){
+  const loader=showThinking();
+  try{
+    const resp = await fetch("/chat-multi",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({message:msg, sessionId:activeId})
+    });
+    const d = await resp.json();
+    loader.remove();
+
+    const t = getTime();
+    const row = document.createElement("div");
+    row.className = "multi-row";
+
+    const cards = [
+      { key:"groq",   label:"Groq",   icon:AI_ICONS.groq,   cls:"groq-card" },
+      { key:"qwen",   label:"Qwen",   icon:AI_ICONS.qwen,   cls:"qwen-card" },
+      { key:"gemini", label:"Gemini", icon:AI_ICONS.gemini, cls:"gemini-card" },
+    ];
+
+    cards.forEach(c => {
+      const card = document.createElement("div");
+      card.className = "multi-card " + c.cls;
+      card.innerHTML = `
+        <div class="multi-card-hdr">
+          <img src="${c.icon}" alt="${c.label}">
+          <span class="multi-card-label">${c.label}</span>
+        </div>
+        <div class="multi-card-body">${renderMessage(d[c.key] || "")}</div>
+        <div class="multi-card-time">${t}</div>`;
+      row.appendChild(card);
+    });
+
+    chatEl.appendChild(row);
+    autoScroll();
+
+    // Save to session as multi-type message
+    const combinedText = `[Groq]\n${d.groq}\n\n[Qwen]\n${d.qwen}\n\n[Gemini]\n${d.gemini}`;
+    addMsgToSession("ai", combinedText, t, "multi");
+    finishAI();
+
+  } catch(err){
+    loader.remove();
+    const errMsg = "Gagal multi-model request.";
+    const {time:et} = addMsg(errMsg, "ai");
+    addMsgToSession("ai", errMsg, et);
+    finishAI();
+  }
 }
 
 /* ======================== VIDEO CONVERTER ======================== */
