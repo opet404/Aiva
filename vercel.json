@@ -1,6 +1,11 @@
 {
   "functions": {
     "api/convert.js": { "maxDuration": 30 },
-    "api/download.js": { "maxDuration": 30, "memory": 1024 }
-  }
+    "api/download.js": { "maxDuration": 60, "memory": 1024 }
+  },
+  "routes": [
+    { "src": "/api/convert", "dest": "/api/convert.js" },
+    { "src": "/api/download", "dest": "/api/download.js" },
+    { "src": "/(.*)", "dest": "/index.html" }
+  ]
 }
