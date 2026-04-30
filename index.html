@@ -1405,7 +1405,7 @@ async function cvConvert(){
   let data;
   try {
     cvAnimateBar(55, 300);
-    const resp = await fetch(`/api/convert?url=${encodeURIComponent(url)}&audio=0`);
+    const resp = await fetch(`/convert?url=${encodeURIComponent(url)}&audio=0`);
     data = await resp.json();
   } catch(e) {
     cvSetError(true,"Gagal terhubung ke server. Cek koneksi internet.");
@@ -1465,7 +1465,7 @@ async function cvConvert(){
         a.style.opacity="0.6";
         a.querySelector(".cv-dl-badge").textContent="...";
         try {
-          const r = await fetch(data.audioUrl);
+          const r = await fetch(data.audioUrl.replace("/api/convert", "/convert"));
           const d = await r.json();
           if(d.dlUrl){ window.location.href = d.dlUrl; }
           else { cvSetError(true, d.error || "Gagal ambil audio"); }
