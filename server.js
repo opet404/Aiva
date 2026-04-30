@@ -39,6 +39,24 @@ app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "index.html"));
 });
 
+// ─── HEALTH CHECK ─────────────────────────────────────────────────────────────
+// Akses via: http://localhost:3000/health
+app.get("/health", async (req, res) => {
+  const testMsg = "hi";
+  const results = {};
+
+  for (const api of ["groq", "qwen", "gemini"]) {
+    try {
+      const reply = await callAPI(api, testMsg, []);
+      results[api] = { status: "ok", preview: reply.slice(0, 60) };
+    } catch (e) {
+      results[api] = { status: "error", error: e.message };
+    }
+  }
+
+  res.json(results);
+});
+
 // ─── SINGLE CHAT ──────────────────────────────────────────────────────────────
 app.post("/chat", async (req, res) => {
   try {
@@ -88,35 +106,47 @@ app.post("/multi-chat", async (req, res) => {
   }
 });
 
+// ─── FETCH WITH TIMEOUT ───────────────────────────────────────────────────────
+function fetchWithTimeout(url, options, timeoutMs = 15000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  return fetch(url, { ...options, signal: controller.signal })
+    .finally(() => clearTimeout(timer));
+}
+
 // ─── CALL API HELPER ──────────────────────────────────────────────────────────
 async function callAPI(api, message, history) {
 
   // ── GROQ ───────────────────────────────────────────────────────────────────
   if (api === "groq") {
-    const resp = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Authorization": "Bearer " + GROQ_API_KEY,
-        "Content-Type":  "application/json"
+    const resp = await fetchWithTimeout(
+      "https://api.groq.com/openai/v1/chat/completions",
+      {
+        method: "POST",
+        headers: {
+          "Authorization": "Bearer " + GROQ_API_KEY,
+          "Content-Type":  "application/json"
+        },
+        body: JSON.stringify({
+          model:       "llama-3.1-8b-instant",
+          temperature: 0.7,
+          max_tokens:  1024,
+          messages: [
+            { role: "system", content: "Kamu adalah AIVA. Santai, natural, ringkas tapi jelas. Ikuti gaya bahasa user." }
+          ].concat(history).concat([{ role: "user", content: message }])
+        })
       },
-      body: JSON.stringify({
-        model:       "llama-3.1-8b-instant",
-        temperature: 0.7,
-        max_tokens:  1024,
-        messages: [
-          { role: "system", content: "Kamu adalah AIVA. Santai, natural, ringkas tapi jelas. Ikuti gaya bahasa user." }
-        ].concat(history).concat([{ role: "user", content: message }])
-      })
-    });
+      15000
+    );
 
     if (!resp.ok) {
       const txt = await resp.text();
-      throw new Error("Groq HTTP " + resp.status + ": " + txt.slice(0, 200));
+      throw new Error("Groq HTTP " + resp.status + ": " + txt.slice(0, 300));
     }
 
     const d = await resp.json();
     if (!d || !d.choices || !d.choices[0] || !d.choices[0].message || !d.choices[0].message.content)
-      throw new Error("Groq: response tidak valid");
+      throw new Error("Groq: response tidak valid — " + JSON.stringify(d).slice(0, 200));
 
     return d.choices[0].message.content;
   }
@@ -129,35 +159,56 @@ async function callAPI(api, message, history) {
       const model = QWEN_MODELS[mi];
       try {
         console.log("[qwen] mencoba model: " + model);
-        const resp = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-          method: "POST",
-          headers: {
-            "Authorization": "Bearer " + OPENROUTER_API_KEY,
-            "Content-Type":  "application/json",
-            "HTTP-Referer":  "https://aiva-chat.app",
-            "X-Title":       "AIVA Chat"
+
+        const resp = await fetchWithTimeout(
+          "https://openrouter.ai/api/v1/chat/completions",
+          {
+            method: "POST",
+            headers: {
+              "Authorization": "Bearer " + OPENROUTER_API_KEY,
+              "Content-Type":  "application/json",
+              "HTTP-Referer":  "http://localhost:3000",
+              "X-Title":       "AIVA Chat"
+            },
+            body: JSON.stringify({
+              model:       model,
+              temperature: 0.7,
+              max_tokens:  1024,
+              messages: [
+                { role: "system", content: "Kamu adalah AIVA. Rapi, terstruktur, jelas, dan informatif." }
+              ].concat(history).concat([{ role: "user", content: message }])
+            })
           },
-          body: JSON.stringify({
-            model:       model,
-            temperature: 0.7,
-            max_tokens:  1024,
-            messages: [
-              { role: "system", content: "Kamu adalah AIVA. Rapi, terstruktur, jelas, dan informatif." }
-            ].concat(history).concat([{ role: "user", content: message }])
-          })
-        });
+          20000
+        );
+
+        const txt = await resp.text();
 
         if (!resp.ok) {
-          const txt = await resp.text();
-          console.warn("[qwen] model " + model + " HTTP " + resp.status + ": " + txt.slice(0, 120));
-          lastErr = new Error("OpenRouter HTTP " + resp.status);
+          console.warn("[qwen] model " + model + " HTTP " + resp.status + ": " + txt.slice(0, 200));
+          lastErr = new Error("OpenRouter HTTP " + resp.status + " (" + model + "): " + txt.slice(0, 150));
           continue;
         }
 
-        const d = await resp.json();
+        let d;
+        try {
+          d = JSON.parse(txt);
+        } catch (parseErr) {
+          console.warn("[qwen] model " + model + " gagal parse JSON: " + txt.slice(0, 100));
+          lastErr = new Error("JSON parse error dari " + model);
+          continue;
+        }
+
+        // Cek apakah ada error field dari OpenRouter
+        if (d.error) {
+          console.warn("[qwen] model " + model + " error: " + JSON.stringify(d.error).slice(0, 200));
+          lastErr = new Error("OpenRouter error: " + (d.error.message || JSON.stringify(d.error)));
+          continue;
+        }
+
         const content = d && d.choices && d.choices[0] && d.choices[0].message && d.choices[0].message.content;
         if (!content) {
-          console.warn("[qwen] model " + model + " konten kosong");
+          console.warn("[qwen] model " + model + " konten kosong: " + JSON.stringify(d).slice(0, 200));
           lastErr = new Error("Konten kosong dari " + model);
           continue;
         }
@@ -166,8 +217,13 @@ async function callAPI(api, message, history) {
         return content;
 
       } catch (e) {
-        console.warn("[qwen] model " + model + " exception: " + e.message);
-        lastErr = e;
+        if (e.name === "AbortError") {
+          console.warn("[qwen] model " + model + " timeout (20s)");
+          lastErr = new Error("Timeout pada " + model);
+        } else {
+          console.warn("[qwen] model " + model + " exception: " + e.message);
+          lastErr = e;
+        }
       }
     }
 
@@ -176,15 +232,31 @@ async function callAPI(api, message, history) {
 
   // ── GEMINI — model fallback chain ─────────────────────────────────────────
   if (api === "gemini") {
-    const geminiContents = history
-      .filter(function(m) { return m.role === "user" || m.role === "assistant"; })
-      .map(function(m) {
-        return {
-          role:  m.role === "assistant" ? "model" : "user",
-          parts: [{ text: m.content }]
-        };
-      });
-    geminiContents.push({ role: "user", parts: [{ text: message }] });
+    // Bangun history Gemini — pastikan alternating user/model
+    // Gemini tidak boleh consecutive role yang sama
+    const geminiContents = [];
+    let lastRole = null;
+
+    for (const m of history.filter(m => m.role === "user" || m.role === "assistant")) {
+      const role = m.role === "assistant" ? "model" : "user";
+      if (role === lastRole) continue; // skip duplikat role berurutan
+      geminiContents.push({ role, parts: [{ text: m.content }] });
+      lastRole = role;
+    }
+
+    // Pastikan terakhir sebelum pesan baru adalah "user" jika ada
+    if (lastRole === "user") {
+      // Tidak perlu tambah, nanti digabung di bawah
+    }
+
+    // Tambahkan pesan user baru
+    // Kalau lastRole sudah "user", Gemini tidak bisa — gabungkan
+    if (lastRole === "user" && geminiContents.length > 0) {
+      const last = geminiContents[geminiContents.length - 1];
+      last.parts[0].text += "\n" + message;
+    } else {
+      geminiContents.push({ role: "user", parts: [{ text: message }] });
+    }
 
     let lastErr = null;
 
@@ -192,43 +264,68 @@ async function callAPI(api, message, history) {
       const model = GEMINI_MODELS[mi];
       try {
         console.log("[gemini] mencoba model: " + model);
-        const resp = await fetch(
+
+        const requestBody = {
+          contents: geminiContents,
+          generationConfig: {
+            temperature:     0.7,
+            maxOutputTokens: 1024
+          }
+        };
+
+        // system_instruction tidak didukung oleh gemini-1.0-pro, skip untuk model lama
+        if (model !== "gemini-1.0-pro") {
+          requestBody.system_instruction = {
+            parts: [{ text: "Kamu adalah AIVA. Kreatif, cerdas, dan ramah. Jawab dalam bahasa yang sama dengan user." }]
+          };
+        }
+
+        const resp = await fetchWithTimeout(
           "https://generativelanguage.googleapis.com/v1beta/models/" + model + ":generateContent?key=" + GEMINI_API_KEY,
           {
             method:  "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              system_instruction: {
-                parts: [{ text: "Kamu adalah AIVA. Kreatif, cerdas, dan ramah. Jawab dalam bahasa yang sama dengan user." }]
-              },
-              contents: geminiContents,
-              generationConfig: {
-                temperature:     0.7,
-                maxOutputTokens: 1024
-              }
-            })
-          }
+            body: JSON.stringify(requestBody)
+          },
+          20000
         );
 
+        const txt = await resp.text();
+
         if (!resp.ok) {
-          const txt = await resp.text();
-          console.warn("[gemini] model " + model + " HTTP " + resp.status + ": " + txt.slice(0, 120));
-          lastErr = new Error("Gemini HTTP " + resp.status);
+          console.warn("[gemini] model " + model + " HTTP " + resp.status + ": " + txt.slice(0, 200));
+          lastErr = new Error("Gemini HTTP " + resp.status + " (" + model + "): " + txt.slice(0, 150));
           continue;
         }
 
-        const d = await resp.json();
+        let d;
+        try {
+          d = JSON.parse(txt);
+        } catch (parseErr) {
+          console.warn("[gemini] model " + model + " gagal parse JSON: " + txt.slice(0, 100));
+          lastErr = new Error("JSON parse error dari " + model);
+          continue;
+        }
 
         if (!d || !d.candidates || d.candidates.length === 0) {
           const reason = (d && d.promptFeedback && d.promptFeedback.blockReason) || "no candidates";
-          console.warn("[gemini] model " + model + " blocked: " + reason);
-          lastErr = new Error("Gemini blocked: " + reason);
+          console.warn("[gemini] model " + model + " blocked/empty: " + reason);
+          console.warn("[gemini] full response: " + JSON.stringify(d).slice(0, 300));
+          lastErr = new Error("Gemini blocked: " + reason + " (" + model + ")");
           continue;
         }
 
-        const part = d.candidates[0] && d.candidates[0].content && d.candidates[0].content.parts && d.candidates[0].content.parts[0] && d.candidates[0].content.parts[0].text;
+        const candidate = d.candidates[0];
+        // Cek finish reason
+        if (candidate.finishReason && candidate.finishReason !== "STOP" && candidate.finishReason !== "MAX_TOKENS") {
+          console.warn("[gemini] model " + model + " finishReason: " + candidate.finishReason);
+          lastErr = new Error("Gemini finish: " + candidate.finishReason + " (" + model + ")");
+          continue;
+        }
+
+        const part = candidate && candidate.content && candidate.content.parts && candidate.content.parts[0] && candidate.content.parts[0].text;
         if (!part) {
-          console.warn("[gemini] model " + model + " part kosong");
+          console.warn("[gemini] model " + model + " part kosong: " + JSON.stringify(candidate).slice(0, 200));
           lastErr = new Error("Part kosong dari " + model);
           continue;
         }
@@ -237,13 +334,18 @@ async function callAPI(api, message, history) {
         return part;
 
       } catch (e) {
-        console.warn("[gemini] model " + model + " exception: " + e.message);
-        lastErr = e;
+        if (e.name === "AbortError") {
+          console.warn("[gemini] model " + model + " timeout (20s)");
+          lastErr = new Error("Timeout pada " + model);
+        } else {
+          console.warn("[gemini] model " + model + " exception: " + e.message);
+          lastErr = e;
+        }
       }
     }
 
-    // Last resort: fallback ke Groq kalau semua Gemini quota habis
-    console.warn("[gemini] semua model gagal, fallback ke Groq...");
+    // Last resort: fallback ke Groq
+    console.warn("[gemini] semua model gagal (" + (lastErr && lastErr.message) + "), fallback ke Groq...");
     try {
       const fallback = await callAPI("groq", message, history);
       return "[Gemini tidak tersedia, dijawab oleh Groq]\n\n" + fallback;
@@ -261,4 +363,6 @@ app.listen(PORT, function() {
   console.log("   Groq   → llama-3.1-8b-instant");
   console.log("   Qwen   → OpenRouter fallback chain (" + QWEN_MODELS.length + " models)");
   console.log("   Gemini → Gemini fallback chain (" + GEMINI_MODELS.length + " models) + Groq backup");
+  console.log("");
+  console.log("   Health check → http://localhost:" + PORT + "/health");
 });
