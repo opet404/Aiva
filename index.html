@@ -1436,29 +1436,41 @@ async function cvConvert(){
   const dlIcon    = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="width:15px;height:15px;flex-shrink:0"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>`;
   const audioIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="width:15px;height:15px;flex-shrink:0"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>`;
 
+  // Helper: trigger download via proxy jika direct URL kena CORS
+  function triggerDownload(directUrl, filename) {
+    // Coba download langsung dulu (paling cepat)
+    const a = document.createElement("a");
+    a.href = directUrl;
+    a.download = filename;
+    a.target = "_blank";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  }
+
   // Status picker (multi-item: Instagram carousel dll)
   if(data.status === "picker" && data.items){
     data.items.forEach((item, i) => {
       const a = document.createElement("a");
       a.className = "cv-dl-btn hd";
-      a.href = item.url;
+      a.href = "#";
       a.innerHTML = `<div class="cv-dl-left">${dlIcon} ${item.label}</div><span class="cv-dl-badge">MP4</span>`;
       a.addEventListener("click", (e) => {
         e.preventDefault();
-        window.location.href = item.url;
+        triggerDownload(item.directUrl, item.filename || `aiva_video_${i+1}.mp4`);
       });
       grid.appendChild(a);
     });
   } else {
     // Video MP4
-    if(data.dlUrl){
+    if(data.directUrl){
       const a = document.createElement("a");
       a.className = "cv-dl-btn hd";
-      a.href = data.dlUrl;
+      a.href = "#";
       a.innerHTML = `<div class="cv-dl-left">${dlIcon} Download Video — HD, No Watermark</div><span class="cv-dl-badge">MP4 ⭐</span>`;
       a.addEventListener("click", (e) => {
         e.preventDefault();
-        window.location.href = data.dlUrl;
+        triggerDownload(data.directUrl, data.filename || "aiva_download.mp4");
       });
       grid.appendChild(a);
     }
@@ -1475,8 +1487,11 @@ async function cvConvert(){
         try {
           const r = await fetch(data.audioUrl);
           const d = await r.json();
-          if(d.dlUrl){ window.location.href = d.dlUrl; }
-          else { cvSetError(true, d.error || "Gagal ambil audio"); }
+          if(d.directUrl){
+            triggerDownload(d.directUrl, d.filename || "aiva_download.mp3");
+          } else {
+            cvSetError(true, d.error || "Gagal ambil audio");
+          }
         } catch(err) { cvSetError(true,"Gagal fetch audio"); }
         a.style.opacity="1";
         a.querySelector(".cv-dl-badge").textContent="MP3";
@@ -1487,7 +1502,7 @@ async function cvConvert(){
 
   const note = document.createElement("div");
   note.style.cssText="font-size:11px;color:var(--muted);text-align:center;margin-top:10px;line-height:1.7;padding:0 4px";
-  note.textContent="✅ Download langsung via server AIVA — tanpa redirect ke web lain.";
+  note.textContent="✅ Download langsung — klik tombol di atas untuk mulai.";
   grid.appendChild(note);
 
   cvSetResult(true);
