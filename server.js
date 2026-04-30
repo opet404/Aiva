@@ -41,26 +41,21 @@ app.get("/convert", async (req, res) => {
   if (!videoUrl) return res.json({ error: "URL kosong" });
 
   try {
+    // Cobalt API v10 format (baru sejak akhir 2024)
     const body = {
-      url:              videoUrl,
-      vCodec:           "h264",
-      vQuality:         "720",
-      aFormat:          "mp3",
-      isAudioOnly:      audioOnly,
-      isNoTTWatermark:  true,
-      isTTFullAudio:    false,
-      isAudioMuted:     false,
-      dubLang:          false,
-      disableMetadata:  false,
-      twitterGif:       false,
-      tiktokH265:       false
+      url:            videoUrl,
+      videoQuality:   "720",
+      audioFormat:    "mp3",
+      downloadMode:   audioOnly ? "audio" : "auto",
+      tiktokH265:     false
     };
 
-    // Coba beberapa Cobalt instance (kalau satu down)
+    // Instance Cobalt v10 yang masih aktif (no-auth, CORS open)
     const cobaltInstances = [
-      "https://co.wuk.sh/api/json",
-      "https://cobalt.api.lisek.world/api/json",
-      "https://cobalt.synzr.space/api/json"
+      "https://dl.cgm.rs",
+      "https://cobalt.ggtyler.dev",
+      "https://cobalt.catto.gay",
+      "https://cobalt.nadeko.net"
     ];
 
     let data = null;
@@ -68,26 +63,31 @@ app.get("/convert", async (req, res) => {
 
     for (const apiUrl of cobaltInstances) {
       try {
-        const r = await fetch(apiUrl, {
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), 10000);
+        const r = await fetch(`${apiUrl}/`, {
           method:  "POST",
           headers: {
             "Content-Type": "application/json",
             "Accept":       "application/json",
-            "User-Agent":   "Mozilla/5.0 (compatible; AIVA/1.0)"
+            "User-Agent":   "AIVA/1.0 (github.com/aiva)"
           },
           body:    JSON.stringify(body),
-          timeout: 10000
+          signal:  controller.signal
         });
+        clearTimeout(timer);
         data = await r.json();
-        if (data && data.status !== "error") break; // sukses
-        lastErr = data?.text || "API error";
+        // v10 success: status "tunnel" atau "redirect" atau "picker"
+        if (data && data.status !== "error") break;
+        lastErr = data?.error?.code || data?.text || "API error";
       } catch (e) {
         lastErr = e.message;
+        data = null;
       }
     }
 
-    if (!data || data.status === "error" || data.status === "rate-limit") {
-      return res.json({ error: data?.text || lastErr || "Semua server gagal" });
+    if (!data || data.status === "error") {
+      return res.json({ error: data?.error?.code || lastErr || "Semua server Cobalt gagal. Coba lagi nanti." });
     }
 
     // Picker = multi item (Instagram carousel dll)
@@ -101,8 +101,9 @@ app.get("/convert", async (req, res) => {
       });
     }
 
-    const rawUrl = data.url || data.stream;
-    if (!rawUrl) return res.json({ error: "Link download tidak ditemukan" });
+    // v10: url ada di data.url untuk tunnel/redirect
+    const rawUrl = data.url;
+    if (!rawUrl) return res.json({ error: "Link download tidak ditemukan dari Cobalt" });
 
     const ext      = audioOnly ? "mp3" : "mp4";
     const filename = `aiva_download.${ext}`;
