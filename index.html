@@ -1372,66 +1372,18 @@ function cvAnimateBar(pct, delay=0){
 }
 
 /* =============================================================
-   CONVERTER — Pure frontend, 100% works di GitHub Pages
-   Strategi: deteksi platform → tampilkan link per-platform
-   yang langsung prefill URL di layanan downloader terpercaya
+   CONVERTER — Fetch ke /api/convert (Vercel Serverless)
+   Download stream via /api/download — semua di domain sendiri
    ============================================================= */
 
-const CV_PLATFORMS = {
-  tiktok:    { name:"TikTok",      match: u => u.includes("tiktok.com") || u.includes("vm.tiktok") },
-  youtube:   { name:"YouTube",     match: u => u.includes("youtu.be") || u.includes("youtube.com") },
-  instagram: { name:"Instagram",   match: u => u.includes("instagram.com") },
-  twitter:   { name:"Twitter / X", match: u => u.includes("twitter.com") || u.includes("x.com") },
-  facebook:  { name:"Facebook",    match: u => u.includes("facebook.com") || u.includes("fb.watch") || u.includes("fb.com") },
-  reddit:    { name:"Reddit",      match: u => u.includes("reddit.com") || u.includes("redd.it") },
-};
-
-function cvGetPlatform(url){
-  for(const [key, p] of Object.entries(CV_PLATFORMS)){
-    if(p.match(url)) return { key, name: p.name };
-  }
-  return { key:"other", name:"Video" };
-}
-
-function cvGetDeepLinks(url, platform){
-  const enc  = encodeURIComponent(url);
-  const links = [];
-
-  // Cobalt.tools — satu-satunya yang masih aktif & reliable, prefill via hash
-  links.push({
-    label:"Cobalt Tools — HD, No Watermark",
-    href:`https://cobalt.tools/#${enc}`,
-    cls:"hd", badge:"Rekomendasi ⭐"
-  });
-
-  // Per-platform alternativenya
-  if(platform.key === "tiktok"){
-    links.push({ label:"SSSTik — TikTok No Watermark", href:`https://ssstik.io/id#url=${enc}`, cls:"sd", badge:"TikTok" });
-    links.push({ label:"SnapTik — TikTok Downloader",  href:`https://snaptik.app/id#${enc}`,   cls:"sd", badge:"TikTok" });
-  } else if(platform.key === "youtube"){
-    links.push({ label:"SaveFrom — YouTube MP4/MP3", href:`https://en.savefrom.net/1-how-to-download-from-youtube/#${enc}`, cls:"sd", badge:"YouTube" });
-    links.push({ label:"YT1s — YouTube Downloader",  href:`https://yt1s.io/en/youtube-to-mp4#${enc}`,                        cls:"sd", badge:"YouTube" });
-  } else if(platform.key === "instagram"){
-    links.push({ label:"SaveIG — Instagram Video",   href:`https://saveig.app/id#${enc}`,         cls:"sd", badge:"Instagram" });
-    links.push({ label:"Inflact — IG Downloader",    href:`https://inflact.com/downloader/instagram/video/#${enc}`, cls:"sd", badge:"Instagram" });
-  } else if(platform.key === "twitter"){
-    links.push({ label:"SaveTweetVid — Twitter / X", href:`https://savetweetvid.com/#${enc}`, cls:"sd", badge:"Twitter" });
-    links.push({ label:"TWSave — Twitter Video",     href:`https://twsave.com/#${enc}`,        cls:"sd", badge:"Twitter" });
-  } else if(platform.key === "facebook"){
-    links.push({ label:"FDown — Facebook Video",     href:`https://fdown.net/#${enc}`,          cls:"sd", badge:"Facebook" });
-    links.push({ label:"SaveFrom — Facebook",        href:`https://en.savefrom.net/1-how-to-download-from-youtube/#${enc}`, cls:"sd", badge:"Facebook" });
-  } else if(platform.key === "reddit"){
-    links.push({ label:"RedditSave — Reddit Video",  href:`https://redditsave.com/info?url=${enc}`, cls:"sd", badge:"Reddit" });
-  }
-
-  // Audio MP3 untuk semua platform
-  links.push({
-    label:"Cobalt Tools — Audio MP3",
-    href:`https://cobalt.tools/#${enc}`,
-    cls:"audio", badge:"MP3"
-  });
-
-  return links;
+function cvDetectName(url){
+  if(url.includes("tiktok.com")||url.includes("vm.tiktok")) return "TikTok";
+  if(url.includes("youtu.be")||url.includes("youtube.com"))  return "YouTube";
+  if(url.includes("instagram.com"))  return "Instagram";
+  if(url.includes("twitter.com")||url.includes("x.com")) return "Twitter / X";
+  if(url.includes("facebook.com")||url.includes("fb.watch")||url.includes("fb.com")) return "Facebook";
+  if(url.includes("reddit.com")||url.includes("redd.it")) return "Reddit";
+  return "Video";
 }
 
 async function cvConvert(){
@@ -1440,25 +1392,42 @@ async function cvConvert(){
   if(!url.startsWith("http")){ cvSetError(true,"Link tidak valid. Pastikan dimulai dengan https://"); return; }
 
   cvSetError(false,""); cvSetResult(false);
-  cvSetStatus(true,"Mendeteksi platform...");
+  cvSetStatus(true,"Menghubungi server...");
   document.getElementById("cvBtn").disabled=true;
   document.getElementById("cvBar").style.width="0%";
   document.getElementById("cvDlGrid").innerHTML="";
 
-  const platform = cvGetPlatform(url);
+  const platformName = cvDetectName(url);
 
-  cvAnimateBar(40, 150);
-  cvSetStatus(true,`Mempersiapkan link ${platform.name}...`);
-  cvAnimateBar(80, 450);
+  cvAnimateBar(25, 100);
+  cvSetStatus(true,`Memproses ${platformName}...`);
 
-  await new Promise(r => setTimeout(r, 700));
+  let data;
+  try {
+    cvAnimateBar(55, 300);
+    const resp = await fetch(`/api/convert?url=${encodeURIComponent(url)}&audio=0`);
+    data = await resp.json();
+  } catch(e) {
+    cvSetError(true,"Gagal terhubung ke server. Cek koneksi internet.");
+    cvSetStatus(false,"");
+    document.getElementById("cvBtn").disabled=false;
+    return;
+  }
+
+  cvAnimateBar(90, 200);
+  document.getElementById("cvBtn").disabled=false;
+
+  if(data.error){
+    cvSetError(true, data.error);
+    cvSetStatus(false,"");
+    return;
+  }
 
   cvAnimateBar(100, 150);
   cvSetStatus(false,"");
-  document.getElementById("cvBtn").disabled=false;
 
-  document.getElementById("cvTitle").textContent = `Video dari ${platform.name}`;
-  document.getElementById("cvMeta").textContent  = `${platform.name} • Pilih layanan → download langsung`;
+  document.getElementById("cvTitle").textContent = `Video dari ${platformName}`;
+  document.getElementById("cvMeta").textContent  = `${platformName} • Download langsung dari server AIVA`;
   document.getElementById("cvThumb").parentElement.style.display="none";
 
   const grid = document.getElementById("cvDlGrid");
@@ -1466,22 +1435,51 @@ async function cvConvert(){
 
   const dlIcon    = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="width:15px;height:15px;flex-shrink:0"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>`;
   const audioIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="width:15px;height:15px;flex-shrink:0"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>`;
-  const extIcon   = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="width:15px;height:15px;flex-shrink:0"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>`;
 
-  cvGetDeepLinks(url, platform).forEach((lnk, i)=>{
-    const a      = document.createElement("a");
-    a.className  = `cv-dl-btn ${lnk.cls}`;
-    a.href       = lnk.href;
-    a.target     = "_blank";
-    a.rel        = "noopener noreferrer";
-    const icon   = lnk.cls==="audio" ? audioIcon : (i===0 ? dlIcon : extIcon);
-    a.innerHTML  = `<div class="cv-dl-left">${icon} ${lnk.label}</div><span class="cv-dl-badge">${lnk.badge}</span>`;
-    grid.appendChild(a);
-  });
+  // Status picker (multi-item: Instagram carousel dll)
+  if(data.status === "picker" && data.items){
+    data.items.forEach((item, i) => {
+      const a = document.createElement("a");
+      a.className = "cv-dl-btn hd";
+      a.href = item.url;
+      a.innerHTML = `<div class="cv-dl-left">${dlIcon} ${item.label}</div><span class="cv-dl-badge">MP4</span>`;
+      grid.appendChild(a);
+    });
+  } else {
+    // Video MP4
+    if(data.dlUrl){
+      const a = document.createElement("a");
+      a.className = "cv-dl-btn hd";
+      a.href = data.dlUrl;
+      a.innerHTML = `<div class="cv-dl-left">${dlIcon} Download Video — HD, No Watermark</div><span class="cv-dl-badge">MP4 ⭐</span>`;
+      grid.appendChild(a);
+    }
+    // Audio MP3
+    if(data.audioUrl){
+      const a = document.createElement("a");
+      a.className = "cv-dl-btn audio";
+      a.href = "#";
+      a.innerHTML = `<div class="cv-dl-left">${audioIcon} Download Audio — MP3</div><span class="cv-dl-badge">MP3</span>`;
+      a.addEventListener("click", async (e) => {
+        e.preventDefault();
+        a.style.opacity="0.6";
+        a.querySelector(".cv-dl-badge").textContent="...";
+        try {
+          const r = await fetch(data.audioUrl);
+          const d = await r.json();
+          if(d.dlUrl){ window.location.href = d.dlUrl; }
+          else { cvSetError(true, d.error || "Gagal ambil audio"); }
+        } catch(err) { cvSetError(true,"Gagal fetch audio"); }
+        a.style.opacity="1";
+        a.querySelector(".cv-dl-badge").textContent="MP3";
+      });
+      grid.appendChild(a);
+    }
+  }
 
   const note = document.createElement("div");
   note.style.cssText="font-size:11px;color:var(--muted);text-align:center;margin-top:10px;line-height:1.7;padding:0 4px";
-  note.textContent="💡 Klik tombol → link video otomatis ter-paste → langsung download tanpa watermark.";
+  note.textContent="✅ Download langsung via server AIVA — tanpa redirect ke web lain.";
   grid.appendChild(note);
 
   cvSetResult(true);
