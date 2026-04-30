@@ -1,8 +1,7 @@
 // /api/convert.js — Vercel Serverless Function
-// Proxy ke Cobalt API, bebas CORS
+// Cobalt API v10 + dynamic instance list dari instances.cobalt.best
 
 export default async function handler(req, res) {
-  // CORS headers
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
   if (req.method === "OPTIONS") return res.status(200).end();
@@ -10,59 +9,75 @@ export default async function handler(req, res) {
   const { url: videoUrl, audio } = req.query;
   const audioOnly = audio === "1";
 
-  if (!videoUrl) {
-    return res.status(400).json({ error: "URL kosong" });
-  }
+  if (!videoUrl) return res.status(400).json({ error: "URL kosong" });
 
+  // Cobalt API v10 body format
   const body = {
-    url:             videoUrl,
-    vCodec:          "h264",
-    vQuality:        "720",
-    aFormat:         "mp3",
-    isAudioOnly:     audioOnly,
-    isNoTTWatermark: true,
-    isTTFullAudio:   false,
-    isAudioMuted:    false,
-    dubLang:         false,
-    disableMetadata: false,
-    twitterGif:      false,
-    tiktokH265:      false
+    url:          videoUrl,
+    videoQuality: "720",
+    audioFormat:  "mp3",
+    downloadMode: audioOnly ? "audio" : "auto",
+    tiktokH265:   false
   };
 
-  const cobaltInstances = [
-    "https://co.wuk.sh/api/json",
-    "https://cobalt.api.lisek.world/api/json",
-    "https://cobalt.synzr.space/api/json"
-  ];
+  // Fetch instance list dinamis dari instances.cobalt.best
+  let instances = [];
+  try {
+    const listRes = await fetch("https://instances.cobalt.best/api/instances.json", {
+      headers: { "User-Agent": "AIVA/1.0" }
+    });
+    const list = await listRes.json();
+    instances = list
+      .filter(i => i.online === true && i.info?.auth === false && i.info?.cors === true && i.api)
+      .map(i => `https://${i.api}`)
+      .slice(0, 6);
+  } catch (_) {}
+
+  // Fallback kalau instances.cobalt.best gagal
+  if (instances.length === 0) {
+    instances = [
+      "https://nyc1.coapi.ggtyler.dev",
+      "https://par1.coapi.ggtyler.dev",
+      "https://cal1.coapi.ggtyler.dev"
+    ];
+  }
 
   let data = null;
-  let lastErr = "";
+  let lastErr = "Semua instance gagal";
 
-  for (const apiUrl of cobaltInstances) {
+  for (const apiUrl of instances) {
     try {
-      const r = await fetch(apiUrl, {
-        method:  "POST",
+      // Manual timeout pakai Promise.race (lebih kompatibel di Vercel)
+      const fetchPromise = fetch(`${apiUrl}/`, {
+        method: "POST",
         headers: {
           "Content-Type": "application/json",
           "Accept":       "application/json",
-          "User-Agent":   "Mozilla/5.0 (compatible; AIVA/1.0)"
+          "User-Agent":   "AIVA/1.0"
         },
-        body:    JSON.stringify(body),
-        signal:  AbortSignal.timeout(10000)
+        body: JSON.stringify(body)
       });
+
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error("timeout")), 7000)
+      );
+
+      const r = await Promise.race([fetchPromise, timeoutPromise]);
       data = await r.json();
+
       if (data && data.status !== "error") break;
-      lastErr = data?.text || "API error";
+      lastErr = data?.error?.code || data?.text || "error dari instance";
     } catch (e) {
       lastErr = e.message;
+      data = null;
     }
   }
 
-  if (!data || data.status === "error" || data.status === "rate-limit") {
-    return res.status(502).json({ error: data?.text || lastErr || "Semua server Cobalt gagal. Coba lagi nanti." });
+  if (!data || data.status === "error") {
+    return res.status(502).json({ error: lastErr });
   }
 
-  // Instagram carousel / multi-item
+  // Instagram carousel / multi picker
   if (data.status === "picker" && data.picker) {
     return res.json({
       status: "picker",
@@ -73,8 +88,8 @@ export default async function handler(req, res) {
     });
   }
 
-  const rawUrl = data.url || data.stream;
-  if (!rawUrl) return res.status(502).json({ error: "Link download tidak ditemukan dari Cobalt" });
+  const rawUrl = data.url;
+  if (!rawUrl) return res.status(502).json({ error: "Link download tidak ditemukan" });
 
   const ext      = audioOnly ? "mp3" : "mp4";
   const filename = `aiva_download.${ext}`;
