@@ -294,6 +294,188 @@ header{
 }
 
 /* ================================================================
+   VIDEO CONVERTER PAGE
+================================================================ */
+#converterPage{
+  position:fixed;inset:0;z-index:100000;
+  overflow-y:auto;display:none;
+  background:
+    radial-gradient(ellipse 70% 50% at 20% 10%,rgba(255,60,120,0.13),transparent 55%),
+    radial-gradient(ellipse 60% 45% at 80% 90%,rgba(114,72,245,0.12),transparent 55%),
+    var(--bg);
+  animation:popIn 0.25s var(--ease);
+}
+#converterPage.show{display:block}
+#converterPage.out{animation:splOut 0.25s var(--ease) forwards}
+
+.cv-inner{max-width:520px;margin:0 auto;padding:28px 20px 80px}
+.cv-back{
+  width:36px;height:36px;border-radius:10px;
+  background:var(--glass);border:1px solid var(--gb);
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;margin-bottom:26px;transition:all 0.2s;
+}
+.cv-back:hover{background:rgba(255,60,120,0.1);border-color:rgba(255,60,120,0.3)}
+.cv-back svg{width:16px;height:16px;stroke:var(--muted);stroke-width:2.2}
+
+.cv-logo-row{display:flex;align-items:center;gap:12px;margin-bottom:6px}
+.cv-logo-icon{
+  width:44px;height:44px;border-radius:12px;
+  background:linear-gradient(135deg,#ff3c78,#7248f5);
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 6px 22px rgba(255,60,120,0.35);flex-shrink:0;
+}
+.cv-logo-icon svg{width:22px;height:22px;stroke:#fff;stroke-width:2;fill:none}
+.cv-h1{
+  font-size:26px;font-weight:800;letter-spacing:3px;
+  background:linear-gradient(90deg,#ff3c78,#7248f5);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+}
+.cv-lead{font-size:13px;line-height:1.8;color:var(--muted);margin-bottom:24px}
+
+.cv-supported{
+  display:flex;flex-wrap:wrap;gap:6px;margin-bottom:22px;
+}
+.cv-badge{
+  padding:3px 10px;border-radius:6px;font-size:10px;font-weight:700;letter-spacing:1px;
+  background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);color:var(--muted);
+}
+.cv-badge.tiktok{background:rgba(255,60,120,0.1);border-color:rgba(255,60,120,0.25);color:#ff6b9d}
+.cv-badge.youtube{background:rgba(255,60,60,0.1);border-color:rgba(255,60,60,0.25);color:#ff7070}
+.cv-badge.instagram{background:rgba(180,60,240,0.1);border-color:rgba(180,60,240,0.25);color:#c678f5}
+.cv-badge.twitter{background:rgba(61,114,246,0.1);border-color:rgba(61,114,246,0.25);color:#7aa8f7}
+.cv-badge.facebook{background:rgba(40,100,240,0.1);border-color:rgba(40,100,240,0.25);color:#6699f7}
+
+/* URL Input Box */
+.cv-url-box{
+  background:var(--surface2);border:1px solid var(--gb);
+  border-radius:var(--r-lg);padding:14px 14px 14px 18px;
+  display:flex;align-items:center;gap:10px;
+  transition:border-color 0.25s,box-shadow 0.25s;margin-bottom:12px;
+}
+.cv-url-box:focus-within{
+  border-color:rgba(255,60,120,0.4);
+  box-shadow:0 0 0 3px rgba(255,60,120,0.08),0 8px 28px rgba(0,0,0,0.18);
+}
+.cv-url-icon{flex-shrink:0;opacity:0.4}
+.cv-url-icon svg{width:16px;height:16px;stroke:var(--text);stroke-width:2;fill:none}
+#cvInput{
+  flex:1;border:none;outline:none;resize:none;
+  background:transparent;color:var(--text);
+  font-family:var(--F);font-size:14px;line-height:1.5;
+  padding:0;
+}
+#cvInput::placeholder{color:var(--muted)}
+.cv-paste-btn{
+  flex-shrink:0;padding:6px 12px;border-radius:9px;border:none;
+  background:rgba(255,60,120,0.12);border:1px solid rgba(255,60,120,0.22);
+  color:#ff6b9d;font-family:var(--F);font-size:11px;font-weight:700;
+  cursor:pointer;letter-spacing:0.5px;transition:all 0.2s;
+}
+.cv-paste-btn:hover{background:rgba(255,60,120,0.22);transform:scale(1.04)}
+
+/* Convert Btn */
+.cv-convert-btn{
+  width:100%;padding:14px;border:none;border-radius:var(--r-md);
+  background:linear-gradient(135deg,#ff3c78,#7248f5);
+  color:#fff;font-family:var(--F);font-size:14px;font-weight:700;
+  letter-spacing:1px;cursor:pointer;transition:all 0.25s var(--ease);
+  box-shadow:0 6px 24px rgba(255,60,120,0.3);
+  display:flex;align-items:center;justify-content:center;gap:8px;
+}
+.cv-convert-btn:hover{transform:translateY(-2px);box-shadow:0 10px 32px rgba(255,60,120,0.45)}
+.cv-convert-btn:active{transform:scale(0.98)}
+.cv-convert-btn:disabled{background:rgba(255,255,255,0.08);box-shadow:none;cursor:default;opacity:0.5}
+.cv-convert-btn svg{width:16px;height:16px;stroke:#fff;stroke-width:2.2;fill:none}
+
+/* Status / Progress */
+.cv-status{
+  margin-top:16px;padding:14px 18px;border-radius:var(--r-md);
+  background:var(--glass);border:1px solid var(--gb);
+  font-size:13px;display:none;animation:msgIn 0.3s var(--ease);
+}
+.cv-status.show{display:block}
+.cv-status-row{display:flex;align-items:center;gap:10px;color:var(--muted)}
+.cv-spinner{
+  width:16px;height:16px;border-radius:50%;flex-shrink:0;
+  border:2px solid rgba(255,60,120,0.25);border-top-color:#ff3c78;
+  animation:ringR 0.7s linear infinite;
+}
+.cv-progress{
+  height:3px;border-radius:2px;background:rgba(255,255,255,0.06);
+  margin-top:10px;overflow:hidden;
+}
+.cv-progress-bar{
+  height:100%;border-radius:2px;width:0%;
+  background:linear-gradient(90deg,#ff3c78,#7248f5);
+  transition:width 0.4s ease;
+}
+
+/* Result Card */
+.cv-result{
+  margin-top:16px;border-radius:var(--r-md);overflow:hidden;
+  background:var(--glass);border:1px solid var(--gb);
+  display:none;animation:msgIn 0.3s var(--ease);
+}
+.cv-result.show{display:block}
+.cv-thumb-wrap{position:relative}
+.cv-thumb{width:100%;max-height:220px;object-fit:cover;display:block}
+.cv-thumb-overlay{
+  position:absolute;inset:0;
+  background:linear-gradient(to bottom,transparent 50%,rgba(0,0,0,0.7));
+}
+.cv-result-info{padding:14px 16px}
+.cv-result-title{font-size:14px;font-weight:700;color:var(--text);margin-bottom:4px;line-height:1.4}
+.cv-result-meta{font-size:11px;color:var(--muted);margin-bottom:14px;letter-spacing:0.3px}
+.cv-dl-grid{display:grid;gap:8px}
+.cv-dl-btn{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:11px 14px;border-radius:10px;border:none;cursor:pointer;
+  font-family:var(--F);font-size:12px;font-weight:600;transition:all 0.2s;
+  text-decoration:none;
+}
+.cv-dl-btn.hd{
+  background:linear-gradient(135deg,rgba(255,60,120,0.18),rgba(114,72,245,0.18));
+  border:1px solid rgba(255,60,120,0.3);color:#ff6b9d;
+}
+.cv-dl-btn.hd:hover{background:linear-gradient(135deg,rgba(255,60,120,0.3),rgba(114,72,245,0.3));transform:translateX(3px)}
+.cv-dl-btn.sd{
+  background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.09);color:var(--muted);
+}
+.cv-dl-btn.sd:hover{background:rgba(255,255,255,0.08);color:var(--text);transform:translateX(3px)}
+.cv-dl-btn.audio{
+  background:rgba(114,72,245,0.1);border:1px solid rgba(114,72,245,0.25);color:#a78bf5;
+}
+.cv-dl-btn.audio:hover{background:rgba(114,72,245,0.2);transform:translateX(3px)}
+.cv-dl-left{display:flex;align-items:center;gap:9px}
+.cv-dl-left svg{width:15px;height:15px;flex-shrink:0}
+.cv-dl-badge{
+  font-size:10px;padding:2px 7px;border-radius:5px;
+  background:rgba(255,255,255,0.08);color:var(--muted);
+}
+
+/* Error */
+.cv-error{
+  margin-top:12px;padding:12px 16px;border-radius:var(--r-md);
+  background:rgba(240,68,68,0.07);border:1px solid rgba(240,68,68,0.2);
+  color:var(--red);font-size:13px;display:none;animation:msgIn 0.3s var(--ease);
+}
+.cv-error.show{display:block}
+
+/* Tips */
+.cv-tips{margin-top:22px}
+.cv-tips-title{font-size:10px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:10px;font-weight:700}
+.cv-tip{
+  display:flex;align-items:flex-start;gap:10px;padding:10px 0;
+  border-bottom:1px solid rgba(255,255,255,0.04);font-size:12px;color:var(--muted);line-height:1.6;
+}
+.cv-tip:last-child{border-bottom:none}
+.cv-tip-dot{
+  width:6px;height:6px;border-radius:50%;background:linear-gradient(135deg,#ff3c78,#7248f5);
+  flex-shrink:0;margin-top:5px;
+}
+
+/* ================================================================
    SETTINGS PANEL
 ================================================================ */
 #panel{
@@ -545,6 +727,10 @@ pre{margin:0;padding:14px;font-family:var(--FM);font-size:12px;line-height:1.7;c
   <div class="sb-div"></div>
 
   <div class="sb-nav">
+    <div class="sb-nav-item" onclick="openConverter();closeSidebar()" style="color:rgba(255,107,157,0.75)">
+      <svg viewBox="0 0 24 24" fill="none" style="stroke:rgba(255,107,157,0.75)"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.95-1.95C18.88 4 12 4 12 4s-6.88 0-8.59.47a2.78 2.78 0 0 0-1.95 1.95C1 8.12 1 12 1 12s0 3.88.46 5.58a2.78 2.78 0 0 0 1.95 1.95C5.12 20 12 20 12 20s6.88 0 8.59-.47a2.78 2.78 0 0 0 1.95-1.95C23 15.88 23 12 23 12s0-3.88-.46-5.58z"/><polygon points="9.75 15.02 15.5 12 9.75 8.98 9.75 15.02" fill="rgba(255,107,157,0.75)" stroke="none"/></svg>
+      Video Converter
+    </div>
     <div class="sb-nav-item" onclick="openAbout();closeSidebar()">
       <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
       About AIVA
@@ -640,6 +826,77 @@ pre{margin:0;padding:14px;font-family:var(--FM);font-size:12px;line-height:1.7;c
       <div class="payment-row">DANA — GoPay — OVO — LinkAja — BCA — BRI — Mandiri</div>
     </div>
     <div class="fp-footer">opetxdy — Thank you for your support</div>
+  </div>
+</div>
+
+<!-- ===== VIDEO CONVERTER PAGE ===== -->
+<div id="converterPage" class="full-page">
+  <div class="cv-inner">
+    <div class="cv-back" onclick="closeConverter()">
+      <svg viewBox="0 0 24 24" fill="none"><polyline points="15 18 9 12 15 6"/></svg>
+    </div>
+    <div class="cv-logo-row">
+      <div class="cv-logo-icon">
+        <svg viewBox="0 0 24 24"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.95-1.95C18.88 4 12 4 12 4s-6.88 0-8.59.47a2.78 2.78 0 0 0-1.95 1.95C1 8.12 1 12 1 12s0 3.88.46 5.58a2.78 2.78 0 0 0 1.95 1.95C5.12 20 12 20 12 20s6.88 0 8.59-.47a2.78 2.78 0 0 0 1.95-1.95C23 15.88 23 12 23 12s0-3.88-.46-5.58z"/><polygon points="9.75 15.02 15.5 12 9.75 8.98 9.75 15.02" fill="white" stroke="none"/></svg>
+      </div>
+      <div class="cv-h1">CONVERTER</div>
+    </div>
+    <p class="cv-lead">Download video dari TikTok, YouTube, Instagram, dan platform lainnya tanpa watermark. Paste link → Convert → Download.</p>
+
+    <div class="cv-supported">
+      <span class="cv-badge tiktok">TikTok</span>
+      <span class="cv-badge youtube">YouTube</span>
+      <span class="cv-badge instagram">Instagram</span>
+      <span class="cv-badge twitter">Twitter / X</span>
+      <span class="cv-badge facebook">Facebook</span>
+    </div>
+
+    <div class="cv-url-box">
+      <div class="cv-url-icon">
+        <svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+      </div>
+      <input id="cvInput" type="url" placeholder="Paste link video di sini...">
+      <button class="cv-paste-btn" onclick="cvPaste()">Paste</button>
+    </div>
+
+    <button class="cv-convert-btn" id="cvBtn" onclick="cvConvert()">
+      <svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+      Convert Video
+    </button>
+
+    <div class="cv-status" id="cvStatus">
+      <div class="cv-status-row">
+        <div class="cv-spinner"></div>
+        <span id="cvStatusText">Memproses link...</span>
+      </div>
+      <div class="cv-progress">
+        <div class="cv-progress-bar" id="cvBar"></div>
+      </div>
+    </div>
+
+    <div class="cv-error" id="cvError">
+      <span id="cvErrorText">Terjadi kesalahan. Coba lagi.</span>
+    </div>
+
+    <div class="cv-result" id="cvResult">
+      <div class="cv-thumb-wrap">
+        <img class="cv-thumb" id="cvThumb" src="" alt="" onerror="this.parentElement.style.display='none'">
+        <div class="cv-thumb-overlay"></div>
+      </div>
+      <div class="cv-result-info">
+        <div class="cv-result-title" id="cvTitle">Judul Video</div>
+        <div class="cv-result-meta" id="cvMeta">Platform • Durasi</div>
+        <div class="cv-dl-grid" id="cvDlGrid"></div>
+      </div>
+    </div>
+
+    <div class="cv-tips">
+      <div class="cv-tips-title">Cara Pakai</div>
+      <div class="cv-tip"><div class="cv-tip-dot"></div><div>Copy link video dari TikTok, YouTube, Instagram, dll lalu paste di kolom di atas.</div></div>
+      <div class="cv-tip"><div class="cv-tip-dot"></div><div>Tekan <strong style="color:var(--text)">Convert</strong> dan tunggu proses selesai. Biasanya membutuhkan 5–15 detik.</div></div>
+      <div class="cv-tip"><div class="cv-tip-dot"></div><div>Pilih kualitas yang diinginkan: HD (tanpa watermark), SD, atau Audio Only (MP3).</div></div>
+      <div class="cv-tip"><div class="cv-tip-dot"></div><div>Layanan ini gratis dan tidak menyimpan data atau video kamu.</div></div>
+    </div>
   </div>
 </div>
 
@@ -1069,7 +1326,209 @@ function send(){
   });
 }
 
-/* ======================== INIT ======================== */
+/* ======================== VIDEO CONVERTER ======================== */
+function openConverter(){
+  const p = document.getElementById("converterPage");
+  p.style.display="block"; p.classList.remove("out"); p.classList.add("show");
+}
+function closeConverter(){
+  const p = document.getElementById("converterPage");
+  p.classList.add("out");
+  setTimeout(() => { p.style.display="none"; p.classList.remove("show","out"); }, 260);
+}
+
+async function cvPaste(){
+  try{
+    const txt = await navigator.clipboard.readText();
+    document.getElementById("cvInput").value = txt;
+  }catch(e){
+    document.getElementById("cvInput").focus();
+  }
+}
+
+function cvDetectPlatform(url){
+  if(url.includes("tiktok.com")) return "TikTok";
+  if(url.includes("youtu.be")||url.includes("youtube.com")) return "YouTube";
+  if(url.includes("instagram.com")) return "Instagram";
+  if(url.includes("twitter.com")||url.includes("x.com")) return "Twitter / X";
+  if(url.includes("facebook.com")||url.includes("fb.com")||url.includes("fb.watch")) return "Facebook";
+  return "Video";
+}
+
+function cvSetStatus(show, text){
+  const el = document.getElementById("cvStatus");
+  el.classList.toggle("show", show);
+  if(text) document.getElementById("cvStatusText").textContent = text;
+}
+function cvSetError(show, text){
+  const el = document.getElementById("cvError");
+  el.classList.toggle("show", show);
+  if(text) document.getElementById("cvErrorText").textContent = text;
+}
+function cvSetResult(show){ document.getElementById("cvResult").classList.toggle("show", show); }
+
+function cvAnimateBar(pct, delay=0){
+  setTimeout(()=>{ document.getElementById("cvBar").style.width = pct + "%"; }, delay);
+}
+
+async function cvConvert(){
+  const url = document.getElementById("cvInput").value.trim();
+  if(!url){ cvSetError(true,"Masukkan link video terlebih dahulu!"); return; }
+  if(!url.startsWith("http")){ cvSetError(true,"Link tidak valid. Pastikan dimulai dengan https://"); return; }
+
+  // Reset UI
+  cvSetError(false,""); cvSetResult(false); cvSetStatus(true,"Mendeteksi platform...");
+  document.getElementById("cvBtn").disabled=true;
+  document.getElementById("cvBar").style.width="0%";
+  document.getElementById("cvDlGrid").innerHTML="";
+
+  const platform = cvDetectPlatform(url);
+
+  // Simulate progress with real API calls
+  cvAnimateBar(20, 200);
+  cvSetStatus(true, `Menghubungi server ${platform}...`);
+  cvAnimateBar(45, 800);
+
+  try{
+    // Use SnapSave / cobalt API proxy approach
+    // We'll use the cobalt.tools API which is a public video downloader API
+    cvSetStatus(true, "Mengunduh metadata video...");
+    cvAnimateBar(65, 1200);
+
+    const apiUrl = "https://co.wuk.sh/api/json";
+    const body = {
+      url: url,
+      vCodec: "h264",
+      vQuality: "720",
+      aFormat: "mp3",
+      isAudioOnly: false,
+      isNoTTWatermark: true,
+      isTTFullAudio: false,
+      isAudioMuted: false,
+      dubLang: false,
+      disableMetadata: false,
+      twitterGif: false,
+      tiktokH265: false
+    };
+
+    const res = await fetch(apiUrl, {
+      method:"POST",
+      headers:{"Content-Type":"application/json","Accept":"application/json"},
+      body:JSON.stringify(body)
+    });
+
+    cvAnimateBar(85, 400);
+    const data = await res.json();
+
+    // cobalt returns status: redirect/stream/picker/error
+    if(data.status === "error" || data.status === "rate-limit"){
+      throw new Error(data.text || "API error");
+    }
+
+    cvAnimateBar(100, 200);
+    cvSetStatus(false,"");
+    document.getElementById("cvBtn").disabled=false;
+
+    // Build result
+    const title = data.original_url ? `Video dari ${platform}` : `Video ${platform}`;
+    document.getElementById("cvTitle").textContent = title;
+    document.getElementById("cvMeta").textContent = `${platform} • Download siap`;
+
+    // Thumbnail attempt
+    const thumbEl = document.getElementById("cvThumb");
+    thumbEl.parentElement.style.display="";
+    thumbEl.src=""; // no thumb from cobalt normally
+
+    const grid = document.getElementById("cvDlGrid");
+    grid.innerHTML="";
+
+    if(data.status === "picker" && data.picker){
+      // Multiple options (like Instagram carousel)
+      data.picker.forEach((item,i)=>{
+        const a = document.createElement("a");
+        a.className="cv-dl-btn hd"; a.href=item.url; a.target="_blank"; a.rel="noopener";
+        a.download=""; a.setAttribute("href", item.url);
+        a.innerHTML=`<div class="cv-dl-left"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Item ${i+1}</div><span class="cv-dl-badge">Download</span>`;
+        grid.appendChild(a);
+      });
+    } else if(data.url || data.stream){
+      const dlUrl = data.url || data.stream;
+      // HD Video
+      const aHD = document.createElement("a");
+      aHD.className="cv-dl-btn hd"; aHD.href=dlUrl; aHD.target="_blank"; aHD.rel="noopener";
+      aHD.innerHTML=`<div class="cv-dl-left"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Download Video (HD)</div><span class="cv-dl-badge">No Watermark</span>`;
+      grid.appendChild(aHD);
+
+      // Audio only
+      if(!url.includes("youtube.com")&&!url.includes("youtu.be")){
+        const aAudio = document.createElement("a");
+        aAudio.className="cv-dl-btn audio"; aAudio.href="#"; aAudio.rel="noopener";
+        aAudio.onclick=(e)=>{e.preventDefault(); cvConvertAudio(url);};
+        aAudio.innerHTML=`<div class="cv-dl-left"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg> Download Audio (MP3)</div><span class="cv-dl-badge">MP3</span>`;
+        grid.appendChild(aAudio);
+      }
+    }
+
+    cvSetResult(true);
+
+  }catch(err){
+    console.error("Converter error:", err);
+    cvAnimateBar(0);
+    cvSetStatus(false,"");
+    document.getElementById("cvBtn").disabled=false;
+
+    // Fallback: show manual links to known services
+    cvShowFallback(url, platform);
+  }
+}
+
+async function cvConvertAudio(url){
+  const origBtn = event.currentTarget;
+  origBtn.textContent="Memproses..."; origBtn.style.pointerEvents="none";
+  try{
+    const res = await fetch("https://co.wuk.sh/api/json",{
+      method:"POST",
+      headers:{"Content-Type":"application/json","Accept":"application/json"},
+      body:JSON.stringify({url,isAudioOnly:true,aFormat:"mp3",isNoTTWatermark:true})
+    });
+    const data = await res.json();
+    if(data.url||data.stream){
+      window.open(data.url||data.stream,"_blank");
+    } else { throw new Error(); }
+  }catch(e){
+    alert("Gagal mengambil audio. Coba lagi.");
+  }
+  origBtn.innerHTML=`<div class="cv-dl-left"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg> Download Audio (MP3)</div><span class="cv-dl-badge">MP3</span>`;
+  origBtn.style.pointerEvents="";
+}
+
+function cvShowFallback(url, platform){
+  cvSetError(true, `Gagal otomatis. Gunakan layanan eksternal di bawah:`);
+
+  const encoded = encodeURIComponent(url);
+  const grid = document.getElementById("cvDlGrid");
+  grid.innerHTML="";
+
+  const services = [
+    { name:"SnapTik (TikTok)", href:`https://snaptik.app/`, class:"hd" },
+    { name:"SSYouTube", href:`https://ssyoutube.com/en/`, class:"hd" },
+    { name:"SaveIG (Instagram)", href:`https://www.saveig.app/`, class:"sd" },
+    { name:"Cobalt Tools", href:`https://cobalt.tools/`, class:"audio" }
+  ];
+
+  services.forEach(s=>{
+    const a = document.createElement("a");
+    a.className=`cv-dl-btn ${s.class}`; a.href=s.href; a.target="_blank"; a.rel="noopener";
+    a.innerHTML=`<div class="cv-dl-left"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg> ${s.name}</div><span class="cv-dl-badge">Buka</span>`;
+    grid.appendChild(a);
+  });
+
+  cvSetResult(true);
+  document.getElementById("cvMeta").textContent = `${platform} • Gunakan layanan di bawah`;
+  document.getElementById("cvTitle").textContent = "Pilih layanan converter";
+}
+
+
 document.addEventListener("DOMContentLoaded",()=>{
   sendBtn.addEventListener("click",send);
   updateSend();
