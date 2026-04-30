@@ -1,5 +1,5 @@
-// /api/convert.js — Vercel Serverless Function
-// Cobalt API v10 + dynamic instance list dari instances.cobalt.best
+// /api/convert.js — AIVA Video Downloader
+// Strategi: cobalt instances (tanpa proxy download, langsung kasih direct URL)
 
 export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
@@ -11,7 +11,6 @@ export default async function handler(req, res) {
 
   if (!videoUrl) return res.status(400).json({ error: "URL kosong" });
 
-  // Cobalt API v10 body format
   const body = {
     url:          videoUrl,
     videoQuality: "720",
@@ -20,60 +19,48 @@ export default async function handler(req, res) {
     tiktokH265:   false
   };
 
-  // Fetch instance list dinamis dari instances.cobalt.best
-  let instances = [];
-  try {
-    const listRes = await fetch("https://instances.cobalt.best/api/instances.json", {
-      headers: { "User-Agent": "AIVA/1.0" }
-    });
-    const list = await listRes.json();
-    instances = list
-      .filter(i => i.online === true && i.info?.auth === false && i.info?.cors === true && i.api)
-      .map(i => `https://${i.api}`)
-      .slice(0, 6);
-  } catch (_) {}
-
-  // Fallback kalau instances.cobalt.best gagal
-  if (instances.length === 0) {
-    instances = [
-      "https://nyc1.coapi.ggtyler.dev",
-      "https://par1.coapi.ggtyler.dev",
-      "https://cal1.coapi.ggtyler.dev"
-    ];
-  }
+  // Instance list yang sudah terbukti cepat & stabil
+  const instances = [
+    "https://nyc1.coapi.ggtyler.dev",
+    "https://par1.coapi.ggtyler.dev",
+    "https://cal1.coapi.ggtyler.dev",
+    "https://cobalt.api.lisek.world",
+    "https://cobalt.synzr.space"
+  ];
 
   let data = null;
-  let lastErr = "Semua instance gagal";
+  let lastErr = "Semua server gagal. Coba lagi sebentar.";
 
   for (const apiUrl of instances) {
     try {
-      // Manual timeout pakai Promise.race (lebih kompatibel di Vercel)
-      const fetchPromise = fetch(`${apiUrl}/`, {
-        method: "POST",
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 8000);
+
+      const r = await fetch(`${apiUrl}/`, {
+        method:  "POST",
         headers: {
           "Content-Type": "application/json",
           "Accept":       "application/json",
-          "User-Agent":   "AIVA/1.0"
+          "User-Agent":   "Mozilla/5.0 (compatible; AIVA/2.0)"
         },
-        body: JSON.stringify(body)
+        body:   JSON.stringify(body),
+        signal: controller.signal
       });
+      clearTimeout(timer);
 
-      const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error("timeout")), 7000)
-      );
-
-      const r = await Promise.race([fetchPromise, timeoutPromise]);
       data = await r.json();
 
+      // Sukses kalau status bukan error
       if (data && data.status !== "error") break;
-      lastErr = data?.error?.code || data?.text || "error dari instance";
+      lastErr = data?.error?.code || data?.text || "error dari server";
+      data = null;
     } catch (e) {
-      lastErr = e.message;
+      lastErr = e.name === "AbortError" ? "Server lambat, skip..." : e.message;
       data = null;
     }
   }
 
-  if (!data || data.status === "error") {
+  if (!data) {
     return res.status(502).json({ error: lastErr });
   }
 
@@ -82,22 +69,23 @@ export default async function handler(req, res) {
     return res.json({
       status: "picker",
       items:  data.picker.map((p, i) => ({
-        label: `Item ${i + 1}`,
-        url:   `/api/download?url=${encodeURIComponent(p.url)}&filename=video_${i + 1}.mp4`
+        label:    `Item ${i + 1}`,
+        directUrl: p.url,  // langsung URL asli, tanpa proxy
+        filename: `aiva_video_${i + 1}.mp4`
       }))
     });
   }
 
-  const rawUrl = data.url;
+  const rawUrl = data.url || data.stream;
   if (!rawUrl) return res.status(502).json({ error: "Link download tidak ditemukan" });
 
-  const ext      = audioOnly ? "mp3" : "mp4";
-  const filename = `aiva_download.${ext}`;
+  const ext = audioOnly ? "mp3" : "mp4";
 
   return res.json({
-    status:   "ok",
-    dlUrl:    `/api/download?url=${encodeURIComponent(rawUrl)}&filename=${filename}`,
-    audioUrl: !audioOnly
+    status:    "ok",
+    directUrl: rawUrl,           // URL langsung — browser download sendiri
+    filename:  `aiva_download.${ext}`,
+    audioUrl:  !audioOnly
       ? `/api/convert?url=${encodeURIComponent(videoUrl)}&audio=1`
       : null
   });
