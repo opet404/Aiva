@@ -33,6 +33,51 @@ app.get("/", (req, res) => {
 // 5. Server stream file langsung ke browser → auto download
 // ============================
 
+// ============================
+// 🌐 DYNAMIC COBALT INSTANCE FETCHER
+// Auto-fetch instance list yang online dari instances.cobalt.best
+// Cache 5 menit biar gak spam
+// ============================
+let _instanceCache = [];
+let _instanceCacheTime = 0;
+const INSTANCE_CACHE_TTL = 5 * 60 * 1000; // 5 menit
+
+async function getCobaltInstances() {
+  const now = Date.now();
+  if (_instanceCache.length > 0 && (now - _instanceCacheTime) < INSTANCE_CACHE_TTL) {
+    return _instanceCache;
+  }
+  try {
+    const r = await fetch("https://instances.cobalt.best/api/instances.json", {
+      headers: { "User-Agent": "AIVA/1.0 (+github.com/aiva)" },
+      signal: AbortSignal.timeout(8000)
+    });
+    const list = await r.json();
+    // Filter: online, tanpa auth, CORS aktif
+    const filtered = list
+      .filter(i => i.online === true && i.info?.auth === false && i.info?.cors === true && i.api)
+      .map(i => `https://${i.api}`)
+      .slice(0, 8);
+    if (filtered.length > 0) {
+      _instanceCache = filtered;
+      _instanceCacheTime = now;
+      console.log(`[Cobalt] ${filtered.length} instance aktif:`, filtered.join(", "));
+    }
+    return filtered.length > 0 ? filtered : getFallbackInstances();
+  } catch (e) {
+    console.log("[Cobalt] Gagal fetch instance list:", e.message);
+    return getFallbackInstances();
+  }
+}
+
+function getFallbackInstances() {
+  return [
+    "https://nyc1.coapi.ggtyler.dev",
+    "https://par1.coapi.ggtyler.dev",
+    "https://cal1.coapi.ggtyler.dev"
+  ];
+}
+
 // Step 1: Resolve video URL via Cobalt
 app.get("/convert", async (req, res) => {
   const videoUrl  = req.query.url;
@@ -41,23 +86,16 @@ app.get("/convert", async (req, res) => {
   if (!videoUrl) return res.json({ error: "URL kosong" });
 
   try {
-    // Cobalt API v10 format (baru sejak akhir 2024)
+    // Cobalt API v10 format (berlaku sejak Nov 2024)
     const body = {
-      url:            videoUrl,
-      videoQuality:   "720",
-      audioFormat:    "mp3",
-      downloadMode:   audioOnly ? "audio" : "auto",
-      tiktokH265:     false
+      url:          videoUrl,
+      videoQuality: "720",
+      audioFormat:  "mp3",
+      downloadMode: audioOnly ? "audio" : "auto",
+      tiktokH265:   false
     };
 
-    // Instance Cobalt v10 yang masih aktif (no-auth, CORS open)
-    const cobaltInstances = [
-      "https://dl.cgm.rs",
-      "https://cobalt.ggtyler.dev",
-      "https://cobalt.catto.gay",
-      "https://cobalt.nadeko.net"
-    ];
-
+    const cobaltInstances = await getCobaltInstances();
     let data = null;
     let lastErr = "";
 
@@ -70,15 +108,17 @@ app.get("/convert", async (req, res) => {
           headers: {
             "Content-Type": "application/json",
             "Accept":       "application/json",
-            "User-Agent":   "AIVA/1.0 (github.com/aiva)"
+            "User-Agent":   "AIVA/1.0 (+github.com/aiva)"
           },
-          body:    JSON.stringify(body),
-          signal:  controller.signal
+          body:   JSON.stringify(body),
+          signal: controller.signal
         });
         clearTimeout(timer);
         data = await r.json();
-        // v10 success: status "tunnel" atau "redirect" atau "picker"
-        if (data && data.status !== "error") break;
+        if (data && data.status !== "error") {
+          console.log(`[Cobalt] OK via ${apiUrl}`);
+          break;
+        }
         lastErr = data?.error?.code || data?.text || "API error";
       } catch (e) {
         lastErr = e.message;
@@ -87,6 +127,7 @@ app.get("/convert", async (req, res) => {
     }
 
     if (!data || data.status === "error") {
+      _instanceCache = []; // reset cache, biar next request fetch ulang
       return res.json({ error: data?.error?.code || lastErr || "Semua server Cobalt gagal. Coba lagi nanti." });
     }
 
@@ -101,7 +142,6 @@ app.get("/convert", async (req, res) => {
       });
     }
 
-    // v10: url ada di data.url untuk tunnel/redirect
     const rawUrl = data.url;
     if (!rawUrl) return res.json({ error: "Link download tidak ditemukan dari Cobalt" });
 
