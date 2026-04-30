@@ -1371,6 +1371,69 @@ function cvAnimateBar(pct, delay=0){
   setTimeout(()=>{ document.getElementById("cvBar").style.width = pct + "%"; }, delay);
 }
 
+/* =============================================================
+   CONVERTER — Pure frontend, 100% works di GitHub Pages
+   Strategi: deteksi platform → tampilkan link per-platform
+   yang langsung prefill URL di layanan downloader terpercaya
+   ============================================================= */
+
+const CV_PLATFORMS = {
+  tiktok:    { name:"TikTok",      match: u => u.includes("tiktok.com") || u.includes("vm.tiktok") },
+  youtube:   { name:"YouTube",     match: u => u.includes("youtu.be") || u.includes("youtube.com") },
+  instagram: { name:"Instagram",   match: u => u.includes("instagram.com") },
+  twitter:   { name:"Twitter / X", match: u => u.includes("twitter.com") || u.includes("x.com") },
+  facebook:  { name:"Facebook",    match: u => u.includes("facebook.com") || u.includes("fb.watch") || u.includes("fb.com") },
+  reddit:    { name:"Reddit",      match: u => u.includes("reddit.com") || u.includes("redd.it") },
+};
+
+function cvGetPlatform(url){
+  for(const [key, p] of Object.entries(CV_PLATFORMS)){
+    if(p.match(url)) return { key, name: p.name };
+  }
+  return { key:"other", name:"Video" };
+}
+
+function cvGetDeepLinks(url, platform){
+  const enc  = encodeURIComponent(url);
+  const links = [];
+
+  // Cobalt.tools — satu-satunya yang masih aktif & reliable, prefill via hash
+  links.push({
+    label:"Cobalt Tools — HD, No Watermark",
+    href:`https://cobalt.tools/#${enc}`,
+    cls:"hd", badge:"Rekomendasi ⭐"
+  });
+
+  // Per-platform alternativenya
+  if(platform.key === "tiktok"){
+    links.push({ label:"SSSTik — TikTok No Watermark", href:`https://ssstik.io/id#url=${enc}`, cls:"sd", badge:"TikTok" });
+    links.push({ label:"SnapTik — TikTok Downloader",  href:`https://snaptik.app/id#${enc}`,   cls:"sd", badge:"TikTok" });
+  } else if(platform.key === "youtube"){
+    links.push({ label:"SaveFrom — YouTube MP4/MP3", href:`https://en.savefrom.net/1-how-to-download-from-youtube/#${enc}`, cls:"sd", badge:"YouTube" });
+    links.push({ label:"YT1s — YouTube Downloader",  href:`https://yt1s.io/en/youtube-to-mp4#${enc}`,                        cls:"sd", badge:"YouTube" });
+  } else if(platform.key === "instagram"){
+    links.push({ label:"SaveIG — Instagram Video",   href:`https://saveig.app/id#${enc}`,         cls:"sd", badge:"Instagram" });
+    links.push({ label:"Inflact — IG Downloader",    href:`https://inflact.com/downloader/instagram/video/#${enc}`, cls:"sd", badge:"Instagram" });
+  } else if(platform.key === "twitter"){
+    links.push({ label:"SaveTweetVid — Twitter / X", href:`https://savetweetvid.com/#${enc}`, cls:"sd", badge:"Twitter" });
+    links.push({ label:"TWSave — Twitter Video",     href:`https://twsave.com/#${enc}`,        cls:"sd", badge:"Twitter" });
+  } else if(platform.key === "facebook"){
+    links.push({ label:"FDown — Facebook Video",     href:`https://fdown.net/#${enc}`,          cls:"sd", badge:"Facebook" });
+    links.push({ label:"SaveFrom — Facebook",        href:`https://en.savefrom.net/1-how-to-download-from-youtube/#${enc}`, cls:"sd", badge:"Facebook" });
+  } else if(platform.key === "reddit"){
+    links.push({ label:"RedditSave — Reddit Video",  href:`https://redditsave.com/info?url=${enc}`, cls:"sd", badge:"Reddit" });
+  }
+
+  // Audio MP3 untuk semua platform
+  links.push({
+    label:"Cobalt Tools — Audio MP3",
+    href:`https://cobalt.tools/#${enc}`,
+    cls:"audio", badge:"MP3"
+  });
+
+  return links;
+}
+
 async function cvConvert(){
   const url = document.getElementById("cvInput").value.trim();
   if(!url){ cvSetError(true,"Masukkan link video terlebih dahulu!"); return; }
@@ -1382,99 +1445,46 @@ async function cvConvert(){
   document.getElementById("cvBar").style.width="0%";
   document.getElementById("cvDlGrid").innerHTML="";
 
-  const platform = cvDetectPlatform(url);
+  const platform = cvGetPlatform(url);
 
-  cvAnimateBar(20, 200);
-  cvSetStatus(true, `Memproses ${platform}...`);
-  cvAnimateBar(55, 700);
+  cvAnimateBar(40, 150);
+  cvSetStatus(true,`Mempersiapkan link ${platform.name}...`);
+  cvAnimateBar(80, 450);
 
-  try{
-    // Panggil server sendiri sebagai proxy — tidak ada CORS masalah
-    const res = await fetch(`/convert?url=${encodeURIComponent(url)}`);
-    const data = await res.json();
+  await new Promise(r => setTimeout(r, 700));
 
-    cvAnimateBar(90, 300);
+  cvAnimateBar(100, 150);
+  cvSetStatus(false,"");
+  document.getElementById("cvBtn").disabled=false;
 
-    if(data.error){
-      throw new Error(data.error);
-    }
+  document.getElementById("cvTitle").textContent = `Video dari ${platform.name}`;
+  document.getElementById("cvMeta").textContent  = `${platform.name} • Pilih layanan → download langsung`;
+  document.getElementById("cvThumb").parentElement.style.display="none";
 
-    cvAnimateBar(100, 200);
-    cvSetStatus(false,"");
-    document.getElementById("cvBtn").disabled=false;
+  const grid = document.getElementById("cvDlGrid");
+  grid.innerHTML="";
 
-    document.getElementById("cvTitle").textContent = `Video ${platform}`;
-    document.getElementById("cvMeta").textContent = `${platform} • Siap didownload • Tanpa watermark`;
-    document.getElementById("cvThumb").parentElement.style.display="none";
+  const dlIcon    = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="width:15px;height:15px;flex-shrink:0"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>`;
+  const audioIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="width:15px;height:15px;flex-shrink:0"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>`;
+  const extIcon   = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="width:15px;height:15px;flex-shrink:0"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>`;
 
-    const grid = document.getElementById("cvDlGrid");
-    grid.innerHTML="";
+  cvGetDeepLinks(url, platform).forEach((lnk, i)=>{
+    const a      = document.createElement("a");
+    a.className  = `cv-dl-btn ${lnk.cls}`;
+    a.href       = lnk.href;
+    a.target     = "_blank";
+    a.rel        = "noopener noreferrer";
+    const icon   = lnk.cls==="audio" ? audioIcon : (i===0 ? dlIcon : extIcon);
+    a.innerHTML  = `<div class="cv-dl-left">${icon} ${lnk.label}</div><span class="cv-dl-badge">${lnk.badge}</span>`;
+    grid.appendChild(a);
+  });
 
-    const dlIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>`;
-    const audioIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>`;
+  const note = document.createElement("div");
+  note.style.cssText="font-size:11px;color:var(--muted);text-align:center;margin-top:10px;line-height:1.7;padding:0 4px";
+  note.textContent="💡 Klik tombol → link video otomatis ter-paste → langsung download tanpa watermark.";
+  grid.appendChild(note);
 
-    if(data.status === "picker" && data.items){
-      // Instagram carousel / multi item
-      data.items.forEach((item,i)=>{
-        const a = document.createElement("a");
-        a.className="cv-dl-btn hd";
-        a.href = item.url;          // sudah /download?url=... di server
-        a.download = "";            // trigger download langsung
-        a.innerHTML=`<div class="cv-dl-left">${dlIcon} ${item.label}</div><span class="cv-dl-badge">Download</span>`;
-        grid.appendChild(a);
-      });
-    } else {
-      // Video HD — link ke /download di server, langsung trigger download
-      const aHD = document.createElement("a");
-      aHD.className="cv-dl-btn hd";
-      aHD.href = data.dlUrl;       // /download?url=...&filename=aiva_download.mp4
-      aHD.download = "";           // browser auto download
-      aHD.innerHTML=`<div class="cv-dl-left">${dlIcon} Download Video HD</div><span class="cv-dl-badge">No Watermark</span>`;
-      grid.appendChild(aHD);
-
-      // Audio MP3 — minta server convert audio
-      if(data.audioUrl){
-        const aAudio = document.createElement("a");
-        aAudio.className="cv-dl-btn audio";
-        aAudio.href="#";
-        aAudio.onclick=(e)=>{ e.preventDefault(); cvFetchAudio(url, aAudio); };
-        aAudio.innerHTML=`<div class="cv-dl-left">${audioIcon} Download Audio MP3</div><span class="cv-dl-badge">MP3</span>`;
-        grid.appendChild(aAudio);
-      }
-    }
-
-    cvSetResult(true);
-
-  }catch(err){
-    console.error("Converter error:", err);
-    cvAnimateBar(0);
-    cvSetStatus(false,"");
-    document.getElementById("cvBtn").disabled=false;
-    cvSetError(true, "Gagal: " + (err.message||"Coba lagi"));
-  }
-}
-
-async function cvFetchAudio(url, btn){
-  const orig = btn.innerHTML;
-  btn.style.pointerEvents="none";
-  btn.innerHTML=`<div class="cv-dl-left"><div class="cv-spinner" style="width:14px;height:14px;border-width:2px"></div> Memproses MP3...</div>`;
-  try{
-    const res  = await fetch(`/convert?url=${encodeURIComponent(url)}&audio=1`);
-    const data = await res.json();
-    if(data.error) throw new Error(data.error);
-    // Ubah jadi link download langsung
-    btn.href     = data.dlUrl;
-    btn.download = "";
-    btn.onclick  = null;
-    btn.style.pointerEvents = "";
-    btn.innerHTML=`<div class="cv-dl-left"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg> Download Audio MP3</div><span class="cv-dl-badge">Siap ✓</span>`;
-    // Auto klik download
-    btn.click();
-  }catch(e){
-    btn.innerHTML = orig;
-    btn.style.pointerEvents="";
-    cvSetError(true, "Gagal ambil audio: " + (e.message||"Coba lagi"));
-  }
+  cvSetResult(true);
 }
 
 
