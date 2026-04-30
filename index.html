@@ -1376,95 +1376,69 @@ async function cvConvert(){
   if(!url){ cvSetError(true,"Masukkan link video terlebih dahulu!"); return; }
   if(!url.startsWith("http")){ cvSetError(true,"Link tidak valid. Pastikan dimulai dengan https://"); return; }
 
-  // Reset UI
-  cvSetError(false,""); cvSetResult(false); cvSetStatus(true,"Mendeteksi platform...");
+  cvSetError(false,""); cvSetResult(false);
+  cvSetStatus(true,"Mendeteksi platform...");
   document.getElementById("cvBtn").disabled=true;
   document.getElementById("cvBar").style.width="0%";
   document.getElementById("cvDlGrid").innerHTML="";
 
   const platform = cvDetectPlatform(url);
 
-  // Simulate progress with real API calls
   cvAnimateBar(20, 200);
-  cvSetStatus(true, `Menghubungi server ${platform}...`);
-  cvAnimateBar(45, 800);
+  cvSetStatus(true, `Memproses ${platform}...`);
+  cvAnimateBar(55, 700);
 
   try{
-    // Use SnapSave / cobalt API proxy approach
-    // We'll use the cobalt.tools API which is a public video downloader API
-    cvSetStatus(true, "Mengunduh metadata video...");
-    cvAnimateBar(65, 1200);
-
-    const apiUrl = "https://co.wuk.sh/api/json";
-    const body = {
-      url: url,
-      vCodec: "h264",
-      vQuality: "720",
-      aFormat: "mp3",
-      isAudioOnly: false,
-      isNoTTWatermark: true,
-      isTTFullAudio: false,
-      isAudioMuted: false,
-      dubLang: false,
-      disableMetadata: false,
-      twitterGif: false,
-      tiktokH265: false
-    };
-
-    const res = await fetch(apiUrl, {
-      method:"POST",
-      headers:{"Content-Type":"application/json","Accept":"application/json"},
-      body:JSON.stringify(body)
-    });
-
-    cvAnimateBar(85, 400);
+    // Panggil server sendiri sebagai proxy — tidak ada CORS masalah
+    const res = await fetch(`/convert?url=${encodeURIComponent(url)}`);
     const data = await res.json();
 
-    // cobalt returns status: redirect/stream/picker/error
-    if(data.status === "error" || data.status === "rate-limit"){
-      throw new Error(data.text || "API error");
+    cvAnimateBar(90, 300);
+
+    if(data.error){
+      throw new Error(data.error);
     }
 
     cvAnimateBar(100, 200);
     cvSetStatus(false,"");
     document.getElementById("cvBtn").disabled=false;
 
-    // Build result
-    const title = data.original_url ? `Video dari ${platform}` : `Video ${platform}`;
-    document.getElementById("cvTitle").textContent = title;
-    document.getElementById("cvMeta").textContent = `${platform} • Download siap`;
-
-    // Thumbnail attempt
-    const thumbEl = document.getElementById("cvThumb");
-    thumbEl.parentElement.style.display="";
-    thumbEl.src=""; // no thumb from cobalt normally
+    document.getElementById("cvTitle").textContent = `Video ${platform}`;
+    document.getElementById("cvMeta").textContent = `${platform} • Siap didownload • Tanpa watermark`;
+    document.getElementById("cvThumb").parentElement.style.display="none";
 
     const grid = document.getElementById("cvDlGrid");
     grid.innerHTML="";
 
-    if(data.status === "picker" && data.picker){
-      // Multiple options (like Instagram carousel)
-      data.picker.forEach((item,i)=>{
+    const dlIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>`;
+    const audioIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>`;
+
+    if(data.status === "picker" && data.items){
+      // Instagram carousel / multi item
+      data.items.forEach((item,i)=>{
         const a = document.createElement("a");
-        a.className="cv-dl-btn hd"; a.href=item.url; a.target="_blank"; a.rel="noopener";
-        a.download=""; a.setAttribute("href", item.url);
-        a.innerHTML=`<div class="cv-dl-left"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Item ${i+1}</div><span class="cv-dl-badge">Download</span>`;
+        a.className="cv-dl-btn hd";
+        a.href = item.url;          // sudah /download?url=... di server
+        a.download = "";            // trigger download langsung
+        a.innerHTML=`<div class="cv-dl-left">${dlIcon} ${item.label}</div><span class="cv-dl-badge">Download</span>`;
         grid.appendChild(a);
       });
-    } else if(data.url || data.stream){
-      const dlUrl = data.url || data.stream;
-      // HD Video
+    } else {
+      // Video HD — link ke /download di server, langsung trigger download
       const aHD = document.createElement("a");
-      aHD.className="cv-dl-btn hd"; aHD.href=dlUrl; aHD.target="_blank"; aHD.rel="noopener";
-      aHD.innerHTML=`<div class="cv-dl-left"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Download Video (HD)</div><span class="cv-dl-badge">No Watermark</span>`;
+      aHD.className="cv-dl-btn hd";
+      aHD.href = data.dlUrl;       // /download?url=...&filename=aiva_download.mp4
+      aHD.download = "";           // browser auto download
+      aHD.innerHTML=`<div class="cv-dl-left">${dlIcon} Download Video HD</div><span class="cv-dl-badge">No Watermark</span>`;
       grid.appendChild(aHD);
 
-      // Audio only
-      if(!url.includes("youtube.com")&&!url.includes("youtu.be")){
+      // Audio MP3 — minta server convert audio
+      if(data.audioUrl){
         const aAudio = document.createElement("a");
-        aAudio.className="cv-dl-btn audio"; aAudio.href="#"; aAudio.rel="noopener";
-        aAudio.onclick=(e)=>{e.preventDefault(); cvConvertAudio(url);};
-        aAudio.innerHTML=`<div class="cv-dl-left"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg> Download Audio (MP3)</div><span class="cv-dl-badge">MP3</span>`;
+        aAudio.className="cv-dl-btn audio";
+        aAudio.href="#";
+        aAudio.onclick=(e)=>{ e.preventDefault(); cvFetchAudio(url, aAudio); };
+        aAudio.innerHTML=`<div class="cv-dl-left">${audioIcon} Download Audio MP3</div><span class="cv-dl-badge">MP3</span>`;
         grid.appendChild(aAudio);
       }
     }
@@ -1476,56 +1450,31 @@ async function cvConvert(){
     cvAnimateBar(0);
     cvSetStatus(false,"");
     document.getElementById("cvBtn").disabled=false;
-
-    // Fallback: show manual links to known services
-    cvShowFallback(url, platform);
+    cvSetError(true, "Gagal: " + (err.message||"Coba lagi"));
   }
 }
 
-async function cvConvertAudio(url){
-  const origBtn = event.currentTarget;
-  origBtn.textContent="Memproses..."; origBtn.style.pointerEvents="none";
+async function cvFetchAudio(url, btn){
+  const orig = btn.innerHTML;
+  btn.style.pointerEvents="none";
+  btn.innerHTML=`<div class="cv-dl-left"><div class="cv-spinner" style="width:14px;height:14px;border-width:2px"></div> Memproses MP3...</div>`;
   try{
-    const res = await fetch("https://co.wuk.sh/api/json",{
-      method:"POST",
-      headers:{"Content-Type":"application/json","Accept":"application/json"},
-      body:JSON.stringify({url,isAudioOnly:true,aFormat:"mp3",isNoTTWatermark:true})
-    });
+    const res  = await fetch(`/convert?url=${encodeURIComponent(url)}&audio=1`);
     const data = await res.json();
-    if(data.url||data.stream){
-      window.open(data.url||data.stream,"_blank");
-    } else { throw new Error(); }
+    if(data.error) throw new Error(data.error);
+    // Ubah jadi link download langsung
+    btn.href     = data.dlUrl;
+    btn.download = "";
+    btn.onclick  = null;
+    btn.style.pointerEvents = "";
+    btn.innerHTML=`<div class="cv-dl-left"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg> Download Audio MP3</div><span class="cv-dl-badge">Siap ✓</span>`;
+    // Auto klik download
+    btn.click();
   }catch(e){
-    alert("Gagal mengambil audio. Coba lagi.");
+    btn.innerHTML = orig;
+    btn.style.pointerEvents="";
+    cvSetError(true, "Gagal ambil audio: " + (e.message||"Coba lagi"));
   }
-  origBtn.innerHTML=`<div class="cv-dl-left"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg> Download Audio (MP3)</div><span class="cv-dl-badge">MP3</span>`;
-  origBtn.style.pointerEvents="";
-}
-
-function cvShowFallback(url, platform){
-  cvSetError(true, `Gagal otomatis. Gunakan layanan eksternal di bawah:`);
-
-  const encoded = encodeURIComponent(url);
-  const grid = document.getElementById("cvDlGrid");
-  grid.innerHTML="";
-
-  const services = [
-    { name:"SnapTik (TikTok)", href:`https://snaptik.app/`, class:"hd" },
-    { name:"SSYouTube", href:`https://ssyoutube.com/en/`, class:"hd" },
-    { name:"SaveIG (Instagram)", href:`https://www.saveig.app/`, class:"sd" },
-    { name:"Cobalt Tools", href:`https://cobalt.tools/`, class:"audio" }
-  ];
-
-  services.forEach(s=>{
-    const a = document.createElement("a");
-    a.className=`cv-dl-btn ${s.class}`; a.href=s.href; a.target="_blank"; a.rel="noopener";
-    a.innerHTML=`<div class="cv-dl-left"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg> ${s.name}</div><span class="cv-dl-badge">Buka</span>`;
-    grid.appendChild(a);
-  });
-
-  cvSetResult(true);
-  document.getElementById("cvMeta").textContent = `${platform} • Gunakan layanan di bawah`;
-  document.getElementById("cvTitle").textContent = "Pilih layanan converter";
 }
 
 
