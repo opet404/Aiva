@@ -1,13 +1,13 @@
 const express = require("express");
-const cors = require("cors");
-const fetch = require("node-fetch");
-const path = require("path");
+const cors    = require("cors");
+const fetch   = require("node-fetch");
+const path    = require("path");
 
-const app = express();
+const app  = express();
 const PORT = 3000;
 
 // 🔑 API KEY
-const GROQ_API_KEY = "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";
+const GROQ_API_KEY       = "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";
 const OPENROUTER_API_KEY = "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";
 
 // 🧠 MEMORY
@@ -24,6 +24,138 @@ app.get("/", (req, res) => {
 });
 
 // ============================
+// 🎬 VIDEO DOWNLOADER PROXY
+// Cara kerja:
+// 1. Frontend kirim GET /convert?url=<video_url>&audio=0
+// 2. Server fetch ke Cobalt API (tanpa CORS block)
+// 3. Server kembalikan { dlUrl, title, platform } ke frontend
+// 4. Frontend buka /download?url=<dlUrl>&filename=video.mp4
+// 5. Server stream file langsung ke browser → auto download
+// ============================
+
+// Step 1: Resolve video URL via Cobalt
+app.get("/convert", async (req, res) => {
+  const videoUrl  = req.query.url;
+  const audioOnly = req.query.audio === "1";
+
+  if (!videoUrl) return res.json({ error: "URL kosong" });
+
+  try {
+    const body = {
+      url:              videoUrl,
+      vCodec:           "h264",
+      vQuality:         "720",
+      aFormat:          "mp3",
+      isAudioOnly:      audioOnly,
+      isNoTTWatermark:  true,
+      isTTFullAudio:    false,
+      isAudioMuted:     false,
+      dubLang:          false,
+      disableMetadata:  false,
+      twitterGif:       false,
+      tiktokH265:       false
+    };
+
+    // Coba beberapa Cobalt instance (kalau satu down)
+    const cobaltInstances = [
+      "https://co.wuk.sh/api/json",
+      "https://cobalt.api.lisek.world/api/json",
+      "https://cobalt.synzr.space/api/json"
+    ];
+
+    let data = null;
+    let lastErr = "";
+
+    for (const apiUrl of cobaltInstances) {
+      try {
+        const r = await fetch(apiUrl, {
+          method:  "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Accept":       "application/json",
+            "User-Agent":   "Mozilla/5.0 (compatible; AIVA/1.0)"
+          },
+          body:    JSON.stringify(body),
+          timeout: 10000
+        });
+        data = await r.json();
+        if (data && data.status !== "error") break; // sukses
+        lastErr = data?.text || "API error";
+      } catch (e) {
+        lastErr = e.message;
+      }
+    }
+
+    if (!data || data.status === "error" || data.status === "rate-limit") {
+      return res.json({ error: data?.text || lastErr || "Semua server gagal" });
+    }
+
+    // Picker = multi item (Instagram carousel dll)
+    if (data.status === "picker" && data.picker) {
+      return res.json({
+        status:  "picker",
+        items:   data.picker.map((p, i) => ({
+          label: `Item ${i + 1}`,
+          url:   `/download?url=${encodeURIComponent(p.url)}&filename=video_${i+1}.mp4`
+        }))
+      });
+    }
+
+    const rawUrl = data.url || data.stream;
+    if (!rawUrl) return res.json({ error: "Link download tidak ditemukan" });
+
+    const ext      = audioOnly ? "mp3" : "mp4";
+    const filename = `aiva_download.${ext}`;
+
+    return res.json({
+      status:  "ok",
+      dlUrl:   `/download?url=${encodeURIComponent(rawUrl)}&filename=${filename}`,
+      audioUrl: !audioOnly
+        ? `/convert?url=${encodeURIComponent(videoUrl)}&audio=1`
+        : null
+    });
+
+  } catch (err) {
+    return res.json({ error: "Server error: " + err.message });
+  }
+});
+
+// Step 2: Proxy stream download → browser auto download
+app.get("/download", async (req, res) => {
+  const targetUrl = req.query.url;
+  const filename  = req.query.filename || "download.mp4";
+
+  if (!targetUrl) return res.status(400).send("URL kosong");
+
+  try {
+    const response = await fetch(decodeURIComponent(targetUrl), {
+      headers: {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        "Referer":    "https://www.tiktok.com/"
+      }
+    });
+
+    if (!response.ok) {
+      return res.status(502).send("Gagal fetch video: " + response.status);
+    }
+
+    // Set header biar browser auto download
+    const contentType = response.headers.get("content-type") || "video/mp4";
+    res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
+    res.setHeader("Content-Type", contentType);
+
+    const cl = response.headers.get("content-length");
+    if (cl) res.setHeader("Content-Length", cl);
+
+    // Stream langsung ke client
+    response.body.pipe(res);
+
+  } catch (err) {
+    res.status(500).send("Download error: " + err.message);
+  }
+});
+
+// ============================
 // 🚀 CHAT API
 // ============================
 app.post("/chat", async (req, res) => {
@@ -35,51 +167,35 @@ app.post("/chat", async (req, res) => {
       return res.json({ reply: "Pesan kosong!" });
     }
 
-    // simpan user
     chatHistory.push({ role: "user", content: userMessage });
-
-    if (chatHistory.length > 12) {
-      chatHistory = chatHistory.slice(-12);
-    }
+    if (chatHistory.length > 12) chatHistory = chatHistory.slice(-12);
 
     let url, model, headers, systemPrompt;
 
-    // ============================
-    // 🔁 SWITCH API + STYLE
-    // ============================
     if (selectedAPI === "groq") {
-      url = "https://api.groq.com/openai/v1/chat/completions";
+      url   = "https://api.groq.com/openai/v1/chat/completions";
       model = "llama-3.1-8b-instant";
-
       headers = {
         "Authorization": `Bearer ${GROQ_API_KEY}`,
-        "Content-Type": "application/json"
+        "Content-Type":  "application/json"
       };
-
-      // 🔴 STYLE GROQ
       systemPrompt = `
 Kamu adalah AIVA.
-
 Gaya:
 - Santai, natural, seperti ngobrol
 - Sedikit ekspresif (wah, anjir, mantap jika cocok)
 - Jawaban ringkas tapi jelas
 - Ikuti gaya bahasa user
 `;
-
     } else if (selectedAPI === "qwen") {
-      url = "https://openrouter.ai/api/v1/chat/completions";
+      url   = "https://openrouter.ai/api/v1/chat/completions";
       model = "qwen/qwen3-next-80b-a3b";
-
       headers = {
         "Authorization": `Bearer ${OPENROUTER_API_KEY}`,
-        "Content-Type": "application/json"
+        "Content-Type":  "application/json"
       };
-
-      // 🔵 STYLE QWEN
       systemPrompt = `
 Kamu adalah AIVA.
-
 Gaya:
 - Lebih rapi dan terstruktur
 - Bahasa jelas dan sedikit formal
@@ -88,21 +204,15 @@ Gaya:
 `;
     }
 
-    // ============================
-    // 📡 FETCH AI
-    // ============================
     const response = await fetch(url, {
-      method: "POST",
+      method:  "POST",
       headers: headers,
-      body: JSON.stringify({
-        model: model,
+      body:    JSON.stringify({
+        model,
         temperature: 0.7,
-        max_tokens: 1024,
+        max_tokens:  1024,
         messages: [
-          {
-            role: "system",
-            content: systemPrompt
-          },
+          { role: "system", content: systemPrompt },
           ...chatHistory
         ]
       })
@@ -110,24 +220,17 @@ Gaya:
 
     const data = await response.json();
 
-    // ❌ ERROR HANDLE
     if (!data || !data.choices) {
-      return res.json({
-        reply: "Error API: " + JSON.stringify(data)
-      });
+      return res.json({ reply: "Error API: " + JSON.stringify(data) });
     }
 
     const aiReply = data.choices[0].message.content;
-
-    // simpan AI
     chatHistory.push({ role: "assistant", content: aiReply });
 
     res.json({ reply: aiReply });
 
   } catch (err) {
-    res.json({
-      reply: "Server error: " + err.message
-    });
+    res.json({ reply: "Server error: " + err.message });
   }
 });
 
