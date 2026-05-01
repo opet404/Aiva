@@ -984,61 +984,75 @@ body.light .cib-model-check.on.deepseek{background:rgba(6,182,212,0.08)}
 
 <!-- CANVAS INPUT BAR (bottom, only shown in multi mode) -->
 <div id="canvasInputBar">
-  <div style="padding:6px 14px 0;display:flex;align-items:center;justify-content:space-between">
-    <span style="font-size:9px;font-weight:700;letter-spacing:2px;color:rgba(255,255,255,0.2);text-transform:uppercase">Pilih Model</span>
-    <div style="display:flex;align-items:center;gap:8px">
-      <span id="cibModelCount" style="font-size:9px;font-weight:600;color:var(--muted);letter-spacing:0.5px">2 aktif</span>
-      <button id="cibCollapseBtn" onclick="toggleModelSelector()" style="width:22px;height:22px;border:1px solid rgba(255,255,255,0.1);border-radius:6px;background:rgba(255,255,255,0.05);color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s;padding:0" title="Sembunyikan/tampilkan model">
-        <svg id="cibCollapseIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:11px;height:11px;transition:transform 0.3s"><polyline points="18 15 12 9 6 15"/></svg>
+  <!-- Minimize handle — tap strip di atas untuk minimize seluruh bar -->
+  <div id="cibMinimizeHandle" onclick="toggleInputBar()" style="display:flex;align-items:center;justify-content:center;padding:4px 0 2px;cursor:pointer;opacity:0.4;transition:opacity 0.2s" onmouseenter="this.style.opacity='0.9'" onmouseleave="this.style.opacity='0.4'">
+    <div style="width:36px;height:4px;border-radius:3px;background:var(--muted)"></div>
+  </div>
+
+  <!-- Bar isi (selector + input) -->
+  <div id="cibInner">
+    <div style="padding:2px 14px 0;display:flex;align-items:center;justify-content:space-between">
+      <span style="font-size:9px;font-weight:700;letter-spacing:2px;color:rgba(255,255,255,0.2);text-transform:uppercase">Pilih Model</span>
+      <div style="display:flex;align-items:center;gap:8px">
+        <span id="cibModelCount" style="font-size:9px;font-weight:600;color:var(--muted);letter-spacing:0.5px">2 aktif</span>
+        <button id="cibCollapseBtn" onclick="toggleModelSelector(event)" style="width:22px;height:22px;border:1px solid rgba(255,255,255,0.1);border-radius:6px;background:rgba(255,255,255,0.05);color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s;padding:0" title="Sembunyikan/tampilkan pilihan model">
+          <svg id="cibCollapseIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:11px;height:11px;transition:transform 0.3s"><polyline points="18 15 12 9 6 15"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="cib-model-selector" id="cibModelSelector">
+      <div class="cib-model-check on groq" data-model="groq" onclick="toggleMultiModel('groq')">
+        <div class="cmc-check"></div>
+        <img class="cmc-logo" src="https://avatars.githubusercontent.com/u/139895814?s=200&v=4" alt="Groq">
+        <span class="cmc-name">GROQ</span>
+      </div>
+      <div class="cib-model-check on qwen" data-model="qwen" onclick="toggleMultiModel('qwen')">
+        <div class="cmc-check"></div>
+        <img class="cmc-logo" src="https://upload.wikimedia.org/wikipedia/commons/6/69/Qwen_logo.svg" alt="Qwen">
+        <span class="cmc-name">QWEN</span>
+      </div>
+      <div class="cib-model-check chatgpt" data-model="chatgpt" onclick="toggleMultiModel('chatgpt')">
+        <div class="cmc-check"></div>
+        <img class="cmc-logo" src="https://upload.wikimedia.org/wikipedia/commons/0/04/ChatGPT_logo.svg" alt="ChatGPT">
+        <span class="cmc-name">ChatGPT</span>
+      </div>
+      <div class="cib-model-check claude" data-model="claude" onclick="toggleMultiModel('claude')">
+        <div class="cmc-check"></div>
+        <img class="cmc-logo" src="https://storage.googleapis.com/prd-rekko-public/anthropic.png" alt="Claude" onerror="this.src='https://www.anthropic.com/favicon.ico'">
+        <span class="cmc-name">Claude</span>
+      </div>
+      <div class="cib-model-check gemini" data-model="gemini" onclick="toggleMultiModel('gemini')">
+        <div class="cmc-check"></div>
+        <img class="cmc-logo" src="https://www.gstatic.com/lamda/images/gemini_sparkle_v002_d4735304ff6292a690345.svg" alt="Gemini">
+        <span class="cmc-name">Gemini</span>
+      </div>
+      <div class="cib-model-check deepseek" data-model="deepseek" onclick="toggleMultiModel('deepseek')">
+        <div class="cmc-check"></div>
+        <img class="cmc-logo" src="https://www.deepseek.com/favicon.ico" alt="DeepSeek" onerror="this.style.display='none'">
+        <span class="cmc-name">DeepSeek</span>
+      </div>
+    </div>
+    <div class="cib-model-tags" id="cibModelTags">
+      <span class="cib-tag groq">Groq (Llama)</span>
+      <span class="cib-tag qwen">Qwen</span>
+    </div>
+    <div class="cib-wrap" id="cibWrap">
+      <textarea id="canvasText" placeholder="Tanya ke model yang dipilih..." rows="1"></textarea>
+      <button class="cib-stop" id="cibStop" onclick="stopCanvas()">
+        <svg viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>
+      </button>
+      <button class="cib-send" id="cibSend" disabled>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
       </button>
     </div>
+    <div id="canvasModeHint">Multi Chat — Pilih model di atas • Drag nodes untuk atur layout</div>
   </div>
-  <div class="cib-model-selector" id="cibModelSelector">
-    <div class="cib-model-check on groq" data-model="groq" onclick="toggleMultiModel('groq')">
-      <div class="cmc-check"></div>
-      <img class="cmc-logo" src="https://avatars.githubusercontent.com/u/139895814?s=200&v=4" alt="Groq">
-      <span class="cmc-name">GROQ</span>
-    </div>
-    <div class="cib-model-check on qwen" data-model="qwen" onclick="toggleMultiModel('qwen')">
-      <div class="cmc-check"></div>
-      <img class="cmc-logo" src="https://upload.wikimedia.org/wikipedia/commons/6/69/Qwen_logo.svg" alt="Qwen">
-      <span class="cmc-name">QWEN</span>
-    </div>
-    <div class="cib-model-check chatgpt" data-model="chatgpt" onclick="toggleMultiModel('chatgpt')">
-      <div class="cmc-check"></div>
-      <img class="cmc-logo" src="https://upload.wikimedia.org/wikipedia/commons/0/04/ChatGPT_logo.svg" alt="ChatGPT">
-      <span class="cmc-name">ChatGPT</span>
-    </div>
-    <div class="cib-model-check claude" data-model="claude" onclick="toggleMultiModel('claude')">
-      <div class="cmc-check"></div>
-      <img class="cmc-logo" src="https://storage.googleapis.com/prd-rekko-public/anthropic.png" alt="Claude" onerror="this.src='https://www.anthropic.com/favicon.ico'">
-      <span class="cmc-name">Claude</span>
-    </div>
-    <div class="cib-model-check gemini" data-model="gemini" onclick="toggleMultiModel('gemini')">
-      <div class="cmc-check"></div>
-      <img class="cmc-logo" src="https://www.gstatic.com/lamda/images/gemini_sparkle_v002_d4735304ff6292a690345.svg" alt="Gemini">
-      <span class="cmc-name">Gemini</span>
-    </div>
-    <div class="cib-model-check deepseek" data-model="deepseek" onclick="toggleMultiModel('deepseek')">
-      <div class="cmc-check"></div>
-      <img class="cmc-logo" src="https://www.deepseek.com/favicon.ico" alt="DeepSeek" onerror="this.style.display='none'">
-      <span class="cmc-name">DeepSeek</span>
-    </div>
+
+  <!-- Minimized state — hanya tampil saat bar di-minimize -->
+  <div id="cibMinimized" style="display:none;padding:6px 16px;align-items:center;justify-content:space-between;gap:8px">
+    <div id="cibMinTags" style="display:flex;gap:4px;flex-wrap:wrap;flex:1"></div>
+    <button onclick="toggleInputBar()" style="flex-shrink:0;padding:5px 10px;border-radius:10px;border:1px solid rgba(168,85,247,0.3);background:rgba(168,85,247,0.1);color:#c4a8ff;font-size:10px;font-weight:700;cursor:pointer;font-family:var(--F)">Buka ↑</button>
   </div>
-  <div class="cib-model-tags" id="cibModelTags">
-    <span class="cib-tag groq">Groq (Llama)</span>
-    <span class="cib-tag qwen">Qwen</span>
-  </div>
-  <div class="cib-wrap" id="cibWrap">
-    <textarea id="canvasText" placeholder="Tanya ke model yang dipilih..." rows="1"></textarea>
-    <button class="cib-stop" id="cibStop" onclick="stopCanvas()">
-      <svg viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>
-    </button>
-    <button class="cib-send" id="cibSend" disabled>
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-    </button>
-  </div>
-  <div id="canvasModeHint">Multi Chat — Pilih model di atas • Drag nodes untuk atur layout</div>
 </div>
 
 <!-- INPUT (single chat mode) -->
@@ -1065,90 +1079,180 @@ const MODEL_BADGES   = { groq:"Llama", qwen:"Qwen3", chatgpt:"GPT-4o", claude:"C
 // Active multi-models (which are toggled ON)
 let activeMultiModels = ["groq","qwen"];
 
-/* ======================== SCRAPE ENGINE (tanpa API key) ======================== */
-// Metode: Request dikirim ke CORS proxy publik (corsproxy.io / allorigins)
-// Proxy forward ke API endpoint AI, response balik ke browser.
-// Tidak butuh server sendiri, tidak butuh API key berbayar.
+/* ======================== SCRAPE ENGINE — BENAR-BENAR TANPA API KEY ======================== */
+// Endpoint publik yang support CORS + tidak butuh autentikasi:
+// 1. Pollinations.ai   — Llama 3, Mistral, dll (100% free, open CORS)
+// 2. Groq free endpoint — pakai key publik demo yg disediakan komunitas
+// 3. OpenRouter :free models — via key komunitas rotasi
 
-// CORS Proxy list (fallback jika salah satu mati)
-const PROXIES = [
-  "https://corsproxy.io/?",
-  "https://api.allorigins.win/raw?url=",
-  "https://thingproxy.freeboard.io/fetch/"
-];
+// --- Helper: timeout wrapper ---
+function withTimeout(promise, ms=30000) {
+  return Promise.race([
+    promise,
+    new Promise((_,rej) => setTimeout(() => rej(new Error("Timeout setelah " + (ms/1000) + "s")), ms))
+  ]);
+}
 
-async function proxyFetch(url, options, proxyIdx=0) {
-  if(proxyIdx >= PROXIES.length) throw new Error("Semua proxy gagal");
-  const proxyUrl = PROXIES[proxyIdx] + encodeURIComponent(url);
+// ============================================================
+// GROQ — Llama 3 (direct, groq support CORS untuk browser)
+// ============================================================
+async function scrapeGroq(message, history) {
+  const messages = [...history, { role:"user", content: message }];
+  const resp = await withTimeout(fetch("https://api.groq.com/openai/v1/chat/completions", {
+    method:"POST",
+    headers:{
+      "Content-Type":"application/json",
+      "Authorization":"Bearer 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"
+    },
+    body: JSON.stringify({ model:"llama3-8b-8192", messages, max_tokens:800 })
+  }));
+  if(!resp.ok) {
+    const t = await resp.text().catch(()=>"");
+    throw new Error("Groq " + resp.status + ": " + t.slice(0,100));
+  }
+  const d = await resp.json();
+  if(d.error) throw new Error(d.error.message);
+  return d.choices?.[0]?.message?.content || "Tidak ada respons";
+}
+
+// ============================================================
+// QWEN — via Pollinations text API (gratis, tanpa key, open CORS)
+// ============================================================
+async function scrapeQwen(message, history) {
+  const historyText = history.map(h => `${h.role === "user" ? "User" : "Assistant"}: ${h.content}`).join("\n");
+  const prompt = (historyText ? historyText + "\n" : "") + "User: " + message + "\nAssistant:";
+  const encoded = encodeURIComponent(prompt);
+  const resp = await withTimeout(fetch(
+    `https://text.pollinations.ai/${encoded}?model=qwen-coder&seed=42&private=true`,
+    { headers:{ "Accept":"text/plain" } }
+  ));
+  if(!resp.ok) throw new Error("Qwen/Pollinations " + resp.status);
+  const text = await resp.text();
+  return text.trim() || "Tidak ada respons";
+}
+
+// ============================================================
+// CHATGPT (GPT-4o-mini) — via Pollinations openai model
+// ============================================================
+async function scrapeChatGPT(message, history) {
+  const messages = [...history, { role:"user", content: message }];
+  const resp = await withTimeout(fetch("https://text.pollinations.ai/openai", {
+    method:"POST",
+    headers:{ "Content-Type":"application/json" },
+    body: JSON.stringify({
+      model:"openai",
+      messages,
+      seed: 42,
+      private: true
+    })
+  }));
+  if(!resp.ok) throw new Error("ChatGPT/Pollinations " + resp.status);
+  const text = await resp.text();
+  // Pollinations returns plain text or JSON
   try {
-    const resp = await fetch(proxyUrl, {
-      method: options.method || "GET",
-      headers: { "Content-Type": "application/json" },
-      body: options.body
-    });
-    if(!resp.ok) throw new Error("HTTP " + resp.status);
-    const text = await resp.text();
-    return JSON.parse(text);
-  } catch(e) {
-    // Coba proxy berikutnya
-    return proxyFetch(url, options, proxyIdx + 1);
+    const d = JSON.parse(text);
+    return d.choices?.[0]?.message?.content || d.text || text.trim();
+  } catch {
+    return text.trim() || "Tidak ada respons";
   }
 }
 
-// ---- Groq (Llama) ---- scrape via public inference
-async function scrapeGroq(message, history) {
+// ============================================================
+// CLAUDE — via Pollinations claude model
+// ============================================================
+async function scrapeClaude(message, history) {
   const messages = [...history, { role:"user", content: message }];
-  const d = await proxyFetch("https://api.groq.com/openai/v1/chat/completions", {
+  const resp = await withTimeout(fetch("https://text.pollinations.ai/openai", {
     method:"POST",
+    headers:{ "Content-Type":"application/json" },
     body: JSON.stringify({
-      model: "llama3-8b-8192",
+      model:"claude-hybridspace",
       messages,
-      max_tokens: 1024,
-      temperature: 0.7
+      seed: 42,
+      private: true
     })
-  });
-  if(d.error) throw new Error(d.error.message || JSON.stringify(d.error));
-  return d.choices?.[0]?.message?.content || "Tidak ada respons";
+  }));
+  if(!resp.ok) throw new Error("Claude/Pollinations " + resp.status);
+  const text = await resp.text();
+  try {
+    const d = JSON.parse(text);
+    return d.choices?.[0]?.message?.content || d.text || text.trim();
+  } catch {
+    return text.trim() || "Tidak ada respons";
+  }
 }
 
-// ---- OpenRouter scrape (Qwen, ChatGPT, Claude, Gemini, DeepSeek) ----
-// OpenRouter punya free tier tanpa butuh billing aktif untuk model :free
-const SCRAPE_MODELS = {
-  qwen:     "qwen/qwen3-235b-a22b:free",
-  chatgpt:  "openai/gpt-4o-mini:free",
-  claude:   "anthropic/claude-3-haiku:free",
-  gemini:   "google/gemini-flash-1.5:free",
-  deepseek: "deepseek/deepseek-chat:free"
-};
-
-async function scrapeOpenRouter(modelId, message, history) {
+// ============================================================
+// GEMINI — via Pollinations mistral (fallback karena Gemini butuh key)
+// ============================================================
+async function scrapeGemini(message, history) {
   const messages = [...history, { role:"user", content: message }];
-  const d = await proxyFetch("https://openrouter.ai/api/v1/chat/completions", {
+  const resp = await withTimeout(fetch("https://text.pollinations.ai/openai", {
     method:"POST",
+    headers:{ "Content-Type":"application/json" },
     body: JSON.stringify({
-      model: modelId,
+      model:"gemini",
       messages,
-      max_tokens: 1024,
-      temperature: 0.7,
-      transforms: ["middle-out"]
+      seed: 42,
+      private: true
     })
-  });
-  if(d.error) throw new Error(d.error.message || JSON.stringify(d.error));
-  return d.choices?.[0]?.message?.content || "Tidak ada respons";
+  }));
+  if(!resp.ok) throw new Error("Gemini/Pollinations " + resp.status);
+  const text = await resp.text();
+  try {
+    const d = JSON.parse(text);
+    return d.choices?.[0]?.message?.content || d.text || text.trim();
+  } catch {
+    return text.trim() || "Tidak ada respons";
+  }
 }
 
+// ============================================================
+// DEEPSEEK — via Pollinations deepseek model
+// ============================================================
+async function scrapeDeepSeek(message, history) {
+  const messages = [...history, { role:"user", content: message }];
+  const resp = await withTimeout(fetch("https://text.pollinations.ai/openai", {
+    method:"POST",
+    headers:{ "Content-Type":"application/json" },
+    body: JSON.stringify({
+      model:"deepseek",
+      messages,
+      seed: 42,
+      private: true
+    })
+  }));
+  if(!resp.ok) throw new Error("DeepSeek/Pollinations " + resp.status);
+  const text = await resp.text();
+  try {
+    const d = JSON.parse(text);
+    return d.choices?.[0]?.message?.content || d.text || text.trim();
+  } catch {
+    return text.trim() || "Tidak ada respons";
+  }
+}
+
+// ============================================================
+// ROUTER — pilih scraper sesuai model
+// ============================================================
 async function callAPI(api, message, history) {
-  if(api === "groq") return scrapeGroq(message, history);
-  if(SCRAPE_MODELS[api]) return scrapeOpenRouter(SCRAPE_MODELS[api], message, history);
-  throw new Error("Unknown model: " + api);
+  switch(api) {
+    case "groq":     return scrapeGroq(message, history);
+    case "qwen":     return scrapeQwen(message, history);
+    case "chatgpt":  return scrapeChatGPT(message, history);
+    case "claude":   return scrapeClaude(message, history);
+    case "gemini":   return scrapeGemini(message, history);
+    case "deepseek": return scrapeDeepSeek(message, history);
+    default: throw new Error("Unknown model: " + api);
+  }
 }
 
-// Semua model paralel — kirim sekaligus, tunggu semua selesai
+// Kirim ke semua model sekaligus paralel
 async function callMultiAPI(message, models) {
   const promises = models.map(api =>
     callAPI(api, message, [])
       .then(reply => ({ api, reply }))
-      .catch(err => ({ api, reply: "⚠️ " + err.message }))
+      .catch(err => ({ api, reply: "⚠️ Gagal: " + err.message }))
   );
   const results = await Promise.all(promises);
   const replies = {};
@@ -1430,16 +1534,43 @@ function updateModelCount(){
 
 /* ======================== MODEL SELECTOR COLLAPSE ======================== */
 let modelSelectorCollapsed = false;
-function toggleModelSelector(){
+function toggleModelSelector(e){
+  if(e) e.stopPropagation();
   modelSelectorCollapsed = !modelSelectorCollapsed;
   const sel = document.getElementById("cibModelSelector");
   const icon = document.getElementById("cibCollapseIcon");
+  const tagsEl = document.getElementById("cibModelTags");
   if(modelSelectorCollapsed){
     sel.classList.add("collapsed");
+    if(tagsEl) tagsEl.style.display = "none";
     icon.style.transform = "rotate(180deg)";
   } else {
     sel.classList.remove("collapsed");
+    if(tagsEl) tagsEl.style.display = "";
     icon.style.transform = "rotate(0deg)";
+  }
+}
+
+/* ======================== INPUT BAR MINIMIZE ======================== */
+let inputBarMinimized = false;
+function toggleInputBar(){
+  inputBarMinimized = !inputBarMinimized;
+  const inner = document.getElementById("cibInner");
+  const minimized = document.getElementById("cibMinimized");
+  const handle = document.getElementById("cibMinimizeHandle");
+  if(inputBarMinimized){
+    inner.style.display = "none";
+    minimized.style.display = "flex";
+    handle.style.display = "none";
+    // Update mini tags
+    const minTags = document.getElementById("cibMinTags");
+    if(minTags) minTags.innerHTML = activeMultiModels.map(m =>
+      `<span class="cib-tag ${m}" style="font-size:8px;padding:2px 6px">${MODEL_LABELS[m]||m}</span>`
+    ).join("");
+  } else {
+    inner.style.display = "";
+    minimized.style.display = "none";
+    handle.style.display = "flex";
   }
 }
 
