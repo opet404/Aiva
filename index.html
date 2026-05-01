@@ -20,7 +20,7 @@
   --F:'Syne',sans-serif;--FM:'Space Mono',monospace;
   --ease:cubic-bezier(0.22,1,0.36,1);
   /* model colors */
-  --groq:#3d72f6;--qwen:#a855f7;--gemini:#10b981;
+  --groq:#3d72f6;--qwen:#a855f7;
 }
 body.light{
   --bg:#f1f3fb;--surface:rgba(255,255,255,0.92);--surface2:rgba(243,245,255,0.85);
@@ -73,7 +73,7 @@ header{position:relative;z-index:1000;height:var(--hdr);display:flex;align-items
 #modeBadge{position:absolute;right:56px;display:flex;align-items:center}
 .mode-badge-inner{display:flex;align-items:center;gap:5px;padding:5px 10px;border-radius:10px;background:var(--glass);border:1px solid var(--gb);font-family:var(--F);font-size:11px;font-weight:600;color:var(--text);letter-spacing:0.5px}
 .mode-dot{width:7px;height:7px;border-radius:50%;background:var(--accent)}
-.mode-badge-inner.multi .mode-dot{background:linear-gradient(135deg,var(--groq),var(--qwen),var(--gemini));animation:rotateDot 2s linear infinite}
+.mode-badge-inner.multi .mode-dot{background:linear-gradient(135deg,var(--groq),var(--qwen));animation:rotateDot 2s linear infinite}
 @keyframes rotateDot{from{filter:hue-rotate(0deg)}to{filter:hue-rotate(360deg)}}
 
 /* OVERLAY */
@@ -229,7 +229,7 @@ pre{margin:0;padding:14px;font-family:var(--FM);font-size:12px;line-height:1.7;c
 }
 .multi-divider-line{
   flex:1;height:1px;
-  background:linear-gradient(90deg,rgba(61,114,246,0.5),rgba(168,85,247,0.5),rgba(16,185,129,0.5));
+  background:linear-gradient(90deg,rgba(61,114,246,0.5),rgba(168,85,247,0.5));
 }
 .multi-model-tabs{
   display:flex;gap:0;flex-shrink:0;
@@ -240,8 +240,7 @@ pre{margin:0;padding:14px;font-family:var(--FM);font-size:12px;line-height:1.7;c
   cursor:default;
 }
 .multi-model-tab.groq{background:rgba(61,114,246,0.15);color:#7aa8f7;border:1px solid rgba(61,114,246,0.3);border-bottom:none;border-radius:7px 0 0 0}
-.multi-model-tab.qwen{background:rgba(168,85,247,0.15);color:#c4a8ff;border:1px solid rgba(168,85,247,0.3);border-bottom:none;border-left:none;border-radius:0}
-.multi-model-tab.gemini{background:rgba(16,185,129,0.15);color:#6ee7b7;border:1px solid rgba(16,185,129,0.3);border-bottom:none;border-left:none;border-radius:0 7px 0 0}
+.multi-model-tab.qwen{background:rgba(168,85,247,0.15);color:#c4a8ff;border:1px solid rgba(168,85,247,0.3);border-bottom:none;border-left:none;border-radius:0 7px 0 0}
 
 /* Three-column answers */
 .multi-cols{
@@ -255,12 +254,11 @@ pre{margin:0;padding:14px;font-family:var(--FM);font-size:12px;line-height:1.7;c
   position:relative;min-width:0;
 }
 .multi-col.groq{background:rgba(61,114,246,0.07);border:1px solid rgba(61,114,246,0.2);border-top:none;border-right:none}
-.multi-col.qwen{background:rgba(168,85,247,0.07);border:1px solid rgba(168,85,247,0.2);border-top:none;border-right:none;border-left:none}
-.multi-col.gemini{background:rgba(16,185,129,0.07);border:1px solid rgba(16,185,129,0.2);border-top:none;border-left:none}
+.multi-col.qwen{background:rgba(168,85,247,0.07);border:1px solid rgba(168,85,247,0.2);border-top:none;border-left:none}
 .multi-col .multi-col-time{font-size:9px;color:var(--muted);margin-top:8px;letter-spacing:0.3px}
 .multi-col .typing-mini{display:inline-flex;gap:4px;align-items:center;padding:4px 0}
 .typing-mini .td{width:5px;height:5px}
-.typing-mini .td.groq-dot{background:var(--groq)}.typing-mini .td.qwen-dot{background:var(--qwen)}.typing-mini .td.gemini-dot{background:var(--gemini)}
+.typing-mini .td.groq-dot{background:var(--groq)}.typing-mini .td.qwen-dot{background:var(--qwen)}
 
 /* Mobile: stack on narrow */
 @media(max-width:540px){
@@ -268,10 +266,8 @@ pre{margin:0;padding:14px;font-family:var(--FM);font-size:12px;line-height:1.7;c
   .multi-col{border-right:none!important;border-left:none!important;border-top:none!important}
   .multi-col.groq{border:1px solid rgba(61,114,246,0.2);border-top:none;border-radius:0}
   .multi-col.qwen{border:1px solid rgba(168,85,247,0.2);border-top:none;margin-top:-1px}
-  .multi-col.gemini{border:1px solid rgba(16,185,129,0.2);border-top:none;margin-top:-1px}
   .multi-model-tab.groq{border-radius:7px 0 0 0}
-  .multi-model-tab.qwen{border-radius:0}
-  .multi-model-tab.gemini{border-radius:0 7px 0 0}
+  .multi-model-tab.qwen{border-radius:0 7px 0 0}
 }
 
 /* INPUT */
@@ -284,7 +280,7 @@ pre{margin:0;padding:14px;font-family:var(--FM);font-size:12px;line-height:1.7;c
 #text::-webkit-scrollbar{display:none}
 #text::placeholder{color:var(--muted)}
 .send-btn{width:40px;height:40px;border-radius:13px;border:none;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:all 0.22s var(--ease);box-shadow:0 4px 16px rgba(61,114,246,0.36)}
-.send-btn.multi{background:linear-gradient(135deg,var(--groq),var(--qwen),var(--gemini));box-shadow:0 4px 16px rgba(114,72,245,0.36)}
+.send-btn.multi{background:linear-gradient(135deg,var(--groq),var(--qwen));box-shadow:0 4px 16px rgba(114,72,245,0.36)}
 .send-btn:disabled{background:rgba(61,114,246,0.2)!important;box-shadow:none!important;cursor:default;opacity:0.5}
 .send-btn:not(:disabled):hover{transform:scale(1.07) translateY(-1px);box-shadow:0 6px 24px rgba(61,114,246,0.5)}
 .send-btn:not(:disabled):active{transform:scale(0.95)}
@@ -389,9 +385,6 @@ pre{margin:0;padding:14px;font-family:var(--FM);font-size:12px;line-height:1.7;c
   <button onclick="setAPI('qwen')">
     <img src="https://upload.wikimedia.org/wikipedia/commons/6/69/Qwen_logo.svg" style="width:15px;height:15px;border-radius:4px"> Qwen
   </button>
-  <button onclick="setAPI('gemini')">
-    <img src="https://www.gstatic.com/lamda/images/gemini_sparkle_v002_d4735304ff6292a690345.svg" style="width:15px;height:15px;border-radius:4px"> Gemini
-  </button>
 </div>
 
 <!-- ABOUT PAGE -->
@@ -401,7 +394,7 @@ pre{margin:0;padding:14px;font-family:var(--FM);font-size:12px;line-height:1.7;c
     <div class="fp-h1">AIVA</div>
     <p class="fp-lead">Artificial Intelligence Virtual Assistant — sistem AI modern yang dirancang untuk memberikan pengalaman interaksi yang cepat, ringan, dan futuristik di berbagai perangkat.</p>
     <div class="fp-card"><div class="fp-card-title">Function</div><p>AIVA berfungsi sebagai asisten digital yang dapat membantu menjawab pertanyaan, memberikan ide, membantu coding, serta mendukung aktivitas kreatif pengguna secara real-time.</p></div>
-    <div class="fp-card"><div class="fp-card-title">Multi Chat</div><p>Fitur Multi Chat memungkinkan kamu membandingkan jawaban dari 3 model AI sekaligus: Groq, Qwen, dan Gemini — dalam satu pertanyaan.</p></div>
+    <div class="fp-card"><div class="fp-card-title">Multi Chat</div><p>Fitur Multi Chat memungkinkan kamu membandingkan jawaban dari 2 model AI sekaligus: Groq dan Qwen — dalam satu pertanyaan.</p></div>
     <div class="fp-card"><div class="fp-card-title">Status</div><p>Sistem ini masih dalam tahap pengembangan (beta), sehingga beberapa fitur mungkin belum sepenuhnya stabil dan akan terus diperbarui secara berkala.</p></div>
     <div class="fp-footer">Created by opetxdy — AIVA is still in development</div>
   </div>
@@ -441,29 +434,17 @@ pre{margin:0;padding:14px;font-family:var(--FM);font-size:12px;line-height:1.7;c
 
 <script>
 /* ======================== CONFIG ======================== */
-// ⚠️ GANTI KETIGA KEY INI DENGAN KEY BARU KAMU:
+// ⚠️ GANTI KEDUA KEY INI DENGAN KEY BARU KAMU:
 const GROQ_API_KEY       = "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";
-const OPENROUTER_API_KEY = "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";
-const GEMINI_API_KEY     = "AIzaSyBqZVZbfBGFdiU0GIVpNJvTn5IzNh9ztoM";
+const OPENROUTER_API_KEY = "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";
 
 const DARK_LOGO      = "https://i.ibb.co.com/SD7LZgmv/Picsart-26-04-29-23-27-26-445.jpg";
 const LIGHT_LOGO     = "https://i.ibb.co.com/XrH4nnQy/file-0000000005a87208a1ebd9aff2438f5f.png";
-const MODEL_LABELS   = { groq:"Groq (Llama)", qwen:"Qwen", gemini:"Gemini" };
+const MODEL_LABELS   = { groq:"Groq (Llama)", qwen:"Qwen" };
 
 // Model fallback lists
 const QWEN_MODELS = [
-  "qwen/qwen-2.5-72b-instruct",
-  "qwen/qwen-2.5-7b-instruct:free",
-  "qwen/qwen2-7b-instruct:free",
-  "meta-llama/llama-3.1-8b-instruct:free",
-  "mistralai/mistral-7b-instruct:free",
-  "google/gemma-2-9b-it:free"
-];
-const GEMINI_MODELS = [
-  "gemini-2.0-flash",
-  "gemini-1.5-flash",
-  "gemini-1.5-flash-8b",
-  "gemini-1.0-pro"
+  "qwen/qwen3-235b-a22b:free"
 ];
 
 /* ======================== API CALLS (pure frontend) ======================== */
@@ -520,62 +501,9 @@ async function callQwen(message, history) {
   throw lastErr || new Error("Semua model Qwen gagal");
 }
 
-async function callGemini(message, history) {
-  // Build contents dengan alternating role
-  const contents = [];
-  let lastRole = null;
-  for (const m of history.filter(m => m.role === "user" || m.role === "assistant")) {
-    const role = m.role === "assistant" ? "model" : "user";
-    if (role === lastRole) continue;
-    contents.push({ role, parts: [{ text: m.content }] });
-    lastRole = role;
-  }
-  if (lastRole === "user" && contents.length > 0) {
-    contents[contents.length - 1].parts[0].text += "\n" + message;
-  } else {
-    contents.push({ role: "user", parts: [{ text: message }] });
-  }
-
-  let lastErr = null;
-  for (const model of GEMINI_MODELS) {
-    try {
-      const body = {
-        contents,
-        generationConfig: { temperature: 0.7, maxOutputTokens: 1024 }
-      };
-      if (model !== "gemini-1.0-pro") {
-        body.system_instruction = { parts: [{ text: "Kamu adalah AIVA. Kreatif, cerdas, dan ramah. Jawab dalam bahasa yang sama dengan user." }] };
-      }
-      const resp = await fetch(
-        "https://generativelanguage.googleapis.com/v1beta/models/" + model + ":generateContent?key=" + GEMINI_API_KEY,
-        { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }
-      );
-      const txt = await resp.text();
-      if (!resp.ok) { lastErr = new Error("Gemini HTTP " + resp.status + " (" + model + ")"); continue; }
-      let d;
-      try { d = JSON.parse(txt); } catch(e) { lastErr = new Error("Parse error"); continue; }
-      if (!d?.candidates?.length) {
-        const reason = d?.promptFeedback?.blockReason || "no candidates";
-        lastErr = new Error("Gemini blocked: " + reason); continue;
-      }
-      const part = d.candidates[0]?.content?.parts?.[0]?.text;
-      if (!part) { lastErr = new Error("Part kosong dari " + model); continue; }
-      return part;
-    } catch(e) { lastErr = e; }
-  }
-  // fallback ke Groq
-  try {
-    const fb = await callGroq(message, history);
-    return "[Gemini tidak tersedia]\n\n" + fb;
-  } catch(fe) {
-    throw lastErr || new Error("Semua model Gemini gagal");
-  }
-}
-
 async function callAPI(api, message, history) {
   if (api === "groq")   return callGroq(message, history);
   if (api === "qwen")   return callQwen(message, history);
-  if (api === "gemini") return callGemini(message, history);
   throw new Error("Unknown API: " + api);
 }
 
@@ -652,7 +580,7 @@ function applyModeUI(){
     badgeText.textContent = "Multi";
     inputWrap.classList.add("multi-mode");
     sendBtn.classList.add("multi");
-    modeHint.textContent = "Multi Chat — Groq • Qwen • Gemini";
+    modeHint.textContent = "Multi Chat — Groq • Qwen";
     inputEl.placeholder = "Tanya ke 3 model sekaligus...";
   }
 }
@@ -721,7 +649,7 @@ function loadSession(id){
       el.innerHTML = escHtml(m.text) + `<div class="msg-time">${m.time}</div>`;
       chatEl.appendChild(el);
     } else if(m.role === "multi-answer"){
-      chatEl.appendChild(buildMultiAnswerEl(m.groq, m.qwen, m.gemini, m.time));
+      chatEl.appendChild(buildMultiAnswerEl(m.groq, m.qwen, m.time));
     } else {
       const d = document.createElement("div");
       d.className = "msg " + m.role;
@@ -1019,14 +947,13 @@ function sendMulti(msg){
     <div class="multi-model-tabs">
       <div class="multi-model-tab groq">GROQ</div>
       <div class="multi-model-tab qwen">QWEN</div>
-      <div class="multi-model-tab gemini">GEMINI</div>
     </div>`;
   multiEl.appendChild(divEl);
 
   const colsEl = document.createElement("div");
   colsEl.className = "multi-cols";
 
-  ["groq","qwen","gemini"].forEach(m => {
+  ["groq","qwen"].forEach(m => {
     const col = document.createElement("div");
     col.className = `multi-col ${m}`;
     col.id = `multicol_${m}_${ut.replace(/:/g,"")}`;
@@ -1041,7 +968,7 @@ function sendMulti(msg){
   const ts = ut.replace(/:/g,"");
   const replies = {};
 
-  const apis = ["groq","qwen","gemini"];
+  const apis = ["groq","qwen"];
   let done = 0;
 
   apis.forEach(api => {
@@ -1060,7 +987,7 @@ function sendMulti(msg){
       done++;
       if(done === apis.length){
         const t = getTime();
-        addMsgToSession({ role:"multi-answer", groq:replies.groq||"", qwen:replies.qwen||"", gemini:replies.gemini||"", time:t });
+        addMsgToSession({ role:"multi-answer", groq:replies.groq||"", qwen:replies.qwen||"", time:t });
         finishAI();
         autoScroll();
       }
@@ -1069,7 +996,7 @@ function sendMulti(msg){
 }
 
 /* ======================== BUILD MULTI EL (for session restore) ======================== */
-function buildMultiAnswerEl(groqR, qwenR, geminiR, t){
+function buildMultiAnswerEl(groqR, qwenR, t){
   const multiEl = document.createElement("div");
   multiEl.className = "multi-answers";
 
@@ -1080,14 +1007,13 @@ function buildMultiAnswerEl(groqR, qwenR, geminiR, t){
     <div class="multi-model-tabs">
       <div class="multi-model-tab groq">GROQ</div>
       <div class="multi-model-tab qwen">QWEN</div>
-      <div class="multi-model-tab gemini">GEMINI</div>
     </div>`;
   multiEl.appendChild(divEl);
 
   const colsEl = document.createElement("div");
   colsEl.className = "multi-cols";
 
-  [["groq",groqR],["qwen",qwenR],["gemini",geminiR]].forEach(([m, reply]) => {
+  [["groq",groqR],["qwen",qwenR]].forEach(([m, reply]) => {
     const col = document.createElement("div");
     col.className = `multi-col ${m}`;
     col.innerHTML = renderMessage(reply || "") + `<div class="multi-col-time">${t}</div>`;
