@@ -10,13 +10,18 @@ const PORT = 3000;
 const GROQ_API_KEY       = "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";
 const OPENROUTER_API_KEY = "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";
 
-// 🧠 MEMORY
-let chatHistory = [];
+// 🧠 SESSION MEMORY
+let chatHistories = {};
+
+// 🧠 MODEL QWEN (STABIL)
+const QWEN_MODELS = [
+  "qwen/qwen2.5-72b-instruct",
+  "qwen/qwen2.5-7b-instruct",
+  "qwen/qwen3-30b-a3b"
+];
 
 app.use(cors());
 app.use(express.json());
-
-// 🔥 STATIC
 app.use(express.static(__dirname));
 
 app.get("/", (req, res) => {
@@ -24,219 +29,183 @@ app.get("/", (req, res) => {
 });
 
 // ============================
-// 🎬 VIDEO DOWNLOADER PROXY
-// Cara kerja:
-// 1. Frontend kirim GET /convert?url=<video_url>&audio=0
-// 2. Server fetch ke Cobalt API (tanpa CORS block)
-// 3. Server kembalikan { dlUrl, title, platform } ke frontend
-// 4. Frontend buka /download?url=<dlUrl>&filename=video.mp4
-// 5. Server stream file langsung ke browser → auto download
+// 🔥 FETCH WITH TIMEOUT
 // ============================
+function fetchWithTimeout(url, options, timeout = 90000) {
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), timeout);
+  return fetch(url, { ...options, signal: controller.signal })
+    .finally(() => clearTimeout(id));
+}
 
-// Step 1: Resolve video URL via Cobalt
-app.get("/convert", async (req, res) => {
-  const videoUrl  = req.query.url;
-  const audioOnly = req.query.audio === "1";
+// ============================
+// 🚀 CALL API
+// ============================
+async function callAPI(api, message, history) {
 
-  if (!videoUrl) return res.json({ error: "URL kosong" });
+  // ================= GROQ =================
+  if (api === "groq") {
+    const resp = await fetchWithTimeout(
+      "https://api.groq.com/openai/v1/chat/completions",
+      {
+        method: "POST",
+        headers: {
+          "Authorization": "Bearer " + GROQ_API_KEY,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          model: "llama-3.3-70b-versatile",
+          temperature: 0.7,
+          max_tokens: 1024,
+          messages: [
+            { role: "system", content: "Kamu adalah AIVA. Santai, natural, ringkas." },
+            ...history,
+            { role: "user", content: message }
+          ]
+        })
+      }
+    );
 
-  try {
-    const body = {
-      url:              videoUrl,
-      vCodec:           "h264",
-      vQuality:         "720",
-      aFormat:          "mp3",
-      isAudioOnly:      audioOnly,
-      isNoTTWatermark:  true,
-      isTTFullAudio:    false,
-      isAudioMuted:     false,
-      dubLang:          false,
-      disableMetadata:  false,
-      twitterGif:       false,
-      tiktokH265:       false
-    };
+    if (!resp.ok) {
+      const txt = await resp.text();
+      throw new Error("Groq " + resp.status + ": " + txt);
+    }
 
-    // Coba beberapa Cobalt instance (kalau satu down)
-    const cobaltInstances = [
-      "https://co.wuk.sh/api/json",
-      "https://cobalt.api.lisek.world/api/json",
-      "https://cobalt.synzr.space/api/json"
-    ];
+    const d = await resp.json();
+    return d.choices?.[0]?.message?.content || "Kosong dari Groq";
+  }
 
-    let data = null;
-    let lastErr = "";
+  // ================= QWEN =================
+  if (api === "qwen") {
 
-    for (const apiUrl of cobaltInstances) {
+    let lastError = null;
+
+    for (const model of QWEN_MODELS) {
       try {
-        const r = await fetch(apiUrl, {
-          method:  "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Accept":       "application/json",
-            "User-Agent":   "Mozilla/5.0 (compatible; AIVA/1.0)"
-          },
-          body:    JSON.stringify(body),
-          timeout: 10000
-        });
-        data = await r.json();
-        if (data && data.status !== "error") break; // sukses
-        lastErr = data?.text || "API error";
-      } catch (e) {
-        lastErr = e.message;
+        console.log("🔥 Qwen coba:", model);
+
+        const resp = await fetchWithTimeout(
+          "https://openrouter.ai/api/v1/chat/completions",
+          {
+            method: "POST",
+            headers: {
+              "Authorization": "Bearer " + OPENROUTER_API_KEY,
+              "Content-Type": "application/json",
+              "HTTP-Referer": "http://localhost:" + PORT,
+              "X-Title": "AIVA",
+              "User-Agent": "AIVA/1.0"
+            },
+            body: JSON.stringify({
+              model,
+              temperature: 0.6,
+              max_tokens: 1024,
+              messages: [
+                { role: "system", content: "Kamu adalah AIVA. Jawaban rapi, jelas, informatif." },
+                ...history,
+                { role: "user", content: message }
+              ]
+              // ❗ fallback otomatis (jangan dimatiin)
+            })
+          }
+        );
+
+        const text = await resp.text();
+        console.log("RAW:", text.slice(0, 200));
+
+        if (!resp.ok) {
+          lastError = new Error(`HTTP ${resp.status} (${model})`);
+          continue;
+        }
+
+        let data;
+        try {
+          data = JSON.parse(text);
+        } catch {
+          lastError = new Error("JSON rusak dari " + model);
+          continue;
+        }
+
+        if (data.error) {
+          lastError = new Error(data.error.message);
+          continue;
+        }
+
+        const content = data?.choices?.[0]?.message?.content;
+
+        if (!content) {
+          lastError = new Error("Kosong dari " + model);
+          continue;
+        }
+
+        console.log("✅ Qwen sukses:", model);
+        return content;
+
+      } catch (err) {
+        console.log("❌ Qwen error:", err.message);
+        lastError = err;
       }
     }
 
-    if (!data || data.status === "error" || data.status === "rate-limit") {
-      return res.json({ error: data?.text || lastErr || "Semua server gagal" });
-    }
-
-    // Picker = multi item (Instagram carousel dll)
-    if (data.status === "picker" && data.picker) {
-      return res.json({
-        status:  "picker",
-        items:   data.picker.map((p, i) => ({
-          label: `Item ${i + 1}`,
-          url:   `/download?url=${encodeURIComponent(p.url)}&filename=video_${i+1}.mp4`
-        }))
-      });
-    }
-
-    const rawUrl = data.url || data.stream;
-    if (!rawUrl) return res.json({ error: "Link download tidak ditemukan" });
-
-    const ext      = audioOnly ? "mp3" : "mp4";
-    const filename = `aiva_download.${ext}`;
-
-    return res.json({
-      status:  "ok",
-      dlUrl:   `/download?url=${encodeURIComponent(rawUrl)}&filename=${filename}`,
-      audioUrl: !audioOnly
-        ? `/convert?url=${encodeURIComponent(videoUrl)}&audio=1`
-        : null
-    });
-
-  } catch (err) {
-    return res.json({ error: "Server error: " + err.message });
+    throw lastError || new Error("Semua Qwen gagal");
   }
-});
 
-// Step 2: Proxy stream download → browser auto download
-app.get("/download", async (req, res) => {
-  const targetUrl = req.query.url;
-  const filename  = req.query.filename || "download.mp4";
-
-  if (!targetUrl) return res.status(400).send("URL kosong");
-
-  try {
-    const response = await fetch(decodeURIComponent(targetUrl), {
-      headers: {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-        "Referer":    "https://www.tiktok.com/"
-      }
-    });
-
-    if (!response.ok) {
-      return res.status(502).send("Gagal fetch video: " + response.status);
-    }
-
-    // Set header biar browser auto download
-    const contentType = response.headers.get("content-type") || "video/mp4";
-    res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
-    res.setHeader("Content-Type", contentType);
-
-    const cl = response.headers.get("content-length");
-    if (cl) res.setHeader("Content-Length", cl);
-
-    // Stream langsung ke client
-    response.body.pipe(res);
-
-  } catch (err) {
-    res.status(500).send("Download error: " + err.message);
-  }
-});
+  throw new Error("API tidak dikenal");
+}
 
 // ============================
-// 🚀 CHAT API
+// 💬 CHAT
 // ============================
 app.post("/chat", async (req, res) => {
   try {
-    const userMessage = req.body?.message;
-    const selectedAPI = req.body?.api || "groq";
+    const { message, api = "groq", sessionId = "default" } = req.body;
 
-    if (!userMessage) {
-      return res.json({ reply: "Pesan kosong!" });
-    }
+    if (!message) return res.json({ reply: "Pesan kosong!" });
 
-    chatHistory.push({ role: "user", content: userMessage });
-    if (chatHistory.length > 12) chatHistory = chatHistory.slice(-12);
+    if (!chatHistories[sessionId]) chatHistories[sessionId] = [];
 
-    let url, model, headers, systemPrompt;
+    chatHistories[sessionId].push({ role: "user", content: message });
+    chatHistories[sessionId] = chatHistories[sessionId].slice(-12);
 
-    if (selectedAPI === "groq") {
-      url   = "https://api.groq.com/openai/v1/chat/completions";
-      model = "llama-3.1-8b-instant";
-      headers = {
-        "Authorization": `Bearer ${GROQ_API_KEY}`,
-        "Content-Type":  "application/json"
-      };
-      systemPrompt = `
-Kamu adalah AIVA.
-Gaya:
-- Santai, natural, seperti ngobrol
-- Sedikit ekspresif (wah, anjir, mantap jika cocok)
-- Jawaban ringkas tapi jelas
-- Ikuti gaya bahasa user
-`;
-    } else if (selectedAPI === "qwen") {
-      url   = "https://openrouter.ai/api/v1/chat/completions";
-      model = "qwen/qwen3-next-80b-a3b";
-      headers = {
-        "Authorization": `Bearer ${OPENROUTER_API_KEY}`,
-        "Content-Type":  "application/json"
-      };
-      systemPrompt = `
-Kamu adalah AIVA.
-Gaya:
-- Lebih rapi dan terstruktur
-- Bahasa jelas dan sedikit formal
-- Penjelasan lebih lengkap
-- Hindari slang berlebihan
-`;
-    }
+    const reply = await callAPI(api, message, chatHistories[sessionId]);
 
-    const response = await fetch(url, {
-      method:  "POST",
-      headers: headers,
-      body:    JSON.stringify({
-        model,
-        temperature: 0.7,
-        max_tokens:  1024,
-        messages: [
-          { role: "system", content: systemPrompt },
-          ...chatHistory
-        ]
-      })
-    });
+    chatHistories[sessionId].push({ role: "assistant", content: reply });
 
-    const data = await response.json();
-
-    if (!data || !data.choices) {
-      return res.json({ reply: "Error API: " + JSON.stringify(data) });
-    }
-
-    const aiReply = data.choices[0].message.content;
-    chatHistory.push({ role: "assistant", content: aiReply });
-
-    res.json({ reply: aiReply });
+    res.json({ reply });
 
   } catch (err) {
+    console.error("CHAT ERROR:", err.message);
     res.json({ reply: "Server error: " + err.message });
   }
 });
 
 // ============================
-// 🚀 START SERVER
+// 🔀 MULTI CHAT
+// ============================
+app.post("/multi-chat", async (req, res) => {
+  try {
+    const { message } = req.body;
+    if (!message) return res.json({ error: "Pesan kosong!" });
+
+    const [groq, qwen] = await Promise.allSettled([
+      callAPI("groq", message, []),
+      callAPI("qwen", message, [])
+    ]);
+
+    res.json({
+      replies: {
+        groq: groq.status === "fulfilled" ? groq.value : "Gagal",
+        qwen: qwen.status === "fulfilled" ? qwen.value : "Gagal"
+      }
+    });
+
+  } catch (err) {
+    res.json({ error: err.message });
+  }
+});
+
+// ============================
+// 🚀 START
 // ============================
 app.listen(PORT, () => {
-  console.log(`🔥 AIVA jalan di http://localhost:${PORT}`);
+  console.log("🔥 AIVA jalan di http://localhost:" + PORT);
 });
