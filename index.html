@@ -276,10 +276,10 @@ body.light #canvasSpace::before{
   box-shadow:0 6px 36px rgba(0,0,0,0.35);
   animation:cnNodeIn 0.42s var(--ease) both;
   transition:box-shadow 0.22s, transform 0.18s var(--ease);
-  cursor:grab;
+  cursor:default;
   user-select:none;
 }
-.cn-node:active{cursor:grabbing}
+.cn-node:active{cursor:default}
 .cn-node:hover{transform:translateY(-2px);}
 @keyframes cnNodeIn{from{opacity:0;transform:scale(0.88) translateY(20px)}to{opacity:1;transform:none}}
 
@@ -460,7 +460,7 @@ body.light .ctb-input-wrap{background:rgba(0,0,0,0.04);border-color:rgba(0,0,0,0
 
 /* ---- CANVAS WELCOME ---- */
 #canvasWelcome{
-  position:absolute;
+  position:fixed;
   top:50%;
   left:50%;
   transform:translate(-50%,-50%);
@@ -1376,13 +1376,17 @@ function cvPanMove(e){
 function cvPanEnd(){ canvas.isPanning = false; canvas.world.classList.remove("panning"); }
 
 let cvTouchLast = null;
+let cvTouchNodeDragging = false; // tracks if a node is being dragged
+
 function cvTouchStart(e){
+  if(cvTouchNodeDragging) return;
   if(e.touches.length === 1){
     cvTouchLast = {x:e.touches[0].clientX, y:e.touches[0].clientY};
     canvas.panOX = canvas.ox; canvas.panOY = canvas.oy;
   }
 }
 function cvTouchMove(e){
+  if(cvTouchNodeDragging) return;
   // Don't pan canvas if user is scrolling inside a node body
   if(e.target && e.target.closest && e.target.closest(".cn-node-body")) return;
   if(e.touches.length === 1 && cvTouchLast){
@@ -1468,7 +1472,7 @@ function cvMakeDraggable(el, nodeRef){
   // Mouse
   el.addEventListener("mousedown", e=>{
     if(e.button !== 0) return;
-    if(e.target.closest(".cn-node-body,button,a,textarea")) return;
+    if(!e.target.closest(".cn-node-hdr")) return;
     e.stopPropagation(); e.preventDefault();
     onStart(e.clientX, e.clientY);
     function mm(e){ onMove(e.clientX, e.clientY); }
@@ -1479,13 +1483,19 @@ function cvMakeDraggable(el, nodeRef){
 
   // Touch
   el.addEventListener("touchstart", e=>{
-    if(e.target.closest(".cn-node-body,button,a,textarea")) return;
+    // Only allow drag from header, NOT from body
+    if(!e.target.closest(".cn-node-hdr")) return;
     e.stopPropagation();
+    // Mark that a node is being dragged so canvas pan is blocked
+    cvTouchNodeDragging = true;
+    cvTouchLast = null;
     const t = e.touches[0];
     onStart(t.clientX, t.clientY);
   }, {passive:true});
 
   el.addEventListener("touchmove", e=>{
+    // Only drag if started from header
+    if(!startX && !startY) return;
     const t = e.touches[0];
     const dx = (t.clientX - startX) / canvas.scale;
     const dy = (t.clientY - startY) / canvas.scale;
@@ -1499,6 +1509,12 @@ function cvMakeDraggable(el, nodeRef){
 
   el.addEventListener("touchend", e=>{
     onEnd();
+    startX = null; startY = null;
+    // Re-enable canvas pan after node drag ends
+    cvTouchNodeDragging = false;
+    cvTouchLast = null;
+    canvas.panOX = canvas.ox;
+    canvas.panOY = canvas.oy;
     e.stopPropagation();
   }, {passive:true});
 }
