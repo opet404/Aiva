@@ -272,14 +272,15 @@ body.light #canvasSpace::before{
   position:absolute;
   border-radius:18px;
   overflow:hidden;
-  width:290px;
+  width:270px;
   box-shadow:0 6px 36px rgba(0,0,0,0.35);
   animation:cnNodeIn 0.42s var(--ease) both;
   transition:box-shadow 0.22s, transform 0.18s var(--ease);
   cursor:grab;
+  user-select:none;
 }
 .cn-node:active{cursor:grabbing}
-.cn-node:hover{transform:translateY(-3px) scale(1.01)}
+.cn-node:hover{transform:translateY(-2px);}
 @keyframes cnNodeIn{from{opacity:0;transform:scale(0.88) translateY(20px)}to{opacity:1;transform:none}}
 
 .cn-node.groq{
@@ -341,12 +342,17 @@ body.light .cn-node.qwen .cn-node-hdr{background:linear-gradient(90deg,rgba(168,
   font-size:12.5px;line-height:1.68;
   color:var(--text);
   word-break:break-word;
-  max-height:340px;
+  max-height:260px;
+  min-height:60px;
   overflow-y:auto;
+  overflow-x:hidden;
   scrollbar-width:thin;
+  scrollbar-color:rgba(255,255,255,0.15) transparent;
+  -webkit-overflow-scrolling:touch;
 }
 .cn-node-body::-webkit-scrollbar{width:3px}
-.cn-node-body::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.12);border-radius:3px}
+.cn-node-body::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.18);border-radius:3px}
+.cn-node-body::-webkit-scrollbar-track{background:transparent}
 
 .cn-node-time{
   font-size:9px;color:var(--muted);
@@ -392,7 +398,7 @@ body.light .ctb-sep{background:rgba(0,0,0,0.12)}
 
 .ctb-btn{
   width:36px;height:36px;border-radius:12px;border:none;
-  background:transparent;color:var(--muted);
+  background:transparent;color:var(--text);
   display:flex;align-items:center;justify-content:center;
   cursor:pointer;transition:all 0.18s;font-family:var(--F);
 }
@@ -453,35 +459,46 @@ body.light .ctb-input-wrap{background:rgba(0,0,0,0.04);border-color:rgba(0,0,0,0
 
 /* ---- CANVAS WELCOME ---- */
 #canvasWelcome{
-  position:absolute;
+  position:fixed;
   top:50%;left:50%;
-  transform:translate(-50%,-60%);
-  text-align:center;pointer-events:none;
-  display:flex;flex-direction:column;align-items:center;gap:12px;
+  transform:translate(-50%,-50%);
+  text-align:center;
+  display:flex;flex-direction:column;align-items:center;gap:16px;
   animation:cnNodeIn 0.5s var(--ease) 0.1s both;
+  z-index:50;
+  width:min(320px, 84vw);
+  pointer-events:none;
+  transition:opacity 0.35s ease, transform 0.35s ease;
+}
+#canvasWelcome.hiding{
+  opacity:0;
+  transform:translate(-50%,-54%) scale(0.94);
 }
 .cv-title{
-  font-size:20px;font-weight:800;letter-spacing:4px;
+  font-size:clamp(26px,9vw,42px);
+  font-weight:800;letter-spacing:6px;line-height:1.1;
   background:linear-gradient(90deg,#3d72f6,#a78bf5);
   -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  white-space:nowrap;
 }
-.cv-sub{font-size:13px;color:var(--muted);letter-spacing:1px}
+.cv-sub{
+  font-size:13px;color:var(--muted);letter-spacing:0.3px;line-height:1.65;
+  text-align:center;width:100%;
+}
 .cv-hint{
-  display:flex;align-items:center;gap:8px;
-  padding:10px 18px;border-radius:30px;
-  background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);
-  font-size:12px;color:var(--muted);pointer-events:auto;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  padding:10px 16px;border-radius:30px;
+  background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);
+  font-size:11px;color:var(--muted);pointer-events:auto;
+  width:100%;text-align:center;
 }
-.cv-hint svg{width:14px;height:14px;stroke:var(--muted);stroke-width:1.8;fill:none;flex-shrink:0}
+.cv-hint svg{width:13px;height:13px;stroke:var(--muted);stroke-width:1.8;fill:none;flex-shrink:0}
 
 /* SVG connector path styles */
-.cv-edge{stroke-width:1.8;fill:none;stroke-dasharray:5 4;animation:dashFlow 1.8s linear infinite;opacity:0.55}
-@keyframes dashFlow{from{stroke-dashoffset:0}to{stroke-dashoffset:-18}}
+.cv-edge{stroke-width:2.2;fill:none;stroke-dasharray:6 4;animation:dashFlow 1.6s linear infinite;opacity:0.75}
+@keyframes dashFlow{from{stroke-dashoffset:0}to{stroke-dashoffset:-20}}
 .cv-edge.groq{stroke:url(#edgeGradGroq)}
 .cv-edge.qwen{stroke:url(#edgeGradQwen)}
-.cv-edge-solid{stroke-width:1.8;fill:none;opacity:0.45}
-.cv-edge-solid.groq{stroke:var(--groq)}
-.cv-edge-solid.qwen{stroke:var(--qwen)}
 
 /* Edge dot terminus */
 .cv-edge-dot{r:4;animation:dotPop 0.5s var(--ease) both}
@@ -733,24 +750,24 @@ body.light .ctb-input-wrap{background:rgba(0,0,0,0.04);border-color:rgba(0,0,0,0
 <!-- CANVAS SPACE (Multi Chat) -->
 <div id="canvasSpace">
   <!-- dot grid is CSS ::before -->
+  <!-- SVG connector layer — OUTSIDE canvasWorld so it is NOT affected by pan/zoom transform -->
+  <svg id="canvasSVG" xmlns="http://www.w3.org/2000/svg" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible;z-index:5;">
+    <defs>
+      <linearGradient id="edgeGradGroq" x1="0%" y1="0%" x2="100%" y2="0%">
+        <stop offset="0%" stop-color="#3d72f6" stop-opacity="0.9"/>
+        <stop offset="100%" stop-color="#3d72f6" stop-opacity="0.3"/>
+      </linearGradient>
+      <linearGradient id="edgeGradQwen" x1="0%" y1="0%" x2="100%" y2="0%">
+        <stop offset="0%" stop-color="#a855f7" stop-opacity="0.9"/>
+        <stop offset="100%" stop-color="#a855f7" stop-opacity="0.3"/>
+      </linearGradient>
+    </defs>
+  </svg>
   <div id="canvasWorld">
-    <!-- SVG connector layer -->
-    <svg id="canvasSVG" xmlns="http://www.w3.org/2000/svg">
-      <defs>
-        <linearGradient id="edgeGradGroq" x1="0%" y1="0%" x2="100%" y2="0%">
-          <stop offset="0%" stop-color="#3d72f6" stop-opacity="0.8"/>
-          <stop offset="100%" stop-color="#3d72f6" stop-opacity="0.2"/>
-        </linearGradient>
-        <linearGradient id="edgeGradQwen" x1="0%" y1="0%" x2="100%" y2="0%">
-          <stop offset="0%" stop-color="#a855f7" stop-opacity="0.8"/>
-          <stop offset="100%" stop-color="#a855f7" stop-opacity="0.2"/>
-        </linearGradient>
-      </defs>
-    </svg>
     <!-- Nodes are injected here by JS -->
   </div>
 
-  <!-- Canvas welcome state -->
+  <!-- Canvas welcome state — fixed center, outside canvasWorld so pan doesn't move it -->
   <div id="canvasWelcome">
     <div class="cv-title">MULTI CHAT</div>
     <div class="cv-sub">Bandingkan 2 AI dalam satu canvas</div>
@@ -765,12 +782,12 @@ body.light .ctb-input-wrap{background:rgba(0,0,0,0.04);border-color:rgba(0,0,0,0
 </div>
 
 <!-- CANVAS ZOOM TOOLBAR (floating, top-right) -->
-<div id="canvasZoomBar" style="position:fixed;top:calc(var(--hdr)+10px);right:12px;z-index:200;display:none;flex-direction:column;gap:4px;background:rgba(6,9,18,0.88);border:1px solid rgba(255,255,255,0.08);border-radius:14px;padding:6px;backdrop-filter:blur(20px);box-shadow:0 8px 32px rgba(0,0,0,0.4)">
-  <button class="ctb-btn" onclick="canvasZoom(0.15)" title="Zoom In"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg></button>
-  <div class="ctb-zoom" id="zoomLabel" style="font-size:10px;color:var(--muted);text-align:center;padding:2px 0">100%</div>
-  <button class="ctb-btn" onclick="canvasZoom(-0.15)" title="Zoom Out"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="8" y1="11" x2="14" y2="11"/></svg></button>
-  <div style="width:100%;height:1px;background:rgba(255,255,255,0.07);margin:2px 0"></div>
-  <button class="ctb-btn" onclick="canvasFitView()" title="Fit all nodes"><svg viewBox="0 0 24 24"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg></button>
+<div id="canvasZoomBar" style="position:fixed;top:calc(var(--hdr)+10px);right:12px;z-index:200;display:none;flex-direction:column;gap:4px;background:var(--surface);border:1px solid var(--gb);border-radius:14px;padding:6px;backdrop-filter:blur(20px);box-shadow:0 8px 32px rgba(0,0,0,0.4)">
+  <button class="ctb-btn" onclick="canvasZoom(0.15)" title="Zoom In" style="color:var(--text)"><svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg></button>
+  <div class="ctb-zoom" id="zoomLabel" style="font-size:10px;color:var(--text);text-align:center;padding:2px 0">100%</div>
+  <button class="ctb-btn" onclick="canvasZoom(-0.15)" title="Zoom Out" style="color:var(--text)"><svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="8" y1="11" x2="14" y2="11"/></svg></button>
+  <div style="width:100%;height:1px;background:var(--gb);margin:2px 0"></div>
+  <button class="ctb-btn" onclick="canvasFitView()" title="Fit all nodes" style="color:var(--text)"><svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg></button>
 </div>
 
 <!-- CANVAS INPUT BAR (bottom, only shown in multi mode) -->
@@ -1299,6 +1316,12 @@ function cvInit(){
   canvas.world = document.getElementById("canvasWorld");
   canvas.svg   = document.getElementById("canvasSVG");
 
+  // Continuous edge redraw loop — keeps edges in sync with any transform/scroll/zoom
+  (function edgeLoop(){
+    cvRedrawEdges();
+    requestAnimationFrame(edgeLoop);
+  })();
+
   // Pan events on the space background
   const space = document.getElementById("canvasSpace");
   space.addEventListener("mousedown",  cvPanStart);
@@ -1405,36 +1428,71 @@ function canvasFitView(){
   document.getElementById("zoomLabel").textContent = Math.round(canvas.scale*100) + "%";
 }
 
-/* ---- Node drag ---- */
+/* ---- Node drag (mouse + touch, edges stay connected) ---- */
 function cvMakeDraggable(el, nodeRef){
-  el.addEventListener("mousedown", e=>{
-    if(e.target.closest("textarea,button,a,.cn-node-body")) return;
-    e.stopPropagation();
-    canvas.isDragging = true; canvas.dragNode = nodeRef;
-    canvas.dragSX = e.clientX; canvas.dragSY = e.clientY;
-    canvas.dragNX = nodeRef.x; canvas.dragNY = nodeRef.y;
-    el.style.zIndex = 999;
-    window.addEventListener("mousemove", cvDragMove);
-    window.addEventListener("mouseup",   cvDragEnd);
-  });
-}
-function cvDragMove(e){
-  if(!canvas.isDragging) return;
-  const dx = (e.clientX - canvas.dragSX) / canvas.scale;
-  const dy = (e.clientY - canvas.dragSY) / canvas.scale;
-  canvas.dragNode.x = canvas.dragNX + dx;
-  canvas.dragNode.y = canvas.dragNY + dy;
-  canvas.dragNode.el.style.left = canvas.dragNode.x + "px";
-  canvas.dragNode.el.style.top  = canvas.dragNode.y + "px";
-  cvRedrawEdges();
-}
-function cvDragEnd(){
-  canvas.isDragging = false;
-  if(canvas.dragNode){ canvas.dragNode.el.style.zIndex = ""; canvas.dragNode = null; }
-  window.removeEventListener("mousemove", cvDragMove);
-  window.removeEventListener("mouseup",   cvDragEnd);
-}
+  let isDrag = false, startX, startY, origX, origY;
 
+  function onStart(cx, cy){
+    isDrag = false;
+    startX = cx; startY = cy;
+    origX = nodeRef.x; origY = nodeRef.y;
+    el.style.zIndex = 999;
+    el.style.transition = 'none';
+  }
+  function onMove(cx, cy){
+    const dx = (cx - startX) / canvas.scale;
+    const dy = (cy - startY) / canvas.scale;
+    if(!isDrag && (Math.abs(dx) > 4 || Math.abs(dy) > 4)) isDrag = true;
+    if(!isDrag) return;
+    nodeRef.x = origX + dx;
+    nodeRef.y = origY + dy;
+    el.style.left = nodeRef.x + "px";
+    el.style.top  = nodeRef.y + "px";
+    cvRedrawEdges();
+  }
+  function onEnd(){
+    el.style.zIndex = '';
+    el.style.transition = '';
+    isDrag = false;
+  }
+
+  // Mouse
+  el.addEventListener("mousedown", e=>{
+    if(e.button !== 0) return;
+    if(e.target.closest(".cn-node-body,button,a,textarea")) return;
+    e.stopPropagation(); e.preventDefault();
+    onStart(e.clientX, e.clientY);
+    function mm(e){ onMove(e.clientX, e.clientY); }
+    function mu(){ onEnd(); window.removeEventListener("mousemove",mm); window.removeEventListener("mouseup",mu); }
+    window.addEventListener("mousemove", mm);
+    window.addEventListener("mouseup", mu);
+  });
+
+  // Touch
+  el.addEventListener("touchstart", e=>{
+    if(e.target.closest(".cn-node-body,button,a,textarea")) return;
+    e.stopPropagation();
+    const t = e.touches[0];
+    onStart(t.clientX, t.clientY);
+  }, {passive:true});
+
+  el.addEventListener("touchmove", e=>{
+    const t = e.touches[0];
+    const dx = (t.clientX - startX) / canvas.scale;
+    const dy = (t.clientY - startY) / canvas.scale;
+    if(Math.abs(dx) > 6 || Math.abs(dy) > 6){
+      // It's a drag, prevent canvas pan
+      e.stopPropagation();
+      e.preventDefault();
+      onMove(t.clientX, t.clientY);
+    }
+  }, {passive:false});
+
+  el.addEventListener("touchend", e=>{
+    onEnd();
+    e.stopPropagation();
+  }, {passive:true});
+}
 /* ---- Place a node on canvas ---- */
 function cvPlaceNode(el, x, y, type){
   el.style.position = "absolute";
@@ -1448,51 +1506,57 @@ function cvPlaceNode(el, x, y, type){
   return ref;
 }
 
-/* ---- Draw edges (SVG bezier curves) ---- */
+/* ---- Draw edges (SVG bezier curves, vertical: prompt bottom → node top) ---- */
 function cvDrawEdge(fromRef, toRef, cls){
   const svg = canvas.svg;
-  // From: right-center of prompt
-  // To: left-center of response node
   const path = document.createElementNS("http://www.w3.org/2000/svg","path");
   path.classList.add("cv-edge", cls);
   svg.appendChild(path);
 
+  const dotFrom = document.createElementNS("http://www.w3.org/2000/svg","circle");
+  dotFrom.classList.add("cv-edge-dot", cls);
+  dotFrom.setAttribute("r","3");
+  svg.appendChild(dotFrom);
+
   const dotTo = document.createElementNS("http://www.w3.org/2000/svg","circle");
   dotTo.classList.add("cv-edge-dot", cls);
+  dotTo.setAttribute("r","4");
   dotTo.style.animationDelay = (cls==="qwen"?"0.15s":"0s");
   svg.appendChild(dotTo);
 
-  const edge = {fromRef, toRef, cls, path, dotTo};
+  const edge = {fromRef, toRef, cls, path, dotFrom, dotTo};
   canvas.edges.push(edge);
   cvUpdateEdge(edge);
   return edge;
 }
 
 function cvUpdateEdge(edge){
-  const {fromRef, toRef, path, dotTo} = edge;
-  const space = document.getElementById("canvasSpace");
+  const {fromRef, toRef, path, dotFrom, dotTo} = edge;
+  const spaceEl = document.getElementById("canvasSpace");
+  const spaceRect = spaceEl.getBoundingClientRect();
 
-  // Get world-space center-right of from node
-  const fx = (fromRef.x + fromRef.w) * canvas.scale + canvas.ox;
-  const fy = (fromRef.y + fromRef.h/2) * canvas.scale + canvas.oy;
-  // Get world-space center-left of to node
-  const tx = toRef.x * canvas.scale + canvas.ox;
-  const ty = (toRef.y + toRef.h/2) * canvas.scale + canvas.oy;
+  // Get actual screen positions of the DOM elements
+  const fromRect = fromRef.el.getBoundingClientRect();
+  const toRect   = toRef.el.getBoundingClientRect();
 
-  const cp = (tx - fx) * 0.55;
-  const d = `M ${fx} ${fy} C ${fx+cp} ${fy}, ${tx-cp} ${ty}, ${tx} ${ty}`;
+  // Convert to SVG coordinate space (relative to canvasSpace)
+  const fx = fromRect.left - spaceRect.left + fromRect.width / 2;
+  const fy = fromRect.bottom - spaceRect.top;
+  const tx = toRect.left - spaceRect.left + toRect.width / 2;
+  const ty = toRect.top - spaceRect.top;
+
+  const dist = Math.abs(ty - fy);
+  const cp = Math.max(dist * 0.5, 40);
+  const d = `M ${fx} ${fy} C ${fx} ${fy+cp}, ${tx} ${ty-cp}, ${tx} ${ty}`;
   path.setAttribute("d", d);
+  dotFrom.setAttribute("cx", fx);
+  dotFrom.setAttribute("cy", fy);
   dotTo.setAttribute("cx", tx);
   dotTo.setAttribute("cy", ty);
 }
 
 function cvRedrawEdges(){
   canvas.edges.forEach(e => cvUpdateEdge(e));
-  // Also update node sizes (they may have changed after content loaded)
-  canvas.nodes.forEach(n => {
-    n.w = n.el.offsetWidth || n.w;
-    n.h = n.el.offsetHeight || n.h;
-  });
 }
 
 /* ---- Layout helpers ---- */
@@ -1527,39 +1591,51 @@ function cvSend(){
   isGenerating = true; stopTyping = false;
   controller = new AbortController();
 
-  addMsgToSession({ role:"multi-user", text:msg, time:getTime() });
+  const ut = getTime();
+  addMsgToSession({ role:"multi-user", text:msg, time:ut });
 
-  // Place prompt node
+  // Fixed layout: place nodes in absolute canvas space (not relative to current pan)
   const space = document.getElementById("canvasSpace");
-  const vw = space.clientWidth, vh = space.clientHeight;
-  const promptX = (vw/2 - canvas.ox) / canvas.scale - 150;
-  const promptY = (100 - canvas.oy) / canvas.scale + canvasLayoutY;
+  const vw = space.clientWidth;
+
+  // Node dimensions
+  const nodeW = Math.min(260, (vw - 60) / 2);
+  const nodeSpacing = 16;
+  const totalNodesW = nodeW * 2 + nodeSpacing;
+  const canvasCenterX = vw / 2;  // canvas center X in world space (ox=0)
+
+  const promptW = Math.min(280, vw - 40);
+  const promptX = canvasCenterX - promptW / 2;
+  const promptY = canvasLayoutY;
 
   const promptEl = document.createElement("div");
   promptEl.className = "cn-prompt";
-  const ut = getTime();
+  promptEl.style.maxWidth = promptW + "px";
+  promptEl.style.minWidth = "120px";
   promptEl.innerHTML = escHtml(msg) + `<div class="cn-prompt-time">${ut}</div>`;
   const promptRef = cvPlaceNode(promptEl, promptX, promptY, "prompt");
 
-  // Measure prompt after render
-  setTimeout(()=>{ promptRef.w = promptEl.offsetWidth; promptRef.h = promptEl.offsetHeight; }, 10);
+  // Update prompt size after render
+  requestAnimationFrame(()=>{
+    promptRef.w = promptEl.offsetWidth || promptW;
+    promptRef.h = promptEl.offsetHeight || 50;
+    cvRedrawEdges();
+  });
 
-  // Stagger node positions: groq left, qwen right
-  const nodeY = promptY + 20;
-  const gap = 340;
-  const groqX = promptX - gap * 0.5 - 145;
-  const qwenX = promptX + gap * 0.5 - 145;
+  const nodeY = promptY + 80;
+  const groqX = canvasCenterX - totalNodesW / 2;
+  const qwenX = groqX + nodeW + nodeSpacing;
 
   const models = [
-    {api:"groq", label:"GROQ", badge:"Llama", x:groqX, y:nodeY, delay:80},
-    {api:"qwen",  label:"QWEN",  badge:"Qwen3", x:qwenX, y:nodeY, delay:180},
+    {api:"groq", label:"GROQ", badge:"Llama", x:groqX, y:nodeY, delay:60},
+    {api:"qwen",  label:"QWEN",  badge:"Qwen3", x:qwenX, y:nodeY, delay:160},
   ];
 
-  const nodeRefs = {};
   models.forEach(({api,label,badge,x,y,delay})=>{
     setTimeout(()=>{
       const nodeEl = document.createElement("div");
       nodeEl.className = `cn-node ${api} loading`;
+      nodeEl.style.width = nodeW + "px";
       nodeEl.id = `cvnode_${api}_${ut.replace(/:/g,"")}`;
       nodeEl.innerHTML = `
         <div class="cn-node-hdr">
@@ -1574,24 +1650,28 @@ function cvSend(){
           </div>
         </div>`;
       const nRef = cvPlaceNode(nodeEl, x, y, api);
-      nodeRefs[api] = nRef;
 
-      // Draw edge from prompt to node
-      setTimeout(()=>{
-        promptRef.w = promptEl.offsetWidth || 300;
-        promptRef.h = promptEl.offsetHeight || 60;
+      requestAnimationFrame(()=>{
+        nRef.w = nodeEl.offsetWidth || nodeW;
+        nRef.h = nodeEl.offsetHeight || 100;
+        promptRef.w = promptEl.offsetWidth || promptW;
+        promptRef.h = promptEl.offsetHeight || 50;
         cvDrawEdge(promptRef, nRef, api);
         cvRedrawEdges();
-      }, 30);
+      });
     }, delay);
   });
 
-  canvasLayoutY += 380;
+  // Reserve space for next conversation block (prompt + nodes + gap)
+  canvasLayoutY += 480;
 
-  // Scroll canvas to show new nodes
+  // Pan canvas to show the new block centered
   setTimeout(()=>{
-    canvas.oy = -(canvasLayoutY - 380) * canvas.scale + 50;
+    canvas.scale = 1;
+    canvas.ox = -(promptX - (vw/2 - promptW/2));
+    canvas.oy = -(promptY - 40);
     cvApplyTransform();
+    document.getElementById("zoomLabel").textContent = "100%";
   }, 100);
 
   callMultiAPI(msg)
@@ -1604,12 +1684,17 @@ function cvSend(){
         nodeEl.classList.remove("loading");
         const body = nodeEl.querySelector(".cn-node-body");
         if(body) body.innerHTML = renderMessage(reply) + `<div class="cn-node-time">${getTime()}</div>`;
-        // Update node size for edge redraw
-        setTimeout(()=>{
-          const ref = canvas.nodes.find(n=>n.el===nodeEl);
-          if(ref){ ref.h = nodeEl.offsetHeight; }
-          cvRedrawEdges();
-        }, 50);
+        // Redraw edges at multiple points as content settles
+        [50, 150, 350].forEach(delay => {
+          setTimeout(()=>{
+            const ref = canvas.nodes.find(n=>n.el===nodeEl);
+            if(ref){
+              ref.w = nodeEl.offsetWidth || ref.w;
+              ref.h = nodeEl.offsetHeight || ref.h;
+            }
+            cvRedrawEdges();
+          }, delay);
+        });
       }
     });
     const t = getTime();
@@ -1647,32 +1732,45 @@ function stopCanvas(){
 
 function cvHideWelcome(){
   const wc = document.getElementById("canvasWelcome");
-  if(wc) wc.style.display = "none";
+  if(!wc || wc._gone) return;
+  wc._gone = true;
+  wc.classList.add("hiding");
+  setTimeout(()=>{ wc.style.display = "none"; }, 400);
 }
 
 /* ======================== CANVAS RESTORE SESSION ======================== */
-function cvRestoreSession(sess){
-  // Clear canvas
+function cvClearCanvas(){
+  // Clear edges from SVG (keep defs)
   canvas.nodes = []; canvas.edges = [];
-  canvas.svg.innerHTML = canvas.svg.innerHTML.split("</defs>")[0] + "</defs>";
-  // Remove all node elements
-  Array.from(canvas.world.children).forEach(c=>{
-    if(c.id!=="canvasSVG" && c.id!=="canvasWelcome") c.remove();
-  });
+  const svg = canvas.svg;
+  const defs = svg.querySelector("defs");
+  while(svg.lastChild && svg.lastChild !== defs) svg.removeChild(svg.lastChild);
+  // Remove all node elements from world
+  Array.from(canvas.world.children).forEach(c => c.remove());
   canvasLayoutY = 80;
   canvas.ox = 0; canvas.oy = 0; canvas.scale = 1;
-  cvApplyTransform();
+  if(canvas.world) cvApplyTransform();
+}
+
+function cvRestoreSession(sess){
+  cvClearCanvas();
 
   let hasContent = false;
+  const vw = document.getElementById("canvasSpace").clientWidth;
+  const nodeW = Math.min(260, (vw - 56) / 2);
+  const nodeSpacing = 16;
+  const totalNodesW = nodeW * 2 + nodeSpacing;
+
   sess.messages.forEach(m=>{
     if(m.role==="multi-user"){
       hasContent = true;
-      // Replay prompt node
-      const vw = document.getElementById("canvasSpace").clientWidth;
-      const promptX = vw/2 - 150;
+      const promptW = Math.min(280, vw - 40);
+      const promptX = vw/2 - promptW/2;
       const promptY = canvasLayoutY;
       const promptEl = document.createElement("div");
       promptEl.className = "cn-prompt";
+      promptEl.style.maxWidth = promptW + "px";
+      promptEl.style.minWidth = "120px";
       promptEl.innerHTML = escHtml(m.text) + `<div class="cn-prompt-time">${m.time}</div>`;
       cvPlaceNode(promptEl, promptX, promptY, "prompt");
     }
@@ -1680,12 +1778,13 @@ function cvRestoreSession(sess){
       hasContent = true;
       const lastPrompt = canvas.nodes.filter(n=>n.type==="prompt").slice(-1)[0];
       if(!lastPrompt) return;
-      const nodeY = lastPrompt.y + 20;
-      const gap = 340;
-      [["groq",m.groq,"GROQ","Llama"],["qwen",m.qwen,"QWEN","Qwen3"]].forEach(([api,reply,label,badge],i)=>{
-        const x = lastPrompt.x + (i===0 ? -gap*0.5-145 : gap*0.5-145);
+      const nodeY = lastPrompt.y + 80;
+      const groqX = vw/2 - totalNodesW/2;
+      const qwenX = groqX + nodeW + nodeSpacing;
+      [["groq",m.groq,"GROQ","Llama",groqX],["qwen",m.qwen,"QWEN","Qwen3",qwenX]].forEach(([api,reply,label,badge,x])=>{
         const nodeEl = document.createElement("div");
         nodeEl.className = `cn-node ${api}`;
+        nodeEl.style.width = nodeW + "px";
         nodeEl.innerHTML = `
           <div class="cn-node-hdr">
             <div class="cn-node-grip">${'<span></span>'.repeat(6)}</div>
@@ -1698,15 +1797,22 @@ function cvRestoreSession(sess){
             <div class="cn-node-time">${m.time}</div>
           </div>`;
         const nRef = cvPlaceNode(nodeEl, x, nodeY, api);
-        setTimeout(()=>{ cvDrawEdge(lastPrompt, nRef, api); cvRedrawEdges(); }, 50);
+        setTimeout(()=>{
+          lastPrompt.w = lastPrompt.el.offsetWidth || 280;
+          lastPrompt.h = lastPrompt.el.offsetHeight || 50;
+          nRef.w = nodeEl.offsetWidth || nodeW;
+          nRef.h = nodeEl.offsetHeight || 120;
+          cvDrawEdge(lastPrompt, nRef, api);
+          cvRedrawEdges();
+        }, 60);
       });
-      canvasLayoutY += 380;
+      canvasLayoutY += 480;
     }
   });
 
   if(hasContent){
     cvHideWelcome();
-    setTimeout(()=>{ canvasFitView(); }, 100);
+    setTimeout(()=>{ canvasFitView(); }, 150);
   }
 }
 
@@ -1730,22 +1836,9 @@ function newChat(){
   renderHistory();
   closeSidebar();
   if(chatMode === "multi"){
-    // Reset canvas
-    canvas.nodes = []; canvas.edges = [];
-    if(canvas.svg){
-      const defs = canvas.svg.querySelector("defs");
-      canvas.svg.innerHTML = "";
-      if(defs) canvas.svg.appendChild(defs);
-    }
-    if(canvas.world){
-      Array.from(canvas.world.children).forEach(c=>{
-        if(c.id!=="canvasSVG" && c.id!=="canvasWelcome") c.remove();
-      });
-    }
+    if(canvas.world) cvClearCanvas();
     const wc = document.getElementById("canvasWelcome");
-    if(wc) wc.style.display = "";
-    canvasLayoutY = 80;
-    canvas.ox = 0; canvas.oy = 0; canvas.scale = 1;
+    if(wc){ wc.style.display = ""; wc.classList.remove("hiding"); wc._gone = false; }
     if(canvas.world) cvApplyTransform();
   } else {
     chatEl.innerHTML = "";
