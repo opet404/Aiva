@@ -21,6 +21,7 @@
   --ease:cubic-bezier(0.22,1,0.36,1);
   /* model colors */
   --groq:#3d72f6;--qwen:#a855f7;
+  --chatgpt:#10a37f;--claude:#d97706;--gemini:#4285f4;--deepseek:#06b6d4;
 }
 body.light{
   --bg:#f1f3fb;--surface:rgba(255,255,255,0.92);--surface2:rgba(243,245,255,0.85);
@@ -293,10 +294,38 @@ body.light #canvasSpace::before{
   border:1.5px solid rgba(168,85,247,0.4);
   box-shadow:0 6px 36px rgba(168,85,247,0.16);
 }
+.cn-node.chatgpt{
+  background:rgba(4,26,22,0.92);
+  border:1.5px solid rgba(16,163,127,0.4);
+  box-shadow:0 6px 36px rgba(16,163,127,0.16);
+}
+.cn-node.claude{
+  background:rgba(28,18,6,0.92);
+  border:1.5px solid rgba(217,119,6,0.4);
+  box-shadow:0 6px 36px rgba(217,119,6,0.16);
+}
+.cn-node.gemini{
+  background:rgba(5,14,35,0.92);
+  border:1.5px solid rgba(66,133,244,0.4);
+  box-shadow:0 6px 36px rgba(66,133,244,0.16);
+}
+.cn-node.deepseek{
+  background:rgba(2,22,26,0.92);
+  border:1.5px solid rgba(6,182,212,0.4);
+  box-shadow:0 6px 36px rgba(6,182,212,0.16);
+}
 .cn-node.groq:hover{box-shadow:0 12px 48px rgba(61,114,246,0.28),0 0 0 3px rgba(61,114,246,0.08)}
 .cn-node.qwen:hover{box-shadow:0 12px 48px rgba(168,85,247,0.28),0 0 0 3px rgba(168,85,247,0.08)}
+.cn-node.chatgpt:hover{box-shadow:0 12px 48px rgba(16,163,127,0.28),0 0 0 3px rgba(16,163,127,0.08)}
+.cn-node.claude:hover{box-shadow:0 12px 48px rgba(217,119,6,0.28),0 0 0 3px rgba(217,119,6,0.08)}
+.cn-node.gemini:hover{box-shadow:0 12px 48px rgba(66,133,244,0.28),0 0 0 3px rgba(66,133,244,0.08)}
+.cn-node.deepseek:hover{box-shadow:0 12px 48px rgba(6,182,212,0.28),0 0 0 3px rgba(6,182,212,0.08)}
 body.light .cn-node.groq{background:rgba(240,246,255,0.97);border-color:rgba(61,114,246,0.3)}
 body.light .cn-node.qwen{background:rgba(248,242,255,0.97);border-color:rgba(168,85,247,0.3)}
+body.light .cn-node.chatgpt{background:rgba(240,252,249,0.97);border-color:rgba(16,163,127,0.3)}
+body.light .cn-node.claude{background:rgba(255,250,240,0.97);border-color:rgba(217,119,6,0.3)}
+body.light .cn-node.gemini{background:rgba(240,246,255,0.97);border-color:rgba(66,133,244,0.3)}
+body.light .cn-node.deepseek{background:rgba(240,252,255,0.97);border-color:rgba(6,182,212,0.3)}
 
 /* Node header */
 .cn-node-hdr{
@@ -310,8 +339,18 @@ body.light .cn-node.qwen{background:rgba(248,242,255,0.97);border-color:rgba(168
 }
 .cn-node.groq .cn-node-hdr{background:linear-gradient(90deg,rgba(61,114,246,0.18),rgba(61,114,246,0.04));border-bottom:1px solid rgba(61,114,246,0.2)}
 .cn-node.qwen .cn-node-hdr{background:linear-gradient(90deg,rgba(168,85,247,0.18),rgba(168,85,247,0.04));border-bottom:1px solid rgba(168,85,247,0.2)}
+.cn-node.groq .cn-node-hdr{background:linear-gradient(90deg,rgba(61,114,246,0.18),rgba(61,114,246,0.04));border-bottom:1px solid rgba(61,114,246,0.2)}
+.cn-node.qwen .cn-node-hdr{background:linear-gradient(90deg,rgba(168,85,247,0.18),rgba(168,85,247,0.04));border-bottom:1px solid rgba(168,85,247,0.2)}
+.cn-node.chatgpt .cn-node-hdr{background:linear-gradient(90deg,rgba(16,163,127,0.18),rgba(16,163,127,0.04));border-bottom:1px solid rgba(16,163,127,0.2)}
+.cn-node.claude .cn-node-hdr{background:linear-gradient(90deg,rgba(217,119,6,0.18),rgba(217,119,6,0.04));border-bottom:1px solid rgba(217,119,6,0.2)}
+.cn-node.gemini .cn-node-hdr{background:linear-gradient(90deg,rgba(66,133,244,0.18),rgba(66,133,244,0.04));border-bottom:1px solid rgba(66,133,244,0.2)}
+.cn-node.deepseek .cn-node-hdr{background:linear-gradient(90deg,rgba(6,182,212,0.18),rgba(6,182,212,0.04));border-bottom:1px solid rgba(6,182,212,0.2)}
 body.light .cn-node.groq .cn-node-hdr{background:linear-gradient(90deg,rgba(61,114,246,0.1),transparent);border-bottom-color:rgba(61,114,246,0.15)}
 body.light .cn-node.qwen .cn-node-hdr{background:linear-gradient(90deg,rgba(168,85,247,0.1),transparent);border-bottom-color:rgba(168,85,247,0.15)}
+body.light .cn-node.chatgpt .cn-node-hdr{background:linear-gradient(90deg,rgba(16,163,127,0.1),transparent);border-bottom-color:rgba(16,163,127,0.15)}
+body.light .cn-node.claude .cn-node-hdr{background:linear-gradient(90deg,rgba(217,119,6,0.1),transparent);border-bottom-color:rgba(217,119,6,0.15)}
+body.light .cn-node.gemini .cn-node-hdr{background:linear-gradient(90deg,rgba(66,133,244,0.1),transparent);border-bottom-color:rgba(66,133,244,0.15)}
+body.light .cn-node.deepseek .cn-node-hdr{background:linear-gradient(90deg,rgba(6,182,212,0.1),transparent);border-bottom-color:rgba(6,182,212,0.15)}
 
 /* Drag grip dots */
 .cn-node-grip{
@@ -320,21 +359,37 @@ body.light .cn-node.qwen .cn-node-hdr{background:linear-gradient(90deg,rgba(168,
 .cn-node-grip span{width:3px;height:3px;border-radius:50%;background:currentColor;display:block}
 .cn-node.groq .cn-node-grip{color:#7aa8f7}
 .cn-node.qwen .cn-node-grip{color:#c4a8ff}
+.cn-node.chatgpt .cn-node-grip{color:#5eead4}
+.cn-node.claude .cn-node-grip{color:#fbbf24}
+.cn-node.gemini .cn-node-grip{color:#93c5fd}
+.cn-node.deepseek .cn-node-grip{color:#67e8f9}
 
 /* Status dot (glow) */
 .cn-node-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
 .cn-node.groq .cn-node-dot{background:var(--groq);box-shadow:0 0 10px rgba(61,114,246,0.8)}
 .cn-node.qwen .cn-node-dot{background:var(--qwen);box-shadow:0 0 10px rgba(168,85,247,0.8)}
+.cn-node.chatgpt .cn-node-dot{background:var(--chatgpt);box-shadow:0 0 10px rgba(16,163,127,0.8)}
+.cn-node.claude .cn-node-dot{background:var(--claude);box-shadow:0 0 10px rgba(217,119,6,0.8)}
+.cn-node.gemini .cn-node-dot{background:var(--gemini);box-shadow:0 0 10px rgba(66,133,244,0.8)}
+.cn-node.deepseek .cn-node-dot{background:var(--deepseek);box-shadow:0 0 10px rgba(6,182,212,0.8)}
 .cn-node.loading .cn-node-dot{animation:dotPulse 1.2s ease-in-out infinite}
 @keyframes dotPulse{0%,100%{opacity:0.4;transform:scale(0.8)}50%{opacity:1;transform:scale(1.2)}}
 
 .cn-node-label{font-size:11px;font-weight:700;letter-spacing:1.8px;text-transform:uppercase;flex:1}
 .cn-node.groq .cn-node-label{color:#7aa8f7}
 .cn-node.qwen .cn-node-label{color:#c4a8ff}
+.cn-node.chatgpt .cn-node-label{color:#5eead4}
+.cn-node.claude .cn-node-label{color:#fbbf24}
+.cn-node.gemini .cn-node-label{color:#93c5fd}
+.cn-node.deepseek .cn-node-label{color:#67e8f9}
 
 .cn-node-badge{font-size:9px;padding:2px 8px;border-radius:20px;font-weight:600;letter-spacing:0.4px}
 .cn-node.groq .cn-node-badge{background:rgba(61,114,246,0.15);color:#7aa8f7;border:1px solid rgba(61,114,246,0.28)}
 .cn-node.qwen .cn-node-badge{background:rgba(168,85,247,0.15);color:#c4a8ff;border:1px solid rgba(168,85,247,0.28)}
+.cn-node.chatgpt .cn-node-badge{background:rgba(16,163,127,0.15);color:#5eead4;border:1px solid rgba(16,163,127,0.28)}
+.cn-node.claude .cn-node-badge{background:rgba(217,119,6,0.15);color:#fbbf24;border:1px solid rgba(217,119,6,0.28)}
+.cn-node.gemini .cn-node-badge{background:rgba(66,133,244,0.15);color:#93c5fd;border:1px solid rgba(66,133,244,0.28)}
+.cn-node.deepseek .cn-node-badge{background:rgba(6,182,212,0.15);color:#67e8f9;border:1px solid rgba(6,182,212,0.28)}
 
 /* Node body */
 .cn-node-body{
@@ -370,6 +425,10 @@ body.light .cn-node-time{border-top-color:rgba(0,0,0,0.06)}
 .cn-loading .td{width:6px;height:6px;border-radius:50%;animation:tdA 1.3s ease-in-out infinite}
 .cn-node.groq .cn-loading .td{background:var(--groq)}
 .cn-node.qwen .cn-loading .td{background:var(--qwen)}
+.cn-node.chatgpt .cn-loading .td{background:var(--chatgpt)}
+.cn-node.claude .cn-loading .td{background:var(--claude)}
+.cn-node.gemini .cn-loading .td{background:var(--gemini)}
+.cn-node.deepseek .cn-loading .td{background:var(--deepseek)}
 .cn-loading .td:nth-child(2){animation-delay:0.15s}
 .cn-loading .td:nth-child(3){animation-delay:0.3s}
 
@@ -503,11 +562,19 @@ body.light .ctb-input-wrap{background:rgba(0,0,0,0.04);border-color:rgba(0,0,0,0
 @keyframes dashFlow{from{stroke-dashoffset:0}to{stroke-dashoffset:-20}}
 .cv-edge.groq{stroke:url(#edgeGradGroq)}
 .cv-edge.qwen{stroke:url(#edgeGradQwen)}
+.cv-edge.chatgpt{stroke:url(#edgeGradChatgpt)}
+.cv-edge.claude{stroke:url(#edgeGradClaude)}
+.cv-edge.gemini{stroke:url(#edgeGradGemini)}
+.cv-edge.deepseek{stroke:url(#edgeGradDeeseek)}
 
 /* Edge dot terminus */
 .cv-edge-dot{r:4;animation:dotPop 0.5s var(--ease) both}
 .cv-edge-dot.groq{fill:var(--groq)}
 .cv-edge-dot.qwen{fill:var(--qwen)}
+.cv-edge-dot.chatgpt{fill:var(--chatgpt)}
+.cv-edge-dot.claude{fill:var(--claude)}
+.cv-edge-dot.gemini{fill:var(--gemini)}
+.cv-edge-dot.deepseek{fill:var(--deepseek)}
 @keyframes dotPop{from{r:0;opacity:0}to{opacity:1}}
 
 /* ---- MINI MAP ---- */
@@ -563,6 +630,89 @@ body.light .ctb-input-wrap{background:rgba(0,0,0,0.04);border-color:rgba(0,0,0,0
 }
 .cib-tag.groq{background:rgba(61,114,246,0.2);color:#7aa8f7;border:1px solid rgba(61,114,246,0.3)}
 .cib-tag.qwen{background:rgba(168,85,247,0.2);color:#c4a8ff;border:1px solid rgba(168,85,247,0.3)}
+.cib-tag.chatgpt{background:rgba(16,163,127,0.2);color:#5eead4;border:1px solid rgba(16,163,127,0.3)}
+.cib-tag.claude{background:rgba(217,119,6,0.2);color:#fbbf24;border:1px solid rgba(217,119,6,0.3)}
+.cib-tag.gemini{background:rgba(66,133,244,0.2);color:#93c5fd;border:1px solid rgba(66,133,244,0.3)}
+.cib-tag.deepseek{background:rgba(6,182,212,0.2);color:#67e8f9;border:1px solid rgba(6,182,212,0.3)}
+
+/* Multi-model selector for canvas — card grid */
+.cib-model-selector{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:7px;
+  padding:10px 14px 6px;
+}
+.cib-model-check{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:5px;
+  padding:9px 6px 8px;
+  border-radius:14px;
+  border:1.5px solid rgba(255,255,255,0.07);
+  background:rgba(255,255,255,0.03);
+  cursor:pointer;
+  font-size:10px;font-weight:700;letter-spacing:0.5px;
+  color:rgba(255,255,255,0.3);
+  transition:all 0.22s var(--ease);
+  user-select:none;
+  position:relative;
+  overflow:hidden;
+}
+.cib-model-check::before{
+  content:'';position:absolute;inset:0;opacity:0;
+  transition:opacity 0.22s;
+  background:radial-gradient(ellipse at 50% 0%,currentColor 0%,transparent 70%);
+  pointer-events:none;
+}
+.cib-model-check.on::before{opacity:0.07}
+.cib-model-check .cmc-logo{
+  width:28px;height:28px;border-radius:8px;
+  object-fit:contain;
+  opacity:0.35;
+  transition:opacity 0.22s, transform 0.22s var(--ease);
+  flex-shrink:0;
+}
+.cib-model-check.on .cmc-logo{opacity:1;transform:scale(1.08)}
+.cib-model-check .cmc-name{
+  font-size:9.5px;font-weight:700;letter-spacing:0.4px;
+  transition:color 0.22s;
+  white-space:nowrap;
+}
+.cib-model-check .cmc-check{
+  position:absolute;top:5px;right:6px;
+  width:14px;height:14px;border-radius:50%;
+  border:1.5px solid rgba(255,255,255,0.15);
+  display:flex;align-items:center;justify-content:center;
+  transition:all 0.2s var(--ease);
+  background:transparent;
+}
+.cib-model-check.on .cmc-check{
+  border-color:currentColor;
+  background:currentColor;
+}
+.cib-model-check .cmc-check::after{
+  content:'';width:4px;height:4px;border-radius:50%;
+  background:#fff;opacity:0;transition:opacity 0.15s;
+}
+.cib-model-check.on .cmc-check::after{opacity:1}
+
+/* Model-specific active colors */
+.cib-model-check.on.groq{border-color:rgba(61,114,246,0.55);color:#7aa8f7;background:rgba(61,114,246,0.1)}
+.cib-model-check.on.qwen{border-color:rgba(168,85,247,0.55);color:#c4a8ff;background:rgba(168,85,247,0.1)}
+.cib-model-check.on.chatgpt{border-color:rgba(16,163,127,0.55);color:#5eead4;background:rgba(16,163,127,0.1)}
+.cib-model-check.on.claude{border-color:rgba(217,119,6,0.55);color:#fbbf24;background:rgba(217,119,6,0.1)}
+.cib-model-check.on.gemini{border-color:rgba(66,133,244,0.55);color:#93c5fd;background:rgba(66,133,244,0.1)}
+.cib-model-check.on.deepseek{border-color:rgba(6,182,212,0.55);color:#67e8f9;background:rgba(6,182,212,0.1)}
+
+body.light .cib-model-check{border-color:rgba(0,0,0,0.1);background:rgba(0,0,0,0.03);color:rgba(0,0,0,0.35)}
+body.light .cib-model-check.on.groq{background:rgba(61,114,246,0.08)}
+body.light .cib-model-check.on.qwen{background:rgba(168,85,247,0.08)}
+body.light .cib-model-check.on.chatgpt{background:rgba(16,163,127,0.08)}
+body.light .cib-model-check.on.claude{background:rgba(217,119,6,0.08)}
+body.light .cib-model-check.on.gemini{background:rgba(66,133,244,0.08)}
+body.light .cib-model-check.on.deepseek{background:rgba(6,182,212,0.08)}
+
+/* Single mode model switcher in panel */
+.panel-model-row{display:flex;flex-direction:column;gap:3px;padding:2px 0}
 
 #canvasText{
   flex:1;border:none;outline:none;resize:none;
@@ -714,10 +864,22 @@ body.light .ctb-input-wrap{background:rgba(0,0,0,0.04);border-color:rgba(0,0,0,0
   </button>
   <div class="panel-label" style="margin-top:6px">API (Single Mode)</div>
   <button onclick="setAPI('groq')">
-    <img src="https://avatars.githubusercontent.com/u/139895814?s=200&v=4" style="width:15px;height:15px;border-radius:4px"> Groq
+    <img src="https://avatars.githubusercontent.com/u/139895814?s=200&v=4" style="width:16px;height:16px;border-radius:5px;object-fit:cover"> Groq (Llama)
   </button>
   <button onclick="setAPI('qwen')">
-    <img src="https://upload.wikimedia.org/wikipedia/commons/6/69/Qwen_logo.svg" style="width:15px;height:15px;border-radius:4px"> Qwen
+    <img src="https://upload.wikimedia.org/wikipedia/commons/6/69/Qwen_logo.svg" style="width:16px;height:16px;border-radius:5px;object-fit:contain"> Qwen
+  </button>
+  <button onclick="setAPI('chatgpt')">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/0/04/ChatGPT_logo.svg" style="width:16px;height:16px;border-radius:5px;object-fit:contain"> ChatGPT
+  </button>
+  <button onclick="setAPI('claude')">
+    <img src="https://storage.googleapis.com/prd-rekko-public/anthropic.png" style="width:16px;height:16px;border-radius:5px;object-fit:contain" onerror="this.src='https://www.anthropic.com/favicon.ico'"> Claude
+  </button>
+  <button onclick="setAPI('gemini')">
+    <img src="https://www.gstatic.com/lamda/images/gemini_sparkle_v002_d4735304ff6292a690345.svg" style="width:16px;height:16px;border-radius:5px;object-fit:contain"> Gemini
+  </button>
+  <button onclick="setAPI('deepseek')">
+    <img src="https://www.deepseek.com/favicon.ico" style="width:16px;height:16px;border-radius:5px;object-fit:contain" onerror="this.style.display='none'"> DeepSeek
   </button>
 </div>
 
@@ -766,6 +928,22 @@ body.light .ctb-input-wrap{background:rgba(0,0,0,0.04);border-color:rgba(0,0,0,0
         <stop offset="0%" stop-color="#a855f7" stop-opacity="0.9"/>
         <stop offset="100%" stop-color="#a855f7" stop-opacity="0.3"/>
       </linearGradient>
+      <linearGradient id="edgeGradChatgpt" x1="0%" y1="0%" x2="100%" y2="0%">
+        <stop offset="0%" stop-color="#10a37f" stop-opacity="0.9"/>
+        <stop offset="100%" stop-color="#10a37f" stop-opacity="0.3"/>
+      </linearGradient>
+      <linearGradient id="edgeGradClaude" x1="0%" y1="0%" x2="100%" y2="0%">
+        <stop offset="0%" stop-color="#d97706" stop-opacity="0.9"/>
+        <stop offset="100%" stop-color="#d97706" stop-opacity="0.3"/>
+      </linearGradient>
+      <linearGradient id="edgeGradGemini" x1="0%" y1="0%" x2="100%" y2="0%">
+        <stop offset="0%" stop-color="#4285f4" stop-opacity="0.9"/>
+        <stop offset="100%" stop-color="#4285f4" stop-opacity="0.3"/>
+      </linearGradient>
+      <linearGradient id="edgeGradDeeseek" x1="0%" y1="0%" x2="100%" y2="0%">
+        <stop offset="0%" stop-color="#06b6d4" stop-opacity="0.9"/>
+        <stop offset="100%" stop-color="#06b6d4" stop-opacity="0.3"/>
+      </linearGradient>
     </defs>
   </svg>
   <div id="canvasWorld">
@@ -797,12 +975,48 @@ body.light .ctb-input-wrap{background:rgba(0,0,0,0.04);border-color:rgba(0,0,0,0
 
 <!-- CANVAS INPUT BAR (bottom, only shown in multi mode) -->
 <div id="canvasInputBar">
+  <div style="padding:8px 14px 0;display:flex;align-items:center;justify-content:space-between">
+    <span style="font-size:9px;font-weight:700;letter-spacing:2px;color:rgba(255,255,255,0.2);text-transform:uppercase">Pilih Model</span>
+    <span id="cibModelCount" style="font-size:9px;font-weight:600;color:var(--muted);letter-spacing:0.5px">2 aktif</span>
+  </div>
+  <div class="cib-model-selector" id="cibModelSelector">
+    <div class="cib-model-check on groq" data-model="groq" onclick="toggleMultiModel('groq')">
+      <div class="cmc-check"></div>
+      <img class="cmc-logo" src="https://avatars.githubusercontent.com/u/139895814?s=200&v=4" alt="Groq">
+      <span class="cmc-name">GROQ</span>
+    </div>
+    <div class="cib-model-check on qwen" data-model="qwen" onclick="toggleMultiModel('qwen')">
+      <div class="cmc-check"></div>
+      <img class="cmc-logo" src="https://upload.wikimedia.org/wikipedia/commons/6/69/Qwen_logo.svg" alt="Qwen">
+      <span class="cmc-name">QWEN</span>
+    </div>
+    <div class="cib-model-check chatgpt" data-model="chatgpt" onclick="toggleMultiModel('chatgpt')">
+      <div class="cmc-check"></div>
+      <img class="cmc-logo" src="https://upload.wikimedia.org/wikipedia/commons/0/04/ChatGPT_logo.svg" alt="ChatGPT">
+      <span class="cmc-name">ChatGPT</span>
+    </div>
+    <div class="cib-model-check claude" data-model="claude" onclick="toggleMultiModel('claude')">
+      <div class="cmc-check"></div>
+      <img class="cmc-logo" src="https://storage.googleapis.com/prd-rekko-public/anthropic.png" alt="Claude" onerror="this.src='https://www.anthropic.com/favicon.ico'">
+      <span class="cmc-name">Claude</span>
+    </div>
+    <div class="cib-model-check gemini" data-model="gemini" onclick="toggleMultiModel('gemini')">
+      <div class="cmc-check"></div>
+      <img class="cmc-logo" src="https://www.gstatic.com/lamda/images/gemini_sparkle_v002_d4735304ff6292a690345.svg" alt="Gemini">
+      <span class="cmc-name">Gemini</span>
+    </div>
+    <div class="cib-model-check deepseek" data-model="deepseek" onclick="toggleMultiModel('deepseek')">
+      <div class="cmc-check"></div>
+      <img class="cmc-logo" src="https://www.deepseek.com/favicon.ico" alt="DeepSeek" onerror="this.style.display='none'">
+      <span class="cmc-name">DeepSeek</span>
+    </div>
+  </div>
   <div class="cib-wrap" id="cibWrap">
-    <div class="cib-model-tags">
+    <div class="cib-model-tags" id="cibModelTags">
       <span class="cib-tag groq">GROQ</span>
       <span class="cib-tag qwen">QWEN</span>
     </div>
-    <textarea id="canvasText" placeholder="Tanya ke 2 model sekaligus..." rows="1"></textarea>
+    <textarea id="canvasText" placeholder="Tanya ke model yang dipilih..." rows="1"></textarea>
     <button class="cib-stop" id="cibStop" onclick="stopCanvas()">
       <svg viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>
     </button>
@@ -810,7 +1024,7 @@ body.light .ctb-input-wrap{background:rgba(0,0,0,0.04);border-color:rgba(0,0,0,0
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
     </button>
   </div>
-  <div id="canvasModeHint">Multi Chat — Groq • Qwen • Drag nodes untuk atur layout</div>
+  <div id="canvasModeHint">Multi Chat — Pilih model di atas • Drag nodes untuk atur layout</div>
 </div>
 
 <!-- INPUT (single chat mode) -->
@@ -834,12 +1048,20 @@ const GROQ_API_KEY       = "gsk_mIT1gfbMdIRA9KcPRYqMWGdyb3FYorNs63T5ghBB3fob5WT0
 const OPENROUTER_API_KEY = "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"
 const DARK_LOGO      = "https://i.ibb.co.com/SD7LZgmv/Picsart-26-04-29-23-27-26-445.jpg";
 const LIGHT_LOGO     = "https://i.ibb.co.com/XrH4nnQy/file-0000000005a87208a1ebd9aff2438f5f.png";
-const MODEL_LABELS   = { groq:"Groq (Llama)", qwen:"Qwen" };
+const MODEL_LABELS   = { groq:"Groq (Llama)", qwen:"Qwen", chatgpt:"ChatGPT", claude:"Claude", gemini:"Gemini", deepseek:"DeepSeek" };
+const MODEL_BADGES   = { groq:"Llama", qwen:"Qwen3", chatgpt:"GPT-4o", claude:"Claude", gemini:"Gemini", deepseek:"DeepSeek" };
 
-// Model fallback lists
-const QWEN_MODELS = [
-  "qwen/qwen3-235b-a22b:free"
-];
+// OpenRouter model IDs for each provider (free tier)
+const OPENROUTER_MODELS = {
+  qwen:     "qwen/qwen3-235b-a22b:free",
+  chatgpt:  "openai/gpt-4o-mini:free",
+  claude:   "anthropic/claude-3-haiku:free",
+  gemini:   "google/gemini-flash-1.5:free",
+  deepseek: "deepseek/deepseek-chat:free"
+};
+
+// Active multi-models (which are toggled ON)
+let activeMultiModels = ["groq","qwen"];
 
 /* ======================== API CALLS (via server proxy) ======================== */
 // Semua call lewat server Node.js untuk hindari CORS block dari browser
@@ -855,11 +1077,11 @@ async function callGroq(message, history) {
   return d.reply;
 }
 
-async function callQwen(message, history) {
+async function callOpenRouter(model, message, history) {
   const resp = await fetch("/chat", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ message, api: "qwen", sessionId: activeId || "default", history, maxTokens: 8192 })
+    body: JSON.stringify({ message, api: "openrouter", model: OPENROUTER_MODELS[model] || model, sessionId: activeId || "default", history, maxTokens: 8192 })
   });
   if (!resp.ok) throw new Error("Server HTTP " + resp.status);
   const d = await resp.json();
@@ -869,20 +1091,20 @@ async function callQwen(message, history) {
 
 async function callAPI(api, message, history) {
   if (api === "groq") return callGroq(message, history);
-  if (api === "qwen") return callQwen(message, history);
+  if (["qwen","chatgpt","claude","gemini","deepseek"].includes(api)) return callOpenRouter(api, message, history);
   throw new Error("Unknown API: " + api);
 }
 
-async function callMultiAPI(message) {
+async function callMultiAPI(message, models) {
   const resp = await fetch("/multi-chat", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ message })
+    body: JSON.stringify({ message, models: models || ["groq","qwen"] })
   });
   if (!resp.ok) throw new Error("Server HTTP " + resp.status);
   const d = await resp.json();
   if (d.error) throw new Error(d.error);
-  return d.replies; // { groq: "...", qwen: "..." }
+  return d.replies; // { groq: "...", qwen: "...", chatgpt: "...", ... }
 }
 
 /* ======================== STATE ======================== */
@@ -967,6 +1189,7 @@ function applyModeUI(){
     document.getElementById("canvasSpace").classList.add("active");
     document.getElementById("canvasZoomBar").style.display = "flex";
     document.getElementById("chat").style.display = "none";
+    updateCibTags();
   }
 }
 
@@ -1130,6 +1353,38 @@ function setAPI(api){
   currentAPI = api;
   localStorage.setItem("api", api);
   panel.style.display = "none";
+  // Update mode hint
+  modeHint.textContent = "Chat biasa — " + (MODEL_LABELS[api] || api);
+}
+
+/* ======================== MULTI MODEL TOGGLE ======================== */
+function toggleMultiModel(model){
+  const el = document.querySelector(`.cib-model-check[data-model="${model}"]`);
+  const idx = activeMultiModels.indexOf(model);
+  if(idx >= 0){
+    // Must keep at least 1 model active
+    if(activeMultiModels.length <= 1) return;
+    activeMultiModels.splice(idx, 1);
+    el.classList.remove("on");
+  } else {
+    activeMultiModels.push(model);
+    el.classList.add("on");
+  }
+  updateCibTags();
+  updateModelCount();
+}
+
+function updateModelCount(){
+  const el = document.getElementById("cibModelCount");
+  if(el) el.textContent = activeMultiModels.length + " aktif";
+}
+
+function updateCibTags(){
+  const tagsEl = document.getElementById("cibModelTags");
+  if(!tagsEl) return;
+  tagsEl.innerHTML = activeMultiModels.map(m =>
+    `<span class="cib-tag ${m}">${MODEL_LABELS[m]||m}</span>`
+  ).join("");
 }
 
 /* ======================== ABOUT / SUPPORT ======================== */
@@ -1619,21 +1874,22 @@ function cvSend(){
   controller = new AbortController();
 
   const ut = getTime();
-  const uid = Date.now(); // unique ID untuk node, hindari collision
+  const uid = Date.now();
   addMsgToSession({ role:"multi-user", text:msg, time:ut });
 
-  // Fixed layout: place nodes in absolute canvas space (not relative to current pan)
   const space = document.getElementById("canvasSpace");
   const vw = space.clientWidth;
 
-  // Node dimensions
-  const nodeW = Math.min(260, (vw - 60) / 2);
-  const nodeSpacing = 16;
-  const totalNodesW = nodeW * 2 + nodeSpacing;
-  const canvasCenterX = vw / 2;  // canvas center X in world space (ox=0)
+  const selectedModels = [...activeMultiModels];
+  const n = selectedModels.length;
+
+  // Node dimensions — scale width based on count
+  const nodeW = Math.min(260, Math.max(160, (vw - 20 - (n-1)*12) / n));
+  const nodeSpacing = 12;
+  const totalNodesW = nodeW * n + nodeSpacing * (n - 1);
 
   const promptW = Math.min(280, vw - 40);
-  const promptX = canvasCenterX - promptW / 2;
+  const promptX = vw/2 - promptW/2;
   const promptY = canvasLayoutY;
 
   const promptEl = document.createElement("div");
@@ -1643,7 +1899,6 @@ function cvSend(){
   promptEl.innerHTML = escHtml(msg) + `<div class="cn-prompt-time">${ut}</div>`;
   const promptRef = cvPlaceNode(promptEl, promptX, promptY, "prompt");
 
-  // Update prompt size after render
   requestAnimationFrame(()=>{
     promptRef.w = promptEl.offsetWidth || promptW;
     promptRef.h = promptEl.offsetHeight || 50;
@@ -1651,13 +1906,16 @@ function cvSend(){
   });
 
   const nodeY = promptY + 80;
-  const groqX = canvasCenterX - totalNodesW / 2;
-  const qwenX = groqX + nodeW + nodeSpacing;
+  const startX = vw/2 - totalNodesW/2;
 
-  const models = [
-    {api:"groq", label:"GROQ", badge:"Llama", x:groqX, y:nodeY, delay:60},
-    {api:"qwen",  label:"QWEN",  badge:"Qwen3", x:qwenX, y:nodeY, delay:160},
-  ];
+  const models = selectedModels.map((api, i) => ({
+    api,
+    label: (MODEL_LABELS[api]||api).toUpperCase(),
+    badge: MODEL_BADGES[api]||api,
+    x: startX + i * (nodeW + nodeSpacing),
+    y: nodeY,
+    delay: 60 + i * 80
+  }));
 
   models.forEach(({api,label,badge,x,y,delay})=>{
     setTimeout(()=>{
@@ -1690,10 +1948,8 @@ function cvSend(){
     }, delay);
   });
 
-  // Reserve space for next conversation block (prompt + nodes + gap)
   canvasLayoutY += 480;
 
-  // Pan canvas to show the new block centered
   setTimeout(()=>{
     const space2 = document.getElementById("canvasSpace");
     const vw2 = space2.clientWidth;
@@ -1704,17 +1960,16 @@ function cvSend(){
     document.getElementById("zoomLabel").textContent = "100%";
   }, 100);
 
-  callMultiAPI(msg)
+  callMultiAPI(msg, selectedModels)
   .then(replies => {
-    ["groq","qwen"].forEach(api => {
+    selectedModels.forEach(api => {
       const reply = replies[api] || "Tidak ada respons";
       const nodeEl = document.getElementById(`cvnode_${api}_${uid}`);
       if(nodeEl){
         nodeEl.classList.remove("loading");
         const body = nodeEl.querySelector(".cn-node-body");
         if(body) body.innerHTML = renderMessage(reply) + `<div class="cn-node-time">${getTime()}</div>`;
-        // Redraw edges at multiple points as content settles
-        [50, 150, 350].forEach(delay => {
+        [50,150,350].forEach(delay => {
           setTimeout(()=>{
             const ref = canvas.nodes.find(n=>n.el===nodeEl);
             if(ref){
@@ -1727,11 +1982,13 @@ function cvSend(){
       }
     });
     const t = getTime();
-    addMsgToSession({ role:"multi-answer", groq:replies.groq||"", qwen:replies.qwen||"", time:t });
+    const answerObj = { role:"multi-answer", time:t };
+    selectedModels.forEach(api => { answerObj[api] = replies[api]||""; });
+    addMsgToSession(answerObj);
     cvFinish();
   })
   .catch(err=>{
-    ["groq","qwen"].forEach(api=>{
+    selectedModels.forEach(api=>{
       const nodeEl = document.getElementById(`cvnode_${api}_${uid}`);
       if(nodeEl){
         nodeEl.classList.remove("loading");
@@ -1785,9 +2042,6 @@ function cvRestoreSession(sess){
 
   let hasContent = false;
   const vw = document.getElementById("canvasSpace").clientWidth;
-  const nodeW = Math.min(260, (vw - 56) / 2);
-  const nodeSpacing = 16;
-  const totalNodesW = nodeW * 2 + nodeSpacing;
 
   sess.messages.forEach(m=>{
     if(m.role==="multi-user"){
@@ -1807,9 +2061,19 @@ function cvRestoreSession(sess){
       const lastPrompt = canvas.nodes.filter(n=>n.type==="prompt").slice(-1)[0];
       if(!lastPrompt) return;
       const nodeY = lastPrompt.y + 80;
-      const groqX = vw/2 - totalNodesW/2;
-      const qwenX = groqX + nodeW + nodeSpacing;
-      [["groq",m.groq,"GROQ","Llama",groqX],["qwen",m.qwen,"QWEN","Qwen3",qwenX]].forEach(([api,reply,label,badge,x])=>{
+      // Determine which models are in this answer
+      const ansModels = Object.keys(m).filter(k => !["role","time"].includes(k) && m[k]);
+      const n = ansModels.length || 2;
+      const nodeW = Math.min(260, Math.max(160, (vw - 20 - (n-1)*12) / n));
+      const nodeSpacing = 12;
+      const totalNodesW = nodeW * n + nodeSpacing * (n-1);
+      const startX = vw/2 - totalNodesW/2;
+
+      ansModels.forEach((api, i)=>{
+        const reply = m[api];
+        const label = (MODEL_LABELS[api]||api).toUpperCase();
+        const badge = MODEL_BADGES[api]||api;
+        const x = startX + i*(nodeW+nodeSpacing);
         const nodeEl = document.createElement("div");
         nodeEl.className = `cn-node ${api}`;
         nodeEl.style.width = nodeW + "px";
