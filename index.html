@@ -201,73 +201,385 @@ header{position:relative;z-index:1000;height:var(--hdr);display:flex;align-items
 pre{margin:0;padding:14px;font-family:var(--FM);font-size:12px;line-height:1.7;color:#c9d2e0;overflow-x:auto;white-space:pre}
 
 /* ================================================================
-   MULTI CHAT LAYOUT
+   CANVAS SPACE — Flowith-style infinite canvas for Multi Chat
 ================================================================ */
-/* User bubble in multi mode */
-.multi-user-msg{
-  align-self:flex-end;
-  background:var(--user-grad);color:#fff;
-  border-radius:var(--r-md) var(--r-md) 4px var(--r-md);
-  padding:12px 16px;max-width:72%;
-  font-size:14px;line-height:1.65;font-weight:500;
-  box-shadow:0 4px 22px rgba(61,114,246,0.28);
-  animation:msgIn 0.28s var(--ease);
-  word-break:break-word;
-}
-.multi-user-msg .msg-time{color:rgba(255,255,255,0.32);font-size:10px;margin-top:5px;text-align:right}
 
-/* Multi answers container — horizontal */
-.multi-answers{
-  width:100%;display:flex;flex-direction:column;gap:0;
-  animation:msgIn 0.3s var(--ease);
+/* Canvas overlay — takes over full screen when multi mode active */
+#canvasSpace{
+  display:none;
+  position:fixed;
+  inset:0;
+  top:var(--hdr);
+  z-index:10;
+  overflow:hidden;
+  background:
+    radial-gradient(ellipse 70% 60% at 15% 10%,rgba(61,114,246,0.1) 0%,transparent 55%),
+    radial-gradient(ellipse 60% 50% at 85% 90%,rgba(168,85,247,0.09) 0%,transparent 55%),
+    var(--bg);
+}
+#canvasSpace.active{display:block}
+
+/* Dot-grid background pattern */
+#canvasSpace::before{
+  content:'';
+  position:absolute;inset:0;pointer-events:none;z-index:0;
+  background-image:radial-gradient(circle,rgba(255,255,255,0.1) 1px,transparent 1px);
+  background-size:28px 28px;
+  animation:gridPan 0s linear infinite;
+}
+body.light #canvasSpace::before{
+  background-image:radial-gradient(circle,rgba(0,0,0,0.08) 1px,transparent 1px);
 }
 
-/* Divider line with model labels */
-.multi-divider{
-  display:flex;align-items:center;gap:0;margin:10px 0 0;
-  position:relative;
+/* The infinite panning world */
+#canvasWorld{
+  position:absolute;
+  inset:0;
+  transform-origin:0 0;
+  will-change:transform;
+  cursor:grab;
 }
-.multi-divider-line{
-  flex:1;height:1px;
-  background:linear-gradient(90deg,rgba(61,114,246,0.5),rgba(168,85,247,0.5));
+#canvasWorld:active{cursor:grabbing}
+#canvasWorld.panning{cursor:grabbing}
+
+/* SVG connector layer */
+#canvasSVG{
+  position:absolute;
+  inset:0;
+  width:100%;height:100%;
+  pointer-events:none;
+  overflow:visible;
 }
-.multi-model-tabs{
-  display:flex;gap:0;flex-shrink:0;
-}
-.multi-model-tab{
-  padding:4px 12px;font-size:10px;font-weight:700;letter-spacing:1px;
-  border-radius:0;first:border-radius:6px 0 0 0;last:border-radius:0 6px 0 0;
+
+/* ---- PROMPT NODE (user message card) ---- */
+.cn-prompt{
+  position:absolute;
+  background:var(--user-grad);
+  color:#fff;
+  border-radius:18px 18px 18px 6px;
+  padding:13px 17px;
+  font-size:13.5px;font-weight:500;line-height:1.6;
+  max-width:300px;min-width:160px;
+  box-shadow:0 6px 30px rgba(61,114,246,0.35);
+  animation:cnNodeIn 0.38s var(--ease) both;
+  user-select:none;
   cursor:default;
 }
-.multi-model-tab.groq{background:rgba(61,114,246,0.15);color:#7aa8f7;border:1px solid rgba(61,114,246,0.3);border-bottom:none;border-radius:7px 0 0 0}
-.multi-model-tab.qwen{background:rgba(168,85,247,0.15);color:#c4a8ff;border:1px solid rgba(168,85,247,0.3);border-bottom:none;border-left:none;border-radius:0 7px 0 0}
+.cn-prompt-time{font-size:10px;color:rgba(255,255,255,0.42);margin-top:6px;text-align:right;letter-spacing:0.4px}
 
-/* Three-column answers */
-.multi-cols{
-  display:flex;gap:0;width:100%;
-  border-radius:0 0 var(--r-md) var(--r-md);
+/* ---- RESPONSE NODE (model answer card) ---- */
+.cn-node{
+  position:absolute;
+  border-radius:18px;
+  overflow:hidden;
+  width:290px;
+  box-shadow:0 6px 36px rgba(0,0,0,0.35);
+  animation:cnNodeIn 0.42s var(--ease) both;
+  transition:box-shadow 0.22s, transform 0.18s var(--ease);
+  cursor:grab;
+}
+.cn-node:active{cursor:grabbing}
+.cn-node:hover{transform:translateY(-3px) scale(1.01)}
+@keyframes cnNodeIn{from{opacity:0;transform:scale(0.88) translateY(20px)}to{opacity:1;transform:none}}
+
+.cn-node.groq{
+  background:rgba(8,13,35,0.92);
+  border:1.5px solid rgba(61,114,246,0.4);
+  box-shadow:0 6px 36px rgba(61,114,246,0.16);
+}
+.cn-node.qwen{
+  background:rgba(12,8,35,0.92);
+  border:1.5px solid rgba(168,85,247,0.4);
+  box-shadow:0 6px 36px rgba(168,85,247,0.16);
+}
+.cn-node.groq:hover{box-shadow:0 12px 48px rgba(61,114,246,0.28),0 0 0 3px rgba(61,114,246,0.08)}
+.cn-node.qwen:hover{box-shadow:0 12px 48px rgba(168,85,247,0.28),0 0 0 3px rgba(168,85,247,0.08)}
+body.light .cn-node.groq{background:rgba(240,246,255,0.97);border-color:rgba(61,114,246,0.3)}
+body.light .cn-node.qwen{background:rgba(248,242,255,0.97);border-color:rgba(168,85,247,0.3)}
+
+/* Node header */
+.cn-node-hdr{
+  display:flex;align-items:center;gap:9px;
+  padding:11px 14px 10px;
+  position:relative;
+  cursor:grab;
+}
+.cn-node-hdr::after{
+  content:'';position:absolute;inset:0;opacity:0.07;pointer-events:none;
+}
+.cn-node.groq .cn-node-hdr{background:linear-gradient(90deg,rgba(61,114,246,0.18),rgba(61,114,246,0.04));border-bottom:1px solid rgba(61,114,246,0.2)}
+.cn-node.qwen .cn-node-hdr{background:linear-gradient(90deg,rgba(168,85,247,0.18),rgba(168,85,247,0.04));border-bottom:1px solid rgba(168,85,247,0.2)}
+body.light .cn-node.groq .cn-node-hdr{background:linear-gradient(90deg,rgba(61,114,246,0.1),transparent);border-bottom-color:rgba(61,114,246,0.15)}
+body.light .cn-node.qwen .cn-node-hdr{background:linear-gradient(90deg,rgba(168,85,247,0.1),transparent);border-bottom-color:rgba(168,85,247,0.15)}
+
+/* Drag grip dots */
+.cn-node-grip{
+  display:flex;flex-wrap:wrap;gap:2px;width:12px;flex-shrink:0;opacity:0.35;
+}
+.cn-node-grip span{width:3px;height:3px;border-radius:50%;background:currentColor;display:block}
+.cn-node.groq .cn-node-grip{color:#7aa8f7}
+.cn-node.qwen .cn-node-grip{color:#c4a8ff}
+
+/* Status dot (glow) */
+.cn-node-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.cn-node.groq .cn-node-dot{background:var(--groq);box-shadow:0 0 10px rgba(61,114,246,0.8)}
+.cn-node.qwen .cn-node-dot{background:var(--qwen);box-shadow:0 0 10px rgba(168,85,247,0.8)}
+.cn-node.loading .cn-node-dot{animation:dotPulse 1.2s ease-in-out infinite}
+@keyframes dotPulse{0%,100%{opacity:0.4;transform:scale(0.8)}50%{opacity:1;transform:scale(1.2)}}
+
+.cn-node-label{font-size:11px;font-weight:700;letter-spacing:1.8px;text-transform:uppercase;flex:1}
+.cn-node.groq .cn-node-label{color:#7aa8f7}
+.cn-node.qwen .cn-node-label{color:#c4a8ff}
+
+.cn-node-badge{font-size:9px;padding:2px 8px;border-radius:20px;font-weight:600;letter-spacing:0.4px}
+.cn-node.groq .cn-node-badge{background:rgba(61,114,246,0.15);color:#7aa8f7;border:1px solid rgba(61,114,246,0.28)}
+.cn-node.qwen .cn-node-badge{background:rgba(168,85,247,0.15);color:#c4a8ff;border:1px solid rgba(168,85,247,0.28)}
+
+/* Node body */
+.cn-node-body{
+  padding:14px 15px 12px;
+  font-size:12.5px;line-height:1.68;
+  color:var(--text);
+  word-break:break-word;
+  max-height:340px;
+  overflow-y:auto;
+  scrollbar-width:thin;
+}
+.cn-node-body::-webkit-scrollbar{width:3px}
+.cn-node-body::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.12);border-radius:3px}
+
+.cn-node-time{
+  font-size:9px;color:var(--muted);
+  margin-top:10px;padding-top:8px;
+  border-top:1px solid rgba(255,255,255,0.05);
+  display:flex;align-items:center;gap:5px;letter-spacing:0.3px;
+}
+body.light .cn-node-time{border-top-color:rgba(0,0,0,0.06)}
+
+/* Loading state inside node */
+.cn-loading{
+  display:flex;align-items:center;gap:5px;padding:8px 0 4px;
+}
+.cn-loading .td{width:6px;height:6px;border-radius:50%;animation:tdA 1.3s ease-in-out infinite}
+.cn-node.groq .cn-loading .td{background:var(--groq)}
+.cn-node.qwen .cn-loading .td{background:var(--qwen)}
+.cn-loading .td:nth-child(2){animation-delay:0.15s}
+.cn-loading .td:nth-child(3){animation-delay:0.3s}
+
+/* ---- CANVAS TOOLBAR ---- */
+#canvasToolbar{
+  position:fixed;
+  bottom:100px;
+  left:50%;
+  transform:translateX(-50%);
+  z-index:200;
+  display:none;
+  align-items:center;
+  gap:6px;
+  padding:8px 10px;
+  background:rgba(6,9,18,0.88);
+  border:1px solid rgba(255,255,255,0.1);
+  border-radius:22px;
+  backdrop-filter:blur(24px);
+  box-shadow:0 8px 40px rgba(0,0,0,0.5),0 0 0 1px rgba(255,255,255,0.04);
+  animation:cnNodeIn 0.3s var(--ease);
+}
+body.light #canvasToolbar{background:rgba(255,255,255,0.92);border-color:rgba(0,0,0,0.1)}
+#canvasToolbar.visible{display:flex}
+
+.ctb-sep{width:1px;height:22px;background:rgba(255,255,255,0.1);border-radius:2px;margin:0 2px}
+body.light .ctb-sep{background:rgba(0,0,0,0.12)}
+
+.ctb-btn{
+  width:36px;height:36px;border-radius:12px;border:none;
+  background:transparent;color:var(--muted);
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;transition:all 0.18s;font-family:var(--F);
+}
+.ctb-btn:hover{background:rgba(61,114,246,0.15);color:var(--text)}
+.ctb-btn svg{width:16px;height:16px;stroke:currentColor;stroke-width:2;fill:none}
+
+.ctb-zoom{
+  font-size:11px;font-weight:700;font-family:var(--F);
+  color:var(--muted);min-width:44px;text-align:center;
+  padding:0 4px;letter-spacing:0.5px;
+}
+
+.ctb-input-wrap{
+  display:flex;align-items:flex-end;gap:6px;
+  background:rgba(255,255,255,0.06);
+  border:1px solid rgba(255,255,255,0.1);
+  border-radius:14px;
+  padding:6px 8px 6px 14px;
+  margin:0 4px;
+  min-width:220px;
+  transition:border-color 0.2s,box-shadow 0.2s;
+}
+.ctb-input-wrap:focus-within{
+  border-color:rgba(168,85,247,0.5);
+  box-shadow:0 0 0 3px rgba(168,85,247,0.1);
+}
+body.light .ctb-input-wrap{background:rgba(0,0,0,0.04);border-color:rgba(0,0,0,0.1)}
+
+.ctb-textarea{
+  flex:1;border:none;outline:none;resize:none;
+  background:transparent;color:var(--text);
+  font-family:var(--F);font-size:13px;line-height:1.45;
+  min-height:20px;max-height:100px;
+  padding:2px 0;scrollbar-width:none;
+}
+.ctb-textarea::-webkit-scrollbar{display:none}
+.ctb-textarea::placeholder{color:var(--muted)}
+
+.ctb-send{
+  width:34px;height:34px;border-radius:11px;border:none;
+  background:linear-gradient(135deg,var(--groq),var(--qwen));
+  color:#fff;display:flex;align-items:center;justify-content:center;
+  cursor:pointer;flex-shrink:0;
+  transition:all 0.2s var(--ease);
+  box-shadow:0 3px 14px rgba(114,72,245,0.4);
+}
+.ctb-send:disabled{background:rgba(114,72,245,0.2);box-shadow:none;cursor:default;opacity:0.5}
+.ctb-send:not(:disabled):hover{transform:scale(1.08);box-shadow:0 5px 20px rgba(114,72,245,0.55)}
+.ctb-send svg{width:15px;height:15px}
+.ctb-stop{
+  width:34px;height:34px;border-radius:11px;border:1px solid rgba(240,68,68,0.3);
+  background:rgba(240,68,68,0.1);color:var(--red);
+  display:none;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;
+  transition:all 0.2s;
+}
+.ctb-stop:hover{background:rgba(240,68,68,0.22);box-shadow:0 0 16px rgba(240,68,68,0.3)}
+.ctb-stop svg{width:13px;height:13px;fill:currentColor;stroke:none}
+
+/* ---- CANVAS WELCOME ---- */
+#canvasWelcome{
+  position:absolute;
+  top:50%;left:50%;
+  transform:translate(-50%,-60%);
+  text-align:center;pointer-events:none;
+  display:flex;flex-direction:column;align-items:center;gap:12px;
+  animation:cnNodeIn 0.5s var(--ease) 0.1s both;
+}
+.cv-title{
+  font-size:20px;font-weight:800;letter-spacing:4px;
+  background:linear-gradient(90deg,#3d72f6,#a78bf5);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+}
+.cv-sub{font-size:13px;color:var(--muted);letter-spacing:1px}
+.cv-hint{
+  display:flex;align-items:center;gap:8px;
+  padding:10px 18px;border-radius:30px;
+  background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);
+  font-size:12px;color:var(--muted);pointer-events:auto;
+}
+.cv-hint svg{width:14px;height:14px;stroke:var(--muted);stroke-width:1.8;fill:none;flex-shrink:0}
+
+/* SVG connector path styles */
+.cv-edge{stroke-width:1.8;fill:none;stroke-dasharray:5 4;animation:dashFlow 1.8s linear infinite;opacity:0.55}
+@keyframes dashFlow{from{stroke-dashoffset:0}to{stroke-dashoffset:-18}}
+.cv-edge.groq{stroke:url(#edgeGradGroq)}
+.cv-edge.qwen{stroke:url(#edgeGradQwen)}
+.cv-edge-solid{stroke-width:1.8;fill:none;opacity:0.45}
+.cv-edge-solid.groq{stroke:var(--groq)}
+.cv-edge-solid.qwen{stroke:var(--qwen)}
+
+/* Edge dot terminus */
+.cv-edge-dot{r:4;animation:dotPop 0.5s var(--ease) both}
+.cv-edge-dot.groq{fill:var(--groq)}
+.cv-edge-dot.qwen{fill:var(--qwen)}
+@keyframes dotPop{from{r:0;opacity:0}to{opacity:1}}
+
+/* ---- MINI MAP ---- */
+#miniMap{
+  position:fixed;
+  bottom:170px;right:16px;
+  width:130px;height:80px;
+  background:rgba(6,9,18,0.82);
+  border:1px solid rgba(255,255,255,0.08);
+  border-radius:12px;
+  backdrop-filter:blur(16px);
+  z-index:200;
+  display:none;
   overflow:hidden;
 }
-.multi-col{
-  flex:1;padding:14px 14px 12px;
-  font-size:13px;line-height:1.65;word-break:break-word;
-  position:relative;min-width:0;
-}
-.multi-col.groq{background:rgba(61,114,246,0.07);border:1px solid rgba(61,114,246,0.2);border-top:none;border-right:none}
-.multi-col.qwen{background:rgba(168,85,247,0.07);border:1px solid rgba(168,85,247,0.2);border-top:none;border-left:none}
-.multi-col .multi-col-time{font-size:9px;color:var(--muted);margin-top:8px;letter-spacing:0.3px}
-.multi-col .typing-mini{display:inline-flex;gap:4px;align-items:center;padding:4px 0}
-.typing-mini .td{width:5px;height:5px}
-.typing-mini .td.groq-dot{background:var(--groq)}.typing-mini .td.qwen-dot{background:var(--qwen)}
+#miniMap.visible{display:block}
+#miniMapCanvas{width:100%;height:100%}
 
-/* Mobile: stack on narrow */
-@media(max-width:540px){
-  .multi-cols{flex-direction:column}
-  .multi-col{border-right:none!important;border-left:none!important;border-top:none!important}
-  .multi-col.groq{border:1px solid rgba(61,114,246,0.2);border-top:none;border-radius:0}
-  .multi-col.qwen{border:1px solid rgba(168,85,247,0.2);border-top:none;margin-top:-1px}
-  .multi-model-tab.groq{border-radius:7px 0 0 0}
-  .multi-model-tab.qwen{border-radius:0 7px 0 0}
+/* ---- CANVAS INPUT (bottom floating bar, replaces normal input in multi mode) ---- */
+#canvasInputBar{
+  position:fixed;
+  bottom:0;left:0;right:0;
+  z-index:200;
+  display:none;
+  padding:10px 16px 16px;
+  background:var(--surface);
+  border-top:1px solid var(--gb);
+  backdrop-filter:blur(22px);
+}
+#canvasInputBar.visible{display:block}
+
+.cib-wrap{
+  display:flex;align-items:flex-end;gap:8px;
+  background:rgba(168,85,247,0.06);
+  border:1.5px solid rgba(168,85,247,0.28);
+  border-radius:20px;
+  padding:8px 8px 8px 16px;
+  transition:border-color 0.22s,box-shadow 0.22s;
+  position:relative;
+}
+.cib-wrap:focus-within{
+  border-color:rgba(168,85,247,0.55);
+  box-shadow:0 0 0 3px rgba(168,85,247,0.1),0 8px 28px rgba(0,0,0,0.2);
+}
+.cib-model-tags{
+  position:absolute;top:-10px;left:14px;
+  display:flex;gap:5px;
+}
+.cib-tag{
+  font-size:9px;font-weight:700;letter-spacing:1px;
+  padding:2px 8px;border-radius:20px;
+}
+.cib-tag.groq{background:rgba(61,114,246,0.2);color:#7aa8f7;border:1px solid rgba(61,114,246,0.3)}
+.cib-tag.qwen{background:rgba(168,85,247,0.2);color:#c4a8ff;border:1px solid rgba(168,85,247,0.3)}
+
+#canvasText{
+  flex:1;border:none;outline:none;resize:none;
+  background:transparent;color:var(--text);
+  font-family:var(--F);font-size:14px;line-height:1.5;
+  min-height:22px;max-height:130px;padding:6px 0;
+  overflow-y:auto;scrollbar-width:none;
+}
+#canvasText::-webkit-scrollbar{display:none}
+#canvasText::placeholder{color:var(--muted)}
+
+.cib-stop{
+  display:none;width:40px;height:40px;border-radius:13px;
+  border:1px solid rgba(240,68,68,0.3);
+  background:rgba(240,68,68,0.1);color:var(--red);
+  align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;
+  transition:all 0.2s;
+}
+.cib-stop:hover{background:rgba(240,68,68,0.22);box-shadow:0 0 18px rgba(240,68,68,0.3);transform:scale(1.06)}
+.cib-stop svg{width:14px;height:14px;fill:currentColor;stroke:none}
+
+.cib-send{
+  width:40px;height:40px;border-radius:13px;border:none;
+  background:linear-gradient(135deg,var(--groq),var(--qwen));
+  color:#fff;display:flex;align-items:center;justify-content:center;
+  cursor:pointer;flex-shrink:0;
+  transition:all 0.22s var(--ease);
+  box-shadow:0 4px 16px rgba(114,72,245,0.38);
+}
+.cib-send:disabled{background:rgba(114,72,245,0.2)!important;box-shadow:none!important;cursor:default;opacity:0.5}
+.cib-send:not(:disabled):hover{transform:scale(1.07) translateY(-1px);box-shadow:0 6px 24px rgba(114,72,245,0.52)}
+.cib-send svg{width:17px;height:17px}
+
+#canvasModeHint{text-align:center;font-size:11px;color:var(--muted);padding:4px 0 0;letter-spacing:0.5px}
+
+/* Canvas mobile adjustments */
+@media(max-width:480px){
+  .cn-node{width:240px}
+  .cn-prompt{max-width:220px}
 }
 
 /* INPUT */
@@ -418,7 +730,68 @@ pre{margin:0;padding:14px;font-family:var(--FM);font-size:12px;line-height:1.7;c
 <!-- MAIN CHAT -->
 <div id="chat"></div>
 
-<!-- INPUT -->
+<!-- CANVAS SPACE (Multi Chat) -->
+<div id="canvasSpace">
+  <!-- dot grid is CSS ::before -->
+  <div id="canvasWorld">
+    <!-- SVG connector layer -->
+    <svg id="canvasSVG" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="edgeGradGroq" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stop-color="#3d72f6" stop-opacity="0.8"/>
+          <stop offset="100%" stop-color="#3d72f6" stop-opacity="0.2"/>
+        </linearGradient>
+        <linearGradient id="edgeGradQwen" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stop-color="#a855f7" stop-opacity="0.8"/>
+          <stop offset="100%" stop-color="#a855f7" stop-opacity="0.2"/>
+        </linearGradient>
+      </defs>
+    </svg>
+    <!-- Nodes are injected here by JS -->
+  </div>
+
+  <!-- Canvas welcome state -->
+  <div id="canvasWelcome">
+    <div class="cv-title">MULTI CHAT</div>
+    <div class="cv-sub">Bandingkan 2 AI dalam satu canvas</div>
+    <div class="cv-hint">
+      <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+      Ketik pertanyaan di bawah — drag nodes untuk atur layout
+    </div>
+  </div>
+
+  <!-- Mini map -->
+  <canvas id="miniMapCanvas" id="miniMap" style="position:fixed;bottom:170px;right:16px;width:130px;height:80px;background:rgba(6,9,18,0.82);border:1px solid rgba(255,255,255,0.08);border-radius:12px;backdrop-filter:blur(16px);z-index:200;display:none"></canvas>
+</div>
+
+<!-- CANVAS ZOOM TOOLBAR (floating, top-right) -->
+<div id="canvasZoomBar" style="position:fixed;top:calc(var(--hdr)+10px);right:12px;z-index:200;display:none;flex-direction:column;gap:4px;background:rgba(6,9,18,0.88);border:1px solid rgba(255,255,255,0.08);border-radius:14px;padding:6px;backdrop-filter:blur(20px);box-shadow:0 8px 32px rgba(0,0,0,0.4)">
+  <button class="ctb-btn" onclick="canvasZoom(0.15)" title="Zoom In"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg></button>
+  <div class="ctb-zoom" id="zoomLabel" style="font-size:10px;color:var(--muted);text-align:center;padding:2px 0">100%</div>
+  <button class="ctb-btn" onclick="canvasZoom(-0.15)" title="Zoom Out"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="8" y1="11" x2="14" y2="11"/></svg></button>
+  <div style="width:100%;height:1px;background:rgba(255,255,255,0.07);margin:2px 0"></div>
+  <button class="ctb-btn" onclick="canvasFitView()" title="Fit all nodes"><svg viewBox="0 0 24 24"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg></button>
+</div>
+
+<!-- CANVAS INPUT BAR (bottom, only shown in multi mode) -->
+<div id="canvasInputBar">
+  <div class="cib-wrap" id="cibWrap">
+    <div class="cib-model-tags">
+      <span class="cib-tag groq">GROQ</span>
+      <span class="cib-tag qwen">QWEN</span>
+    </div>
+    <textarea id="canvasText" placeholder="Tanya ke 2 model sekaligus..." rows="1"></textarea>
+    <button class="cib-stop" id="cibStop" onclick="stopCanvas()">
+      <svg viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>
+    </button>
+    <button class="cib-send" id="cibSend" disabled>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+    </button>
+  </div>
+  <div id="canvasModeHint">Multi Chat — Groq • Qwen • Drag nodes untuk atur layout</div>
+</div>
+
+<!-- INPUT (single chat mode) -->
 <div id="inputBox">
   <div class="input-wrap" id="inputWrap">
     <textarea id="text" placeholder="Message AIVA..." rows="1"></textarea>
@@ -551,20 +924,27 @@ function applyModeUI(){
   document.getElementById("btnModeMulti").classList.toggle("active", !isSingle);
   const badge = document.getElementById("modeBadgeInner");
   const badgeText = document.getElementById("modeBadgeText");
+
   if(isSingle){
     badge.classList.remove("multi");
     badgeText.textContent = "Single";
-    inputWrap.classList.remove("multi-mode");
-    sendBtn.classList.remove("multi");
     modeHint.textContent = "Chat biasa — 1 model";
     inputEl.placeholder = "Message AIVA...";
+    // Show normal chat UI
+    document.getElementById("inputBox").style.display = "";
+    document.getElementById("canvasInputBar").style.display = "none";
+    document.getElementById("canvasSpace").classList.remove("active");
+    document.getElementById("canvasZoomBar").style.display = "none";
+    document.getElementById("chat").style.display = "";
   } else {
     badge.classList.add("multi");
     badgeText.textContent = "Multi";
-    inputWrap.classList.add("multi-mode");
-    sendBtn.classList.add("multi");
-    modeHint.textContent = "Multi Chat — Groq • Qwen";
-    inputEl.placeholder = "Tanya ke 2 model sekaligus...";
+    // Show canvas UI
+    document.getElementById("inputBox").style.display = "none";
+    document.getElementById("canvasInputBar").style.display = "block";
+    document.getElementById("canvasSpace").classList.add("active");
+    document.getElementById("canvasZoomBar").style.display = "flex";
+    document.getElementById("chat").style.display = "none";
   }
 }
 
@@ -624,24 +1004,23 @@ function loadSession(id){
     localStorage.setItem("chatMode", chatMode);
     applyModeUI();
   }
-  chatEl.innerHTML = "";
-  sess.messages.forEach(m => {
-    if(m.role === "multi-user"){
-      const el = document.createElement("div");
-      el.className = "multi-user-msg";
-      el.innerHTML = escHtml(m.text) + `<div class="msg-time">${m.time}</div>`;
-      chatEl.appendChild(el);
-    } else if(m.role === "multi-answer"){
-      chatEl.appendChild(buildMultiAnswerEl(m.groq, m.qwen, m.time));
-    } else {
-      const d = document.createElement("div");
-      d.className = "msg " + m.role;
-      d.innerHTML = renderMessage(m.text) + `<div class="msg-time">${m.time}</div>`;
-      chatEl.appendChild(d);
-    }
-  });
+
+  if(chatMode === "multi"){
+    // Canvas restore
+    cvRestoreSession(sess);
+  } else {
+    chatEl.innerHTML = "";
+    sess.messages.forEach(m => {
+      if(m.role === "user" || m.role === "ai"){
+        const d = document.createElement("div");
+        d.className = "msg " + m.role;
+        d.innerHTML = renderMessage(m.text) + `<div class="msg-time">${m.time}</div>`;
+        chatEl.appendChild(d);
+      }
+    });
+    setTimeout(() => { chatEl.scrollTop = chatEl.scrollHeight; }, 50);
+  }
   renderHistory();
-  setTimeout(() => { chatEl.scrollTop = chatEl.scrollHeight; }, 50);
 }
 
 function deleteSession(id){
@@ -848,6 +1227,7 @@ function stopAI(){
 
 /* ======================== SEND ======================== */
 function send(){
+  if(chatMode === "multi"){ cvSend(); return; }
   if(isGenerating) return;
   const msg = inputEl.value.trim();
   if(!msg) return;
@@ -860,11 +1240,7 @@ function send(){
   stopBtn.style.display = "flex"; sendBtn.disabled = true;
   controller = new AbortController();
 
-  if(chatMode === "multi"){
-    sendMulti(msg);
-  } else {
-    sendSingle(msg);
-  }
+  sendSingle(msg);
 }
 
 /* ======================== SINGLE CHAT ======================== */
@@ -908,104 +1284,474 @@ function sendSingle(msg){
   });
 }
 
-/* ======================== MULTI CHAT ======================== */
-function sendMulti(msg){
-  // Add user bubble
-  const userEl = document.createElement("div");
-  userEl.className = "multi-user-msg";
+/* ======================== CANVAS ENGINE ======================== */
+const canvas = {
+  world: null, svg: null,
+  scale: 1, ox: 0, oy: 0,         // offset (pan)
+  isPanning: false, panSX: 0, panSY: 0, panOX: 0, panOY: 0,
+  nodes: [],         // {id, el, x, y, w, h, type} 
+  edges: [],         // {from, to, cls, el}
+  isDragging: false, dragNode: null, dragSX: 0, dragSY: 0, dragNX: 0, dragNY: 0,
+  nextX: 0, nextY: 0,  // layout cursor
+};
+
+function cvInit(){
+  canvas.world = document.getElementById("canvasWorld");
+  canvas.svg   = document.getElementById("canvasSVG");
+
+  // Pan events on the space background
+  const space = document.getElementById("canvasSpace");
+  space.addEventListener("mousedown",  cvPanStart);
+  space.addEventListener("mousemove",  cvPanMove);
+  space.addEventListener("mouseup",    cvPanEnd);
+  space.addEventListener("mouseleave", cvPanEnd);
+  space.addEventListener("wheel",      cvWheel, {passive:false});
+
+  // Touch pan
+  space.addEventListener("touchstart", cvTouchStart, {passive:false});
+  space.addEventListener("touchmove",  cvTouchMove,  {passive:false});
+  space.addEventListener("touchend",   cvPanEnd);
+
+  // Canvas text input
+  const ta = document.getElementById("canvasText");
+  const sb = document.getElementById("cibSend");
+  ta.addEventListener("input", ()=>{
+    ta.style.height = "auto";
+    ta.style.height = Math.min(ta.scrollHeight, 130) + "px";
+    sb.disabled = ta.value.trim() === "" || isGenerating;
+  });
+  ta.addEventListener("keydown", e => {
+    if(e.key === "Enter" && !e.shiftKey){ e.preventDefault(); cvSend(); }
+  });
+  sb.addEventListener("click", cvSend);
+}
+
+/* ---- Pan ---- */
+function cvPanStart(e){
+  if(e.target !== document.getElementById("canvasSpace") &&
+     e.target !== document.getElementById("canvasWorld") &&
+     e.target !== document.getElementById("canvasSVG") &&
+     !e.target.closest("#canvasWelcome")) return;
+  canvas.isPanning = true;
+  canvas.panSX = e.clientX; canvas.panSY = e.clientY;
+  canvas.panOX = canvas.ox;  canvas.panOY = canvas.oy;
+  canvas.world.classList.add("panning");
+}
+function cvPanMove(e){
+  if(!canvas.isPanning) return;
+  canvas.ox = canvas.panOX + (e.clientX - canvas.panSX);
+  canvas.oy = canvas.panOY + (e.clientY - canvas.panSY);
+  cvApplyTransform();
+}
+function cvPanEnd(){ canvas.isPanning = false; canvas.world.classList.remove("panning"); }
+
+let cvTouchLast = null;
+function cvTouchStart(e){
+  if(e.touches.length === 1){
+    cvTouchLast = {x:e.touches[0].clientX, y:e.touches[0].clientY};
+    canvas.panOX = canvas.ox; canvas.panOY = canvas.oy;
+  }
+}
+function cvTouchMove(e){
+  if(e.touches.length === 1 && cvTouchLast){
+    const dx = e.touches[0].clientX - cvTouchLast.x;
+    const dy = e.touches[0].clientY - cvTouchLast.y;
+    canvas.ox = canvas.panOX + dx;
+    canvas.oy = canvas.panOY + dy;
+    cvApplyTransform();
+    e.preventDefault();
+  }
+}
+
+/* ---- Zoom ---- */
+function cvWheel(e){
+  e.preventDefault();
+  const delta = e.deltaY < 0 ? 0.1 : -0.1;
+  canvasZoom(delta, e.clientX, e.clientY);
+}
+function canvasZoom(delta, cx, cy){
+  const space = document.getElementById("canvasSpace");
+  const rect = space.getBoundingClientRect();
+  cx = cx ?? rect.width/2;
+  cy = cy ?? rect.height/2;
+  const oldScale = canvas.scale;
+  canvas.scale = Math.min(2, Math.max(0.25, canvas.scale + delta));
+  // Zoom around cursor point
+  canvas.ox = cx - (cx - canvas.ox) * (canvas.scale / oldScale);
+  canvas.oy = cy - (cy - canvas.oy) * (canvas.scale / oldScale);
+  cvApplyTransform();
+  document.getElementById("zoomLabel").textContent = Math.round(canvas.scale*100) + "%";
+}
+function cvApplyTransform(){
+  canvas.world.style.transform = `translate(${canvas.ox}px,${canvas.oy}px) scale(${canvas.scale})`;
+  cvRedrawEdges();
+}
+
+/* ---- Fit view ---- */
+function canvasFitView(){
+  if(!canvas.nodes.length) return;
+  const space = document.getElementById("canvasSpace");
+  const vw = space.clientWidth, vh = space.clientHeight;
+  let minX=Infinity,minY=Infinity,maxX=-Infinity,maxY=-Infinity;
+  canvas.nodes.forEach(n=>{
+    minX=Math.min(minX,n.x); minY=Math.min(minY,n.y);
+    maxX=Math.max(maxX,n.x+n.w); maxY=Math.max(maxY,n.y+n.h);
+  });
+  const pw=maxX-minX+80, ph=maxY-minY+80;
+  canvas.scale = Math.min(2,Math.max(0.3, Math.min(vw/pw,vh/ph)*0.9));
+  canvas.ox = (vw - pw*canvas.scale)/2 - minX*canvas.scale + 40*canvas.scale;
+  canvas.oy = (vh - ph*canvas.scale)/2 - minY*canvas.scale + 40*canvas.scale;
+  cvApplyTransform();
+  document.getElementById("zoomLabel").textContent = Math.round(canvas.scale*100) + "%";
+}
+
+/* ---- Node drag ---- */
+function cvMakeDraggable(el, nodeRef){
+  el.addEventListener("mousedown", e=>{
+    if(e.target.closest("textarea,button,a,.cn-node-body")) return;
+    e.stopPropagation();
+    canvas.isDragging = true; canvas.dragNode = nodeRef;
+    canvas.dragSX = e.clientX; canvas.dragSY = e.clientY;
+    canvas.dragNX = nodeRef.x; canvas.dragNY = nodeRef.y;
+    el.style.zIndex = 999;
+    window.addEventListener("mousemove", cvDragMove);
+    window.addEventListener("mouseup",   cvDragEnd);
+  });
+}
+function cvDragMove(e){
+  if(!canvas.isDragging) return;
+  const dx = (e.clientX - canvas.dragSX) / canvas.scale;
+  const dy = (e.clientY - canvas.dragSY) / canvas.scale;
+  canvas.dragNode.x = canvas.dragNX + dx;
+  canvas.dragNode.y = canvas.dragNY + dy;
+  canvas.dragNode.el.style.left = canvas.dragNode.x + "px";
+  canvas.dragNode.el.style.top  = canvas.dragNode.y + "px";
+  cvRedrawEdges();
+}
+function cvDragEnd(){
+  canvas.isDragging = false;
+  if(canvas.dragNode){ canvas.dragNode.el.style.zIndex = ""; canvas.dragNode = null; }
+  window.removeEventListener("mousemove", cvDragMove);
+  window.removeEventListener("mouseup",   cvDragEnd);
+}
+
+/* ---- Place a node on canvas ---- */
+function cvPlaceNode(el, x, y, type){
+  el.style.position = "absolute";
+  el.style.left = x + "px";
+  el.style.top  = y + "px";
+  canvas.world.appendChild(el);
+  const rect = {w: el.offsetWidth||290, h: el.offsetHeight||160};
+  const ref = {id: el.id||("n"+Date.now()), el, x, y, w:rect.w, h:rect.h, type};
+  canvas.nodes.push(ref);
+  cvMakeDraggable(el, ref);
+  return ref;
+}
+
+/* ---- Draw edges (SVG bezier curves) ---- */
+function cvDrawEdge(fromRef, toRef, cls){
+  const svg = canvas.svg;
+  // From: right-center of prompt
+  // To: left-center of response node
+  const path = document.createElementNS("http://www.w3.org/2000/svg","path");
+  path.classList.add("cv-edge", cls);
+  svg.appendChild(path);
+
+  const dotTo = document.createElementNS("http://www.w3.org/2000/svg","circle");
+  dotTo.classList.add("cv-edge-dot", cls);
+  dotTo.style.animationDelay = (cls==="qwen"?"0.15s":"0s");
+  svg.appendChild(dotTo);
+
+  const edge = {fromRef, toRef, cls, path, dotTo};
+  canvas.edges.push(edge);
+  cvUpdateEdge(edge);
+  return edge;
+}
+
+function cvUpdateEdge(edge){
+  const {fromRef, toRef, path, dotTo} = edge;
+  const space = document.getElementById("canvasSpace");
+
+  // Get world-space center-right of from node
+  const fx = (fromRef.x + fromRef.w) * canvas.scale + canvas.ox;
+  const fy = (fromRef.y + fromRef.h/2) * canvas.scale + canvas.oy;
+  // Get world-space center-left of to node
+  const tx = toRef.x * canvas.scale + canvas.ox;
+  const ty = (toRef.y + toRef.h/2) * canvas.scale + canvas.oy;
+
+  const cp = (tx - fx) * 0.55;
+  const d = `M ${fx} ${fy} C ${fx+cp} ${fy}, ${tx-cp} ${ty}, ${tx} ${ty}`;
+  path.setAttribute("d", d);
+  dotTo.setAttribute("cx", tx);
+  dotTo.setAttribute("cy", ty);
+}
+
+function cvRedrawEdges(){
+  canvas.edges.forEach(e => cvUpdateEdge(e));
+  // Also update node sizes (they may have changed after content loaded)
+  canvas.nodes.forEach(n => {
+    n.w = n.el.offsetWidth || n.w;
+    n.h = n.el.offsetHeight || n.h;
+  });
+}
+
+/* ---- Layout helpers ---- */
+function cvNextLayout(isPrompt){
+  const space = document.getElementById("canvasSpace");
+  const vw = space.clientWidth, vh = space.clientHeight;
+  const headerH = 60;
+
+  if(isPrompt){
+    // Center-top of visible area
+    const cx = (vw/2 - canvas.ox) / canvas.scale;
+    const cy = (80 - canvas.oy) / canvas.scale + canvas.nextY;
+    return {x: cx - 150, y: cy};
+  }
+}
+
+let canvasLayoutY = 80;
+
+/* ======================== CANVAS SEND ======================== */
+function cvSend(){
+  if(isGenerating) return;
+  const ta = document.getElementById("canvasText");
+  const msg = ta.value.trim();
+  if(!msg) return;
+
+  if(!activeId) newSession("multi");
+  cvHideWelcome();
+
+  ta.value = ""; ta.style.height = "auto";
+  document.getElementById("cibSend").disabled = true;
+  document.getElementById("cibStop").style.display = "flex";
+  isGenerating = true; stopTyping = false;
+  controller = new AbortController();
+
+  addMsgToSession({ role:"multi-user", text:msg, time:getTime() });
+
+  // Place prompt node
+  const space = document.getElementById("canvasSpace");
+  const vw = space.clientWidth, vh = space.clientHeight;
+  const promptX = (vw/2 - canvas.ox) / canvas.scale - 150;
+  const promptY = (100 - canvas.oy) / canvas.scale + canvasLayoutY;
+
+  const promptEl = document.createElement("div");
+  promptEl.className = "cn-prompt";
   const ut = getTime();
-  userEl.innerHTML = escHtml(msg) + `<div class="msg-time">${ut}</div>`;
-  chatEl.appendChild(userEl);
-  addMsgToSession({ role:"multi-user", text:msg, time:ut });
-  autoScroll();
+  promptEl.innerHTML = escHtml(msg) + `<div class="cn-prompt-time">${ut}</div>`;
+  const promptRef = cvPlaceNode(promptEl, promptX, promptY, "prompt");
 
-  // Add multi-answer skeleton with loaders
-  const multiEl = document.createElement("div");
-  multiEl.className = "multi-answers";
+  // Measure prompt after render
+  setTimeout(()=>{ promptRef.w = promptEl.offsetWidth; promptRef.h = promptEl.offsetHeight; }, 10);
 
-  const divEl = document.createElement("div");
-  divEl.className = "multi-divider";
-  divEl.innerHTML = `
-    <div class="multi-divider-line"></div>
-    <div class="multi-model-tabs">
-      <div class="multi-model-tab groq">GROQ</div>
-      <div class="multi-model-tab qwen">QWEN</div>
-    </div>`;
-  multiEl.appendChild(divEl);
+  // Stagger node positions: groq left, qwen right
+  const nodeY = promptY + 20;
+  const gap = 340;
+  const groqX = promptX - gap * 0.5 - 145;
+  const qwenX = promptX + gap * 0.5 - 145;
 
-  const colsEl = document.createElement("div");
-  colsEl.className = "multi-cols";
+  const models = [
+    {api:"groq", label:"GROQ", badge:"Llama", x:groqX, y:nodeY, delay:80},
+    {api:"qwen",  label:"QWEN",  badge:"Qwen3", x:qwenX, y:nodeY, delay:180},
+  ];
 
-  ["groq","qwen"].forEach(m => {
-    const col = document.createElement("div");
-    col.className = `multi-col ${m}`;
-    col.id = `multicol_${m}_${ut.replace(/:/g,"")}`;
-    col.innerHTML = `<div class="typing-mini"><div class="td ${m}-dot"></div><div class="td ${m}-dot" style="animation-delay:0.15s"></div><div class="td ${m}-dot" style="animation-delay:0.3s"></div></div>`;
-    colsEl.appendChild(col);
+  const nodeRefs = {};
+  models.forEach(({api,label,badge,x,y,delay})=>{
+    setTimeout(()=>{
+      const nodeEl = document.createElement("div");
+      nodeEl.className = `cn-node ${api} loading`;
+      nodeEl.id = `cvnode_${api}_${ut.replace(/:/g,"")}`;
+      nodeEl.innerHTML = `
+        <div class="cn-node-hdr">
+          <div class="cn-node-grip">${'<span></span>'.repeat(6)}</div>
+          <div class="cn-node-dot"></div>
+          <div class="cn-node-label">${label}</div>
+          <div class="cn-node-badge">${badge}</div>
+        </div>
+        <div class="cn-node-body">
+          <div class="cn-loading">
+            <div class="td"></div><div class="td"></div><div class="td"></div>
+          </div>
+        </div>`;
+      const nRef = cvPlaceNode(nodeEl, x, y, api);
+      nodeRefs[api] = nRef;
+
+      // Draw edge from prompt to node
+      setTimeout(()=>{
+        promptRef.w = promptEl.offsetWidth || 300;
+        promptRef.h = promptEl.offsetHeight || 60;
+        cvDrawEdge(promptRef, nRef, api);
+        cvRedrawEdges();
+      }, 30);
+    }, delay);
   });
 
-  multiEl.appendChild(colsEl);
-  chatEl.appendChild(multiEl);
-  autoScroll();
+  canvasLayoutY += 380;
 
-  const ts = ut.replace(/:/g,"");
+  // Scroll canvas to show new nodes
+  setTimeout(()=>{
+    canvas.oy = -(canvasLayoutY - 380) * canvas.scale + 50;
+    cvApplyTransform();
+  }, 100);
 
   callMultiAPI(msg)
   .then(replies => {
     ["groq","qwen"].forEach(api => {
       const reply = replies[api] || "Tidak ada respons";
-      const col = document.getElementById(`multicol_${api}_${ts}`);
-      if(col) col.innerHTML = renderMessage(reply) + `<div class="multi-col-time">${getTime()}</div>`;
+      const ts = ut.replace(/:/g,"");
+      const nodeEl = document.getElementById(`cvnode_${api}_${ts}`);
+      if(nodeEl){
+        nodeEl.classList.remove("loading");
+        const body = nodeEl.querySelector(".cn-node-body");
+        if(body) body.innerHTML = renderMessage(reply) + `<div class="cn-node-time">${getTime()}</div>`;
+        // Update node size for edge redraw
+        setTimeout(()=>{
+          const ref = canvas.nodes.find(n=>n.el===nodeEl);
+          if(ref){ ref.h = nodeEl.offsetHeight; }
+          cvRedrawEdges();
+        }, 50);
+      }
     });
     const t = getTime();
     addMsgToSession({ role:"multi-answer", groq:replies.groq||"", qwen:replies.qwen||"", time:t });
-    finishAI();
-    autoScroll();
+    cvFinish();
   })
-  .catch(err => {
-    ["groq","qwen"].forEach(api => {
-      const col = document.getElementById(`multicol_${api}_${ts}`);
-      if(col) col.innerHTML = `<div class="text">Gagal: ${escHtml(err.message)}</div>`;
+  .catch(err=>{
+    ["groq","qwen"].forEach(api=>{
+      const ts = ut.replace(/:/g,"");
+      const nodeEl = document.getElementById(`cvnode_${api}_${ts}`);
+      if(nodeEl){
+        nodeEl.classList.remove("loading");
+        const body = nodeEl.querySelector(".cn-node-body");
+        if(body) body.innerHTML = `<div class="text">Gagal: ${escHtml(err.message)}</div>`;
+      }
     });
-    finishAI();
-    autoScroll();
+    cvFinish();
   });
 }
 
-/* ======================== BUILD MULTI EL (for session restore) ======================== */
-function buildMultiAnswerEl(groqR, qwenR, t){
-  const multiEl = document.createElement("div");
-  multiEl.className = "multi-answers";
+function cvFinish(){
+  isGenerating = false; stopTyping = false; controller = null;
+  document.getElementById("cibStop").style.display = "none";
+  document.getElementById("cibSend").disabled = false;
+  cvRedrawEdges();
+}
 
-  const divEl = document.createElement("div");
-  divEl.className = "multi-divider";
-  divEl.innerHTML = `
-    <div class="multi-divider-line"></div>
-    <div class="multi-model-tabs">
-      <div class="multi-model-tab groq">GROQ</div>
-      <div class="multi-model-tab qwen">QWEN</div>
-    </div>`;
-  multiEl.appendChild(divEl);
+function stopCanvas(){
+  if(!isGenerating) return;
+  isGenerating = false; stopTyping = false;
+  if(controller){ controller.abort(); controller = null; }
+  document.getElementById("cibStop").style.display = "none";
+  document.getElementById("cibSend").disabled = false;
+}
 
-  const colsEl = document.createElement("div");
-  colsEl.className = "multi-cols";
+function cvHideWelcome(){
+  const wc = document.getElementById("canvasWelcome");
+  if(wc) wc.style.display = "none";
+}
 
-  [["groq",groqR],["qwen",qwenR]].forEach(([m, reply]) => {
-    const col = document.createElement("div");
-    col.className = `multi-col ${m}`;
-    col.innerHTML = renderMessage(reply || "") + `<div class="multi-col-time">${t}</div>`;
-    colsEl.appendChild(col);
+/* ======================== CANVAS RESTORE SESSION ======================== */
+function cvRestoreSession(sess){
+  // Clear canvas
+  canvas.nodes = []; canvas.edges = [];
+  canvas.svg.innerHTML = canvas.svg.innerHTML.split("</defs>")[0] + "</defs>";
+  // Remove all node elements
+  Array.from(canvas.world.children).forEach(c=>{
+    if(c.id!=="canvasSVG" && c.id!=="canvasWelcome") c.remove();
+  });
+  canvasLayoutY = 80;
+  canvas.ox = 0; canvas.oy = 0; canvas.scale = 1;
+  cvApplyTransform();
+
+  let hasContent = false;
+  sess.messages.forEach(m=>{
+    if(m.role==="multi-user"){
+      hasContent = true;
+      // Replay prompt node
+      const vw = document.getElementById("canvasSpace").clientWidth;
+      const promptX = vw/2 - 150;
+      const promptY = canvasLayoutY;
+      const promptEl = document.createElement("div");
+      promptEl.className = "cn-prompt";
+      promptEl.innerHTML = escHtml(m.text) + `<div class="cn-prompt-time">${m.time}</div>`;
+      cvPlaceNode(promptEl, promptX, promptY, "prompt");
+    }
+    if(m.role==="multi-answer"){
+      hasContent = true;
+      const lastPrompt = canvas.nodes.filter(n=>n.type==="prompt").slice(-1)[0];
+      if(!lastPrompt) return;
+      const nodeY = lastPrompt.y + 20;
+      const gap = 340;
+      [["groq",m.groq,"GROQ","Llama"],["qwen",m.qwen,"QWEN","Qwen3"]].forEach(([api,reply,label,badge],i)=>{
+        const x = lastPrompt.x + (i===0 ? -gap*0.5-145 : gap*0.5-145);
+        const nodeEl = document.createElement("div");
+        nodeEl.className = `cn-node ${api}`;
+        nodeEl.innerHTML = `
+          <div class="cn-node-hdr">
+            <div class="cn-node-grip">${'<span></span>'.repeat(6)}</div>
+            <div class="cn-node-dot"></div>
+            <div class="cn-node-label">${label}</div>
+            <div class="cn-node-badge">${badge}</div>
+          </div>
+          <div class="cn-node-body">
+            ${renderMessage(reply||"")}
+            <div class="cn-node-time">${m.time}</div>
+          </div>`;
+        const nRef = cvPlaceNode(nodeEl, x, nodeY, api);
+        setTimeout(()=>{ cvDrawEdge(lastPrompt, nRef, api); cvRedrawEdges(); }, 50);
+      });
+      canvasLayoutY += 380;
+    }
   });
 
-  multiEl.appendChild(colsEl);
-  return multiEl;
+  if(hasContent){
+    cvHideWelcome();
+    setTimeout(()=>{ canvasFitView(); }, 100);
+  }
 }
+
+/* ======================== MULTI CHAT (old API — now redirects to canvas) ======================== */
+function makeMultiSkeleton(){ return document.createElement("div"); } // stub
+function fillMultiNode(){} // stub
+function sendMulti(msg){ /* handled by cvSend */ }
+function buildMultiAnswerEl(groqR, qwenR, t){ return document.createElement("div"); }
 
 /* ======================== BOOT ======================== */
 document.addEventListener("DOMContentLoaded", ()=>{
   sendBtn.addEventListener("click", send);
   updateSend();
+  cvInit();
 });
+
+// Also patch newChat to reset canvas when switching
+const _origNewChat = newChat;
+function newChat(){
+  activeId = null;
+  renderHistory();
+  closeSidebar();
+  if(chatMode === "multi"){
+    // Reset canvas
+    canvas.nodes = []; canvas.edges = [];
+    if(canvas.svg){
+      const defs = canvas.svg.querySelector("defs");
+      canvas.svg.innerHTML = "";
+      if(defs) canvas.svg.appendChild(defs);
+    }
+    if(canvas.world){
+      Array.from(canvas.world.children).forEach(c=>{
+        if(c.id!=="canvasSVG" && c.id!=="canvasWelcome") c.remove();
+      });
+    }
+    const wc = document.getElementById("canvasWelcome");
+    if(wc) wc.style.display = "";
+    canvasLayoutY = 80;
+    canvas.ox = 0; canvas.oy = 0; canvas.scale = 1;
+    if(canvas.world) cvApplyTransform();
+  } else {
+    chatEl.innerHTML = "";
+    buildWelcome();
+  }
+}
 </script>
 </body>
 </html>
