@@ -446,74 +446,48 @@ const QWEN_MODELS = [
   "qwen/qwen3-235b-a22b:free"
 ];
 
-/* ======================== API CALLS (pure frontend) ======================== */
+/* ======================== API CALLS (via server proxy) ======================== */
+// Semua call lewat server Node.js untuk hindari CORS block dari browser
 async function callGroq(message, history) {
-  const messages = [
-    { role: "system", content: "Kamu adalah AIVA. Santai, natural, ringkas tapi jelas. Ikuti gaya bahasa user." },
-    ...history,
-    { role: "user", content: message }
-  ];
-  const resp = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+  const resp = await fetch("/chat", {
     method: "POST",
-    headers: { "Authorization": "Bearer " + GROQ_API_KEY, "Content-Type": "application/json" },
-    body: JSON.stringify({ model: "llama-3.1-8b-instant", temperature: 0.7, max_tokens: 1024, messages })
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ message, api: "groq", sessionId: activeId || "default", history })
   });
-  if (!resp.ok) {
-    const t = await resp.text();
-    throw new Error("Groq HTTP " + resp.status + ": " + t.slice(0, 200));
-  }
+  if (!resp.ok) throw new Error("Server HTTP " + resp.status);
   const d = await resp.json();
-  const content = d?.choices?.[0]?.message?.content;
-  if (!content) throw new Error("Groq: response kosong");
-  return content;
+  if (d.reply && d.reply.startsWith("Server error:")) throw new Error(d.reply);
+  return d.reply;
 }
 
 async function callQwen(message, history) {
-  const messages = [
-    { role: "system", content: "Kamu adalah AIVA. Rapi, terstruktur, jelas, dan informatif." },
-    ...history,
-    { role: "user", content: message }
-  ];
-  let lastErr = null;
-  for (const model of QWEN_MODELS) {
-    try {
-      const resp = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          "Authorization": "Bearer " + OPENROUTER_API_KEY,
-          "Content-Type": "application/json",
-          "HTTP-Referer": "https://aiva.chat",
-          "X-Title": "AIVA Chat"
-        },
-        body: JSON.stringify({
-          model,
-          temperature: 0.7,
-          max_tokens: 1024,
-          messages,
-          provider: { allow_fallbacks: true }
-        })
-      });
-      const txt = await resp.text();
-      if (!resp.ok) {
-        let errMsg = "HTTP " + resp.status + " (" + model + ")";
-        try { const ed = JSON.parse(txt); errMsg = ed?.error?.message || errMsg; } catch(e){}
-        lastErr = new Error(errMsg); continue;
-      }
-      let d;
-      try { d = JSON.parse(txt); } catch(e) { lastErr = new Error("Parse error"); continue; }
-      if (d.error) { lastErr = new Error(d.error.message || "OpenRouter error"); continue; }
-      const content = d?.choices?.[0]?.message?.content;
-      if (!content) { lastErr = new Error("Konten kosong dari " + model); continue; }
-      return content;
-    } catch(e) { lastErr = e; }
-  }
-  throw lastErr || new Error("Model Qwen gagal dipanggil");
+  const resp = await fetch("/chat", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ message, api: "qwen", sessionId: activeId || "default", history })
+  });
+  if (!resp.ok) throw new Error("Server HTTP " + resp.status);
+  const d = await resp.json();
+  if (d.reply && d.reply.startsWith("Server error:")) throw new Error(d.reply);
+  return d.reply;
 }
 
 async function callAPI(api, message, history) {
-  if (api === "groq")   return callGroq(message, history);
-  if (api === "qwen")   return callQwen(message, history);
+  if (api === "groq") return callGroq(message, history);
+  if (api === "qwen") return callQwen(message, history);
   throw new Error("Unknown API: " + api);
+}
+
+async function callMultiAPI(message) {
+  const resp = await fetch("/multi-chat", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ message })
+  });
+  if (!resp.ok) throw new Error("Server HTTP " + resp.status);
+  const d = await resp.json();
+  if (d.error) throw new Error(d.error);
+  return d.replies; // { groq: "...", qwen: "..." }
 }
 
 /* ======================== STATE ======================== */
@@ -975,32 +949,26 @@ function sendMulti(msg){
   autoScroll();
 
   const ts = ut.replace(/:/g,"");
-  const replies = {};
 
-  const apis = ["groq","qwen"];
-  let done = 0;
-
-  apis.forEach(api => {
-    callAPI(api, msg, [])
-    .then(reply => {
-      replies[api] = reply;
+  callMultiAPI(msg)
+  .then(replies => {
+    ["groq","qwen"].forEach(api => {
+      const reply = replies[api] || "Tidak ada respons";
       const col = document.getElementById(`multicol_${api}_${ts}`);
       if(col) col.innerHTML = renderMessage(reply) + `<div class="multi-col-time">${getTime()}</div>`;
-    })
-    .catch(err => {
-      replies[api] = "Gagal: " + err.message;
+    });
+    const t = getTime();
+    addMsgToSession({ role:"multi-answer", groq:replies.groq||"", qwen:replies.qwen||"", time:t });
+    finishAI();
+    autoScroll();
+  })
+  .catch(err => {
+    ["groq","qwen"].forEach(api => {
       const col = document.getElementById(`multicol_${api}_${ts}`);
       if(col) col.innerHTML = `<div class="text">Gagal: ${escHtml(err.message)}</div>`;
-    })
-    .finally(() => {
-      done++;
-      if(done === apis.length){
-        const t = getTime();
-        addMsgToSession({ role:"multi-answer", groq:replies.groq||"", qwen:replies.qwen||"", time:t });
-        finishAI();
-        autoScroll();
-      }
     });
+    finishAI();
+    autoScroll();
   });
 }
 
