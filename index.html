@@ -342,7 +342,7 @@ body.light .cn-node.qwen .cn-node-hdr{background:linear-gradient(90deg,rgba(168,
   font-size:12.5px;line-height:1.68;
   color:var(--text);
   word-break:break-word;
-  max-height:340px;
+  max-height:520px;
   min-height:60px;
   overflow-y:auto;
   overflow-x:hidden;
@@ -463,25 +463,27 @@ body.light .ctb-input-wrap{background:rgba(0,0,0,0.04);border-color:rgba(0,0,0,0
   position:fixed;
   top:50%;
   left:50%;
-  transform:translate(-50%,-50%);
+  transform:translate(-50%, calc(-50% + var(--hdr)/2));
   text-align:center;
   display:flex;flex-direction:column;align-items:center;gap:16px;
   animation:cnNodeIn 0.5s var(--ease) 0.1s both;
   z-index:50;
-  width:min(320px, 84vw);
+  width:min(340px, 88vw);
   pointer-events:none;
   transition:opacity 0.35s ease, transform 0.35s ease;
 }
 #canvasWelcome.hiding{
   opacity:0;
-  transform:translate(-50%,-54%) scale(0.94);
+  transform:translate(-50%, calc(-54% + var(--hdr)/2)) scale(0.94);
 }
 .cv-title{
-  font-size:clamp(26px,9vw,42px);
-  font-weight:800;letter-spacing:6px;line-height:1.1;
+  font-size:clamp(22px,8vw,40px);
+  font-weight:800;letter-spacing:6px;line-height:1.15;
   background:linear-gradient(90deg,#3d72f6,#a78bf5);
   -webkit-background-clip:text;-webkit-text-fill-color:transparent;
-  white-space:nowrap;
+  white-space:normal;
+  word-break:keep-all;
+  width:100%;
 }
 .cv-sub{
   font-size:13px;color:var(--muted);letter-spacing:0.3px;line-height:1.65;
@@ -845,7 +847,7 @@ async function callGroq(message, history) {
   const resp = await fetch("/chat", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ message, api: "groq", sessionId: activeId || "default", history })
+    body: JSON.stringify({ message, api: "groq", sessionId: activeId || "default", history, maxTokens: 8192 })
   });
   if (!resp.ok) throw new Error("Server HTTP " + resp.status);
   const d = await resp.json();
@@ -857,7 +859,7 @@ async function callQwen(message, history) {
   const resp = await fetch("/chat", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ message, api: "qwen", sessionId: activeId || "default", history })
+    body: JSON.stringify({ message, api: "qwen", sessionId: activeId || "default", history, maxTokens: 8192 })
   });
   if (!resp.ok) throw new Error("Server HTTP " + resp.status);
   const d = await resp.json();
