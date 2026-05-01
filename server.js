@@ -8,7 +8,7 @@ const PORT = 3000;
 
 // ─── API KEYS ────────────────────────────────────────────────────────────────
 const GROQ_API_KEY       = "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";
-const OPENROUTER_API_KEY = "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";
+const OPENROUTER_API_KEY = "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";
 
 // ─── MODEL LIST ──────────────────────────────────────────────────────────────
 const QWEN_MODELS = [
