@@ -444,7 +444,7 @@ const MODEL_LABELS   = { groq:"Groq (Llama)", qwen:"Qwen" };
 
 // Model fallback lists
 const QWEN_MODELS = [
-  "qwen3-next-80b-A3b"
+  "qwen/qwen3-235b-a22b:free"
 ];
 
 /* ======================== API CALLS (pure frontend) ======================== */
@@ -483,13 +483,23 @@ async function callQwen(message, history) {
         headers: {
           "Authorization": "Bearer " + OPENROUTER_API_KEY,
           "Content-Type": "application/json",
-          "HTTP-Referer": location.origin,
+          "HTTP-Referer": "https://aiva.chat",
           "X-Title": "AIVA Chat"
         },
-        body: JSON.stringify({ model, temperature: 0.7, max_tokens: 1024, messages })
+        body: JSON.stringify({
+          model,
+          temperature: 0.7,
+          max_tokens: 1024,
+          messages,
+          provider: { allow_fallbacks: true }
+        })
       });
       const txt = await resp.text();
-      if (!resp.ok) { lastErr = new Error("HTTP " + resp.status + " (" + model + ")"); continue; }
+      if (!resp.ok) {
+        let errMsg = "HTTP " + resp.status + " (" + model + ")";
+        try { const ed = JSON.parse(txt); errMsg = ed?.error?.message || errMsg; } catch(e){}
+        lastErr = new Error(errMsg); continue;
+      }
       let d;
       try { d = JSON.parse(txt); } catch(e) { lastErr = new Error("Parse error"); continue; }
       if (d.error) { lastErr = new Error(d.error.message || "OpenRouter error"); continue; }
@@ -498,7 +508,7 @@ async function callQwen(message, history) {
       return content;
     } catch(e) { lastErr = e; }
   }
-  throw lastErr || new Error("Semua model Qwen gagal");
+  throw lastErr || new Error("Model Qwen gagal dipanggil");
 }
 
 async function callAPI(api, message, history) {
@@ -581,7 +591,7 @@ function applyModeUI(){
     inputWrap.classList.add("multi-mode");
     sendBtn.classList.add("multi");
     modeHint.textContent = "Multi Chat — Groq • Qwen";
-    inputEl.placeholder = "Tanya ke 3 model sekaligus...";
+    inputEl.placeholder = "Tanya ke 2 model sekaligus...";
   }
 }
 
@@ -700,7 +710,7 @@ function buildWelcome(){
   wc.innerHTML = `
     <img id="welcomeLogo" class="wc-img" src="${document.body.classList.contains("light") ? LIGHT_LOGO : DARK_LOGO}" alt="">
     <div class="wc-title">AIVA</div>
-    <div class="wc-sub">${chatMode === "multi" ? "Bandingkan 3 AI sekaligus" : "Ask me anything"}</div>
+    <div class="wc-sub">${chatMode === "multi" ? "Bandingkan 2 AI sekaligus" : "Ask me anything"}</div>
     <div class="chips">
       <div class="chip" onclick="suggest('Apa itu AI?')">Apa itu AI?</div>
       <div class="chip" onclick="suggest('Bantu coding Python')">Bantu coding Python</div>
