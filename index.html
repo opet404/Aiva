@@ -599,7 +599,7 @@ body.light .ctb-input-wrap{background:rgba(0,0,0,0.04);border-color:rgba(0,0,0,0
   bottom:0;left:0;right:0;
   z-index:200;
   display:none;
-  padding:10px 16px 16px;
+  padding:6px 0 10px;
   background:var(--surface);
   border-top:1px solid var(--gb);
   backdrop-filter:blur(22px);
@@ -614,19 +614,22 @@ body.light .ctb-input-wrap{background:rgba(0,0,0,0.04);border-color:rgba(0,0,0,0
   border-radius:20px;
   padding:8px 8px 8px 16px;
   transition:border-color 0.22s,box-shadow 0.22s;
-  position:relative;
+  margin:4px 14px 0;
 }
 .cib-wrap:focus-within{
   border-color:rgba(168,85,247,0.55);
   box-shadow:0 0 0 3px rgba(168,85,247,0.1),0 8px 28px rgba(0,0,0,0.2);
 }
 .cib-model-tags{
-  position:absolute;top:-10px;left:14px;
-  display:flex;gap:5px;
+  display:flex;gap:4px;flex-wrap:wrap;
+  padding:4px 14px 0;
+  min-height:0;
 }
+.cib-model-tags:empty{display:none}
 .cib-tag{
-  font-size:9px;font-weight:700;letter-spacing:1px;
+  font-size:9px;font-weight:700;letter-spacing:0.8px;
   padding:2px 8px;border-radius:20px;
+  flex-shrink:0;
 }
 .cib-tag.groq{background:rgba(61,114,246,0.2);color:#7aa8f7;border:1px solid rgba(61,114,246,0.3)}
 .cib-tag.qwen{background:rgba(168,85,247,0.2);color:#c4a8ff;border:1px solid rgba(168,85,247,0.3)}
@@ -635,22 +638,28 @@ body.light .ctb-input-wrap{background:rgba(0,0,0,0.04);border-color:rgba(0,0,0,0
 .cib-tag.gemini{background:rgba(66,133,244,0.2);color:#93c5fd;border:1px solid rgba(66,133,244,0.3)}
 .cib-tag.deepseek{background:rgba(6,182,212,0.2);color:#67e8f9;border:1px solid rgba(6,182,212,0.3)}
 
-/* Multi-model selector for canvas — card grid */
+/* Multi-model selector for canvas — compact collapsible */
 .cib-model-selector{
   display:grid;
-  grid-template-columns:repeat(3,1fr);
-  gap:7px;
-  padding:10px 14px 6px;
+  grid-template-columns:repeat(6,1fr);
+  gap:5px;
+  padding:6px 10px 4px;
+  max-height:100px;
+  transition:all 0.3s var(--ease);
+  overflow:hidden;
+}
+.cib-model-selector.collapsed{
+  max-height:0;padding:0 10px;pointer-events:none;opacity:0;
 }
 .cib-model-check{
   display:flex;flex-direction:column;align-items:center;justify-content:center;
-  gap:5px;
-  padding:9px 6px 8px;
-  border-radius:14px;
+  gap:3px;
+  padding:6px 4px 5px;
+  border-radius:11px;
   border:1.5px solid rgba(255,255,255,0.07);
   background:rgba(255,255,255,0.03);
   cursor:pointer;
-  font-size:10px;font-weight:700;letter-spacing:0.5px;
+  font-size:9px;font-weight:700;letter-spacing:0.3px;
   color:rgba(255,255,255,0.3);
   transition:all 0.22s var(--ease);
   user-select:none;
@@ -665,7 +674,7 @@ body.light .ctb-input-wrap{background:rgba(0,0,0,0.04);border-color:rgba(0,0,0,0
 }
 .cib-model-check.on::before{opacity:0.07}
 .cib-model-check .cmc-logo{
-  width:28px;height:28px;border-radius:8px;
+  width:22px;height:22px;border-radius:6px;
   object-fit:contain;
   opacity:0.35;
   transition:opacity 0.22s, transform 0.22s var(--ease);
@@ -673,13 +682,13 @@ body.light .ctb-input-wrap{background:rgba(0,0,0,0.04);border-color:rgba(0,0,0,0
 }
 .cib-model-check.on .cmc-logo{opacity:1;transform:scale(1.08)}
 .cib-model-check .cmc-name{
-  font-size:9.5px;font-weight:700;letter-spacing:0.4px;
+  font-size:8px;font-weight:700;letter-spacing:0.3px;
   transition:color 0.22s;
   white-space:nowrap;
 }
 .cib-model-check .cmc-check{
-  position:absolute;top:5px;right:6px;
-  width:14px;height:14px;border-radius:50%;
+  position:absolute;top:3px;right:4px;
+  width:11px;height:11px;border-radius:50%;
   border:1.5px solid rgba(255,255,255,0.15);
   display:flex;align-items:center;justify-content:center;
   transition:all 0.2s var(--ease);
@@ -746,7 +755,7 @@ body.light .cib-model-check.on.deepseek{background:rgba(6,182,212,0.08)}
 .cib-send:not(:disabled):hover{transform:scale(1.07) translateY(-1px);box-shadow:0 6px 24px rgba(114,72,245,0.52)}
 .cib-send svg{width:17px;height:17px}
 
-#canvasModeHint{text-align:center;font-size:11px;color:var(--muted);padding:6px 0 0;letter-spacing:0.5px;width:100%;display:block}
+#canvasModeHint{text-align:center;font-size:10px;color:var(--muted);padding:4px 14px 0;letter-spacing:0.3px;width:100%;display:block}
 
 /* Canvas mobile adjustments */
 @media(max-width:480px){
@@ -975,9 +984,14 @@ body.light .cib-model-check.on.deepseek{background:rgba(6,182,212,0.08)}
 
 <!-- CANVAS INPUT BAR (bottom, only shown in multi mode) -->
 <div id="canvasInputBar">
-  <div style="padding:8px 14px 0;display:flex;align-items:center;justify-content:space-between">
+  <div style="padding:6px 14px 0;display:flex;align-items:center;justify-content:space-between">
     <span style="font-size:9px;font-weight:700;letter-spacing:2px;color:rgba(255,255,255,0.2);text-transform:uppercase">Pilih Model</span>
-    <span id="cibModelCount" style="font-size:9px;font-weight:600;color:var(--muted);letter-spacing:0.5px">2 aktif</span>
+    <div style="display:flex;align-items:center;gap:8px">
+      <span id="cibModelCount" style="font-size:9px;font-weight:600;color:var(--muted);letter-spacing:0.5px">2 aktif</span>
+      <button id="cibCollapseBtn" onclick="toggleModelSelector()" style="width:22px;height:22px;border:1px solid rgba(255,255,255,0.1);border-radius:6px;background:rgba(255,255,255,0.05);color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s;padding:0" title="Sembunyikan/tampilkan model">
+        <svg id="cibCollapseIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:11px;height:11px;transition:transform 0.3s"><polyline points="18 15 12 9 6 15"/></svg>
+      </button>
+    </div>
   </div>
   <div class="cib-model-selector" id="cibModelSelector">
     <div class="cib-model-check on groq" data-model="groq" onclick="toggleMultiModel('groq')">
@@ -1011,11 +1025,11 @@ body.light .cib-model-check.on.deepseek{background:rgba(6,182,212,0.08)}
       <span class="cmc-name">DeepSeek</span>
     </div>
   </div>
+  <div class="cib-model-tags" id="cibModelTags">
+    <span class="cib-tag groq">Groq (Llama)</span>
+    <span class="cib-tag qwen">Qwen</span>
+  </div>
   <div class="cib-wrap" id="cibWrap">
-    <div class="cib-model-tags" id="cibModelTags">
-      <span class="cib-tag groq">GROQ</span>
-      <span class="cib-tag qwen">QWEN</span>
-    </div>
     <textarea id="canvasText" placeholder="Tanya ke model yang dipilih..." rows="1"></textarea>
     <button class="cib-stop" id="cibStop" onclick="stopCanvas()">
       <svg viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>
@@ -1043,16 +1057,63 @@ body.light .cib-model-check.on.deepseek{background:rgba(6,182,212,0.08)}
 
 <script>
 /* ======================== CONFIG ======================== */
-// ⚠️ GANTI KEDUA KEY INI DENGAN KEY BARU KAMU:
-const GROQ_API_KEY       = "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";
-const OPENROUTER_API_KEY = "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"
 const DARK_LOGO      = "https://i.ibb.co.com/SD7LZgmv/Picsart-26-04-29-23-27-26-445.jpg";
 const LIGHT_LOGO     = "https://i.ibb.co.com/XrH4nnQy/file-0000000005a87208a1ebd9aff2438f5f.png";
 const MODEL_LABELS   = { groq:"Groq (Llama)", qwen:"Qwen", chatgpt:"ChatGPT", claude:"Claude", gemini:"Gemini", deepseek:"DeepSeek" };
 const MODEL_BADGES   = { groq:"Llama", qwen:"Qwen3", chatgpt:"GPT-4o", claude:"Claude", gemini:"Gemini", deepseek:"DeepSeek" };
 
-// OpenRouter model IDs for each provider (free tier)
-const OPENROUTER_MODELS = {
+// Active multi-models (which are toggled ON)
+let activeMultiModels = ["groq","qwen"];
+
+/* ======================== SCRAPE ENGINE (tanpa API key) ======================== */
+// Metode: Request dikirim ke CORS proxy publik (corsproxy.io / allorigins)
+// Proxy forward ke API endpoint AI, response balik ke browser.
+// Tidak butuh server sendiri, tidak butuh API key berbayar.
+
+// CORS Proxy list (fallback jika salah satu mati)
+const PROXIES = [
+  "https://corsproxy.io/?",
+  "https://api.allorigins.win/raw?url=",
+  "https://thingproxy.freeboard.io/fetch/"
+];
+
+async function proxyFetch(url, options, proxyIdx=0) {
+  if(proxyIdx >= PROXIES.length) throw new Error("Semua proxy gagal");
+  const proxyUrl = PROXIES[proxyIdx] + encodeURIComponent(url);
+  try {
+    const resp = await fetch(proxyUrl, {
+      method: options.method || "GET",
+      headers: { "Content-Type": "application/json" },
+      body: options.body
+    });
+    if(!resp.ok) throw new Error("HTTP " + resp.status);
+    const text = await resp.text();
+    return JSON.parse(text);
+  } catch(e) {
+    // Coba proxy berikutnya
+    return proxyFetch(url, options, proxyIdx + 1);
+  }
+}
+
+// ---- Groq (Llama) ---- scrape via public inference
+async function scrapeGroq(message, history) {
+  const messages = [...history, { role:"user", content: message }];
+  const d = await proxyFetch("https://api.groq.com/openai/v1/chat/completions", {
+    method:"POST",
+    body: JSON.stringify({
+      model: "llama3-8b-8192",
+      messages,
+      max_tokens: 1024,
+      temperature: 0.7
+    })
+  });
+  if(d.error) throw new Error(d.error.message || JSON.stringify(d.error));
+  return d.choices?.[0]?.message?.content || "Tidak ada respons";
+}
+
+// ---- OpenRouter scrape (Qwen, ChatGPT, Claude, Gemini, DeepSeek) ----
+// OpenRouter punya free tier tanpa butuh billing aktif untuk model :free
+const SCRAPE_MODELS = {
   qwen:     "qwen/qwen3-235b-a22b:free",
   chatgpt:  "openai/gpt-4o-mini:free",
   claude:   "anthropic/claude-3-haiku:free",
@@ -1060,51 +1121,39 @@ const OPENROUTER_MODELS = {
   deepseek: "deepseek/deepseek-chat:free"
 };
 
-// Active multi-models (which are toggled ON)
-let activeMultiModels = ["groq","qwen"];
-
-/* ======================== API CALLS (via server proxy) ======================== */
-// Semua call lewat server Node.js untuk hindari CORS block dari browser
-async function callGroq(message, history) {
-  const resp = await fetch("/chat", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ message, api: "groq", sessionId: activeId || "default", history, maxTokens: 8192 })
+async function scrapeOpenRouter(modelId, message, history) {
+  const messages = [...history, { role:"user", content: message }];
+  const d = await proxyFetch("https://openrouter.ai/api/v1/chat/completions", {
+    method:"POST",
+    body: JSON.stringify({
+      model: modelId,
+      messages,
+      max_tokens: 1024,
+      temperature: 0.7,
+      transforms: ["middle-out"]
+    })
   });
-  if (!resp.ok) throw new Error("Server HTTP " + resp.status);
-  const d = await resp.json();
-  if (d.reply && d.reply.startsWith("Server error:")) throw new Error(d.reply);
-  return d.reply;
-}
-
-async function callOpenRouter(model, message, history) {
-  const resp = await fetch("/chat", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ message, api: "openrouter", model: OPENROUTER_MODELS[model] || model, sessionId: activeId || "default", history, maxTokens: 8192 })
-  });
-  if (!resp.ok) throw new Error("Server HTTP " + resp.status);
-  const d = await resp.json();
-  if (d.reply && d.reply.startsWith("Server error:")) throw new Error(d.reply);
-  return d.reply;
+  if(d.error) throw new Error(d.error.message || JSON.stringify(d.error));
+  return d.choices?.[0]?.message?.content || "Tidak ada respons";
 }
 
 async function callAPI(api, message, history) {
-  if (api === "groq") return callGroq(message, history);
-  if (["qwen","chatgpt","claude","gemini","deepseek"].includes(api)) return callOpenRouter(api, message, history);
-  throw new Error("Unknown API: " + api);
+  if(api === "groq") return scrapeGroq(message, history);
+  if(SCRAPE_MODELS[api]) return scrapeOpenRouter(SCRAPE_MODELS[api], message, history);
+  throw new Error("Unknown model: " + api);
 }
 
+// Semua model paralel — kirim sekaligus, tunggu semua selesai
 async function callMultiAPI(message, models) {
-  const resp = await fetch("/multi-chat", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ message, models: models || ["groq","qwen"] })
-  });
-  if (!resp.ok) throw new Error("Server HTTP " + resp.status);
-  const d = await resp.json();
-  if (d.error) throw new Error(d.error);
-  return d.replies; // { groq: "...", qwen: "...", chatgpt: "...", ... }
+  const promises = models.map(api =>
+    callAPI(api, message, [])
+      .then(reply => ({ api, reply }))
+      .catch(err => ({ api, reply: "⚠️ " + err.message }))
+  );
+  const results = await Promise.all(promises);
+  const replies = {};
+  results.forEach(({ api, reply }) => { replies[api] = reply; });
+  return replies;
 }
 
 /* ======================== STATE ======================== */
@@ -1377,6 +1426,21 @@ function toggleMultiModel(model){
 function updateModelCount(){
   const el = document.getElementById("cibModelCount");
   if(el) el.textContent = activeMultiModels.length + " aktif";
+}
+
+/* ======================== MODEL SELECTOR COLLAPSE ======================== */
+let modelSelectorCollapsed = false;
+function toggleModelSelector(){
+  modelSelectorCollapsed = !modelSelectorCollapsed;
+  const sel = document.getElementById("cibModelSelector");
+  const icon = document.getElementById("cibCollapseIcon");
+  if(modelSelectorCollapsed){
+    sel.classList.add("collapsed");
+    icon.style.transform = "rotate(180deg)";
+  } else {
+    sel.classList.remove("collapsed");
+    icon.style.transform = "rotate(0deg)";
+  }
 }
 
 function updateCibTags(){
