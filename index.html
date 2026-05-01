@@ -339,19 +339,21 @@ body.light .cn-node.qwen .cn-node-hdr{background:linear-gradient(90deg,rgba(168,
 /* Node body */
 .cn-node-body{
   padding:14px 15px 12px;
-  font-size:12.5px;line-height:1.68;
+  font-size:12.5px;line-height:1.7;
   color:var(--text);
   word-break:break-word;
-  max-height:260px;
+  max-height:300px;
   min-height:60px;
   overflow-y:auto;
   overflow-x:hidden;
+  overscroll-behavior:contain;
   scrollbar-width:thin;
-  scrollbar-color:rgba(255,255,255,0.15) transparent;
+  scrollbar-color:rgba(255,255,255,0.2) transparent;
   -webkit-overflow-scrolling:touch;
+  touch-action:pan-y;
 }
 .cn-node-body::-webkit-scrollbar{width:3px}
-.cn-node-body::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.18);border-radius:3px}
+.cn-node-body::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.22);border-radius:3px}
 .cn-node-body::-webkit-scrollbar-track{background:transparent}
 
 .cn-node-time{
@@ -460,37 +462,41 @@ body.light .ctb-input-wrap{background:rgba(0,0,0,0.04);border-color:rgba(0,0,0,0
 /* ---- CANVAS WELCOME ---- */
 #canvasWelcome{
   position:fixed;
-  top:50%;left:50%;
-  transform:translate(-50%,-50%);
-  text-align:center;
-  display:flex;flex-direction:column;align-items:center;gap:16px;
+  left:50%;
+  top:0;bottom:0;
+  transform:translateX(-50%);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;
   animation:cnNodeIn 0.5s var(--ease) 0.1s both;
   z-index:50;
-  width:min(320px, 84vw);
+  width:min(320px, 88vw);
   pointer-events:none;
   transition:opacity 0.35s ease, transform 0.35s ease;
+  /* Account for header at top and input bar at bottom */
+  padding-top:var(--hdr);
+  padding-bottom:130px;
 }
 #canvasWelcome.hiding{
   opacity:0;
-  transform:translate(-50%,-54%) scale(0.94);
+  transform:translateX(-50%) scale(0.93);
 }
 .cv-title{
-  font-size:clamp(26px,9vw,42px);
-  font-weight:800;letter-spacing:6px;line-height:1.1;
-  background:linear-gradient(90deg,#3d72f6,#a78bf5);
+  font-size:clamp(30px,10vw,46px);
+  font-weight:900;letter-spacing:5px;line-height:1.08;
+  background:linear-gradient(135deg,#3d72f6 20%,#a78bf5 80%);
   -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  text-align:center;
   white-space:nowrap;
 }
 .cv-sub{
-  font-size:13px;color:var(--muted);letter-spacing:0.3px;line-height:1.65;
-  text-align:center;width:100%;
+  font-size:13.5px;color:var(--muted);line-height:1.7;
+  text-align:center;width:100%;letter-spacing:0.2px;
 }
 .cv-hint{
   display:flex;align-items:center;justify-content:center;gap:8px;
-  padding:10px 16px;border-radius:30px;
-  background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);
-  font-size:11px;color:var(--muted);pointer-events:auto;
-  width:100%;text-align:center;
+  padding:11px 18px;border-radius:30px;
+  background:rgba(255,255,255,0.045);border:1px solid rgba(255,255,255,0.1);
+  font-size:11.5px;color:var(--muted);pointer-events:auto;
+  width:100%;text-align:center;line-height:1.5;
 }
 .cv-hint svg{width:13px;height:13px;stroke:var(--muted);stroke-width:1.8;fill:none;flex-shrink:0}
 
@@ -782,12 +788,21 @@ body.light .ctb-input-wrap{background:rgba(0,0,0,0.04);border-color:rgba(0,0,0,0
 </div>
 
 <!-- CANVAS ZOOM TOOLBAR (floating, top-right) -->
-<div id="canvasZoomBar" style="position:fixed;top:calc(var(--hdr)+10px);right:12px;z-index:200;display:none;flex-direction:column;gap:4px;background:var(--surface);border:1px solid var(--gb);border-radius:14px;padding:6px;backdrop-filter:blur(20px);box-shadow:0 8px 32px rgba(0,0,0,0.4)">
-  <button class="ctb-btn" onclick="canvasZoom(0.15)" title="Zoom In" style="color:var(--text)"><svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg></button>
-  <div class="ctb-zoom" id="zoomLabel" style="font-size:10px;color:var(--text);text-align:center;padding:2px 0">100%</div>
-  <button class="ctb-btn" onclick="canvasZoom(-0.15)" title="Zoom Out" style="color:var(--text)"><svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="8" y1="11" x2="14" y2="11"/></svg></button>
-  <div style="width:100%;height:1px;background:var(--gb);margin:2px 0"></div>
-  <button class="ctb-btn" onclick="canvasFitView()" title="Fit all nodes" style="color:var(--text)"><svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg></button>
+<div id="canvasZoomBar" style="position:fixed;top:calc(var(--hdr)+10px);right:12px;z-index:200;display:none;flex-direction:column;gap:2px;background:var(--surface);border:1px solid var(--gb);border-radius:16px;padding:5px;backdrop-filter:blur(20px);box-shadow:0 8px 32px rgba(0,0,0,0.4)">
+  <button class="ctb-btn" onclick="canvasZoom(0.2)" title="Zoom In" style="color:var(--text)">
+    <svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2" fill="none" width="18" height="18"><circle cx="11" cy="11" r="7"/><line x1="20" y1="20" x2="15.5" y2="15.5"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+  </button>
+  <div id="zoomLabel" style="font-size:9px;font-weight:700;color:var(--muted);text-align:center;padding:1px 0;letter-spacing:0.5px">100%</div>
+  <button class="ctb-btn" onclick="canvasZoom(-0.2)" title="Zoom Out" style="color:var(--text)">
+    <svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2" fill="none" width="18" height="18"><circle cx="11" cy="11" r="7"/><line x1="20" y1="20" x2="15.5" y2="15.5"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+  </button>
+  <div style="width:22px;height:1px;background:var(--gb);margin:2px auto"></div>
+  <button class="ctb-btn" onclick="canvasFitView()" title="Fit semua node" style="color:var(--text)">
+    <svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2" fill="none" width="18" height="18"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+  </button>
+  <button class="ctb-btn" onclick="canvas.ox=0;canvas.oy=0;canvas.scale=1;cvApplyTransform();document.getElementById('zoomLabel').textContent='100%'" title="Reset zoom" style="color:var(--text)">
+    <svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2" fill="none" width="18" height="18"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+  </button>
 </div>
 
 <!-- CANVAS INPUT BAR (bottom, only shown in multi mode) -->
@@ -1573,7 +1588,8 @@ function cvNextLayout(isPrompt){
   }
 }
 
-let canvasLayoutY = 80;
+let canvasLayoutY = 60;
+const BLOCK_HEIGHT = 500; // vertical space per conversation block
 
 /* ======================== CANVAS SEND ======================== */
 function cvSend(){
@@ -1594,41 +1610,35 @@ function cvSend(){
   const ut = getTime();
   addMsgToSession({ role:"multi-user", text:msg, time:ut });
 
-  // Fixed layout: place nodes in absolute canvas space (not relative to current pan)
   const space = document.getElementById("canvasSpace");
   const vw = space.clientWidth;
 
-  // Node dimensions
-  const nodeW = Math.min(260, (vw - 60) / 2);
-  const nodeSpacing = 16;
+  // All layout in world-space (canvas.ox=0 means world X = screen X at scale=1)
+  // Node sizing: two equal cards side by side with spacing
+  const nodeW = Math.min(240, Math.floor((vw - 56) / 2));
+  const nodeSpacing = 14;
   const totalNodesW = nodeW * 2 + nodeSpacing;
-  const canvasCenterX = vw / 2;  // canvas center X in world space (ox=0)
+  const worldCenterX = vw / 2; // fixed center — we always reset ox=0 on new message
 
-  const promptW = Math.min(280, vw - 40);
-  const promptX = canvasCenterX - promptW / 2;
-  const promptY = canvasLayoutY;
+  const promptW = Math.min(260, vw - 48);
+  const promptX = worldCenterX - promptW / 2;
+  const promptY = canvasLayoutY; // place at current layout cursor
 
+  // Build prompt node
   const promptEl = document.createElement("div");
   promptEl.className = "cn-prompt";
-  promptEl.style.maxWidth = promptW + "px";
-  promptEl.style.minWidth = "120px";
+  promptEl.style.cssText = `max-width:${promptW}px;min-width:120px;`;
   promptEl.innerHTML = escHtml(msg) + `<div class="cn-prompt-time">${ut}</div>`;
   const promptRef = cvPlaceNode(promptEl, promptX, promptY, "prompt");
 
-  // Update prompt size after render
-  requestAnimationFrame(()=>{
-    promptRef.w = promptEl.offsetWidth || promptW;
-    promptRef.h = promptEl.offsetHeight || 50;
-    cvRedrawEdges();
-  });
-
-  const nodeY = promptY + 80;
-  const groqX = canvasCenterX - totalNodesW / 2;
+  // Node Y: below prompt (prompt ~50px tall + 70px gap)
+  const nodeY = promptY + 120;
+  const groqX = worldCenterX - totalNodesW / 2;
   const qwenX = groqX + nodeW + nodeSpacing;
 
   const models = [
-    {api:"groq", label:"GROQ", badge:"Llama", x:groqX, y:nodeY, delay:60},
-    {api:"qwen",  label:"QWEN",  badge:"Qwen3", x:qwenX, y:nodeY, delay:160},
+    {api:"groq", label:"GROQ", badge:"Llama 3", x:groqX, y:nodeY, delay:50},
+    {api:"qwen",  label:"QWEN",  badge:"Qwen3",   x:qwenX, y:nodeY, delay:140},
   ];
 
   models.forEach(({api,label,badge,x,y,delay})=>{
@@ -1644,35 +1654,24 @@ function cvSend(){
           <div class="cn-node-label">${label}</div>
           <div class="cn-node-badge">${badge}</div>
         </div>
-        <div class="cn-node-body">
-          <div class="cn-loading">
-            <div class="td"></div><div class="td"></div><div class="td"></div>
-          </div>
+        <div class="cn-node-body" ontouchstart="event.stopPropagation()">
+          <div class="cn-loading"><div class="td"></div><div class="td"></div><div class="td"></div></div>
         </div>`;
-      const nRef = cvPlaceNode(nodeEl, x, y, api);
-
-      requestAnimationFrame(()=>{
-        nRef.w = nodeEl.offsetWidth || nodeW;
-        nRef.h = nodeEl.offsetHeight || 100;
-        promptRef.w = promptEl.offsetWidth || promptW;
-        promptRef.h = promptEl.offsetHeight || 50;
-        cvDrawEdge(promptRef, nRef, api);
-        cvRedrawEdges();
-      });
+      cvPlaceNode(nodeEl, x, y, api);
+      // Edge drawn by rAF loop — no manual draw needed since getBoundingClientRect handles it
+      cvDrawEdge(promptRef, canvas.nodes[canvas.nodes.length-1], api);
     }, delay);
   });
 
-  // Reserve space for next conversation block (prompt + nodes + gap)
-  canvasLayoutY += 480;
+  // Advance layout cursor for next message block
+  canvasLayoutY += BLOCK_HEIGHT;
 
-  // Pan canvas to show the new block centered
-  setTimeout(()=>{
-    canvas.scale = 1;
-    canvas.ox = -(promptX - (vw/2 - promptW/2));
-    canvas.oy = -(promptY - 40);
-    cvApplyTransform();
-    document.getElementById("zoomLabel").textContent = "100%";
-  }, 100);
+  // Pan to show this new block at top, reset scale
+  canvas.scale = 1;
+  canvas.ox = 0; // keep world-center aligned with screen-center
+  canvas.oy = -(promptY - 50);
+  cvApplyTransform();
+  document.getElementById("zoomLabel").textContent = "100%";
 
   callMultiAPI(msg)
   .then(replies => {
