@@ -28,9 +28,10 @@ const OPENROUTER_KEYS = [
 // ============================================================
 // Gemma 4 — Google free, 262K context
 const QWEN_MODELS = [
-  "google/gemma-4-31b-it:free",     // Gemma 4 31B ⭐ (primary)
-  "google/gemma-4-26b-a4b-it:free", // Gemma 4 26B MoE fallback
-  "qwen/qwen3.6-plus:free",         // Qwen3.6 Plus fallback (confirmed aktif Mei 2026)
+  "google/gemma-4-31b-it:free",              // Gemma 4 31B ⭐ (primary)
+  "google/gemma-4-26b-a4b-it:free",          // Gemma 4 26B MoE fallback
+  "qwen/qwen3-next-80b-a3b-instruct:free",   // Qwen3 Next 80B fallback
+  "meta-llama/llama-3.3-70b-instruct:free",  // Llama 70B last resort
 ];
 
 const GPT_OSS_MODELS = [
@@ -40,8 +41,9 @@ const GPT_OSS_MODELS = [
 
 // GLM (Z.ai) models — provider prefix adalah z-ai bukan thudm!
 const GLM_MODELS = [
-  "z-ai/glm-4.5-air:free",          // GLM-4.5 Air ⭐ (131K context, free)
-  "google/gemma-4-26b-a4b-it:free", // Gemma fallback kalau GLM down
+  "z-ai/glm-4.5-air:free",                  // GLM-4.5 Air ⭐ (131K context, free)
+  "minimax/minimax-m2.5:free",               // MiniMax M2.5 fallback
+  "meta-llama/llama-3.3-70b-instruct:free",  // Llama 70B last resort
 ];
 
 // ============================================================
