@@ -94,8 +94,20 @@ async function fetchOpenRouter(apiName, body, timeout = 90000) {
       }
 
       if (!resp.ok) {
-        console.log(`❌ [${apiName}] Key ${i + 1} error HTTP ${resp.status}`);
-        lastError = new Error(`HTTP ${resp.status}`);
+        // 404 = model tidak ditemukan, baca pesan error dari body
+        let errMsg = `HTTP ${resp.status}`;
+        try {
+          const errData = JSON.parse(text);
+          errMsg = errData?.error?.message || errMsg;
+        } catch {}
+        console.log(`❌ [${apiName}] Key ${i + 1} HTTP ${resp.status}: ${errMsg}`);
+        lastError = new Error(errMsg);
+        // 404 = model tidak ada di provider ini sama sekali, tandai dan break langsung
+        if (resp.status === 404) {
+          lastError._modelNotFound = true;
+          break;
+        }
+        keyPointer[apiName] = (i + 1) % total;
         continue;
       }
 
@@ -227,6 +239,7 @@ async function callAPI(api, message, history) {
       } catch (err) {
         console.log("❌ Qwen model gagal:", model, "—", err.message);
         lastError = err;
+        if (err._modelNotFound) continue; // model 404, coba model fallback berikutnya
       }
     }
     throw lastError || new Error("Semua Qwen model gagal");
@@ -257,6 +270,7 @@ async function callAPI(api, message, history) {
       } catch (err) {
         console.log("❌ GPT-OSS model gagal:", model, "—", err.message);
         lastError = err;
+        if (err._modelNotFound) continue;
       }
     }
     throw lastError || new Error("Semua GPT-OSS model gagal");
@@ -287,6 +301,7 @@ async function callAPI(api, message, history) {
       } catch (err) {
         console.log("❌ GLM model gagal:", model, "—", err.message);
         lastError = err;
+        if (err._modelNotFound) continue;
       }
     }
     throw lastError || new Error("Semua GLM model gagal");
