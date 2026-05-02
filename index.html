@@ -1079,184 +1079,119 @@ const MODEL_BADGES   = { groq:"Llama", qwen:"Qwen3", chatgpt:"GPT-4o", claude:"C
 // Active multi-models (which are toggled ON)
 let activeMultiModels = ["groq","qwen"];
 
-/* ======================== SCRAPE ENGINE — BENAR-BENAR TANPA API KEY ======================== */
-// Endpoint publik yang support CORS + tidak butuh autentikasi:
-// 1. Pollinations.ai   — Llama 3, Mistral, dll (100% free, open CORS)
-// 2. Groq free endpoint — pakai key publik demo yg disediakan komunitas
-// 3. OpenRouter :free models — via key komunitas rotasi
+/* ================================================================
+   SCRAPE ENGINE — Direct browser fetch (Groq + OpenRouter support CORS)
+   Tidak butuh server proxy. Authorization header dikirim langsung.
+   Groq: https://console.groq.com  (CORS open by design)
+   OpenRouter: https://openrouter.ai (CORS open by design)
+================================================================ */
 
-// --- Helper: timeout wrapper ---
-function withTimeout(promise, ms=30000) {
-  return Promise.race([
-    promise,
-    new Promise((_,rej) => setTimeout(() => rej(new Error("Timeout setelah " + (ms/1000) + "s")), ms))
-  ]);
+const GROQ_KEY = "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";
+const OR_KEY   = "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";
+
+/* ---- timeout helper ---- */
+function withTimeout(p, ms=25000){
+  return Promise.race([p, new Promise((_,r)=>setTimeout(()=>r(new Error("Timeout "+ms/1000+"s")),ms))]);
 }
 
-// ============================================================
-// GROQ — Llama 3 (direct, groq support CORS untuk browser)
-// ============================================================
-async function scrapeGroq(message, history) {
-  const messages = [...history, { role:"user", content: message }];
-  const resp = await withTimeout(fetch("https://api.groq.com/openai/v1/chat/completions", {
+/* ---- parse OpenAI-style response ---- */
+function parseOAI(d){
+  if(d.error) throw new Error(d.error.message||JSON.stringify(d.error).slice(0,120));
+  const c = d.choices?.[0];
+  return c?.message?.content || c?.text || "Tidak ada respons";
+}
+
+/* ================================================================
+   GROQ — Llama 3.1 8B (gratis, CORS open dari browser)
+================================================================ */
+async function scrapeGroq(message, history){
+  const messages = [...history, {role:"user",content:message}];
+  const resp = await withTimeout(fetch("https://api.groq.com/openai/v1/chat/completions",{
     method:"POST",
     headers:{
       "Content-Type":"application/json",
-      "Authorization":"Bearer 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"
+      "Authorization":"Bearer "+GROQ_KEY
     },
-    body: JSON.stringify({ model:"llama3-8b-8192", messages, max_tokens:800 })
+    body:JSON.stringify({model:"llama-3.1-8b-instant",messages,max_tokens:1024,temperature:0.7})
   }));
-  if(!resp.ok) {
-    const t = await resp.text().catch(()=>"");
-    throw new Error("Groq " + resp.status + ": " + t.slice(0,100));
-  }
   const d = await resp.json();
-  if(d.error) throw new Error(d.error.message);
-  return d.choices?.[0]?.message?.content || "Tidak ada respons";
+  if(!resp.ok) throw new Error("Groq "+resp.status+": "+(d.error?.message||"error"));
+  return parseOAI(d);
 }
 
-// ============================================================
-// QWEN — via Pollinations text API (gratis, tanpa key, open CORS)
-// ============================================================
-async function scrapeQwen(message, history) {
-  const historyText = history.map(h => `${h.role === "user" ? "User" : "Assistant"}: ${h.content}`).join("\n");
-  const prompt = (historyText ? historyText + "\n" : "") + "User: " + message + "\nAssistant:";
-  const encoded = encodeURIComponent(prompt);
-  const resp = await withTimeout(fetch(
-    `https://text.pollinations.ai/${encoded}?model=qwen-coder&seed=42&private=true`,
-    { headers:{ "Accept":"text/plain" } }
-  ));
-  if(!resp.ok) throw new Error("Qwen/Pollinations " + resp.status);
-  const text = await resp.text();
-  return text.trim() || "Tidak ada respons";
-}
+/* ================================================================
+   OpenRouter — Qwen / ChatGPT / Claude / Gemini / DeepSeek
+   Model :free = tidak dikenakan biaya, OpenRouter support CORS
+================================================================ */
+const OR_MODELS = {
+  qwen:     "qwen/qwen3-235b-a22b:free",
+  chatgpt:  "openai/gpt-4o-mini:free",
+  claude:   "anthropic/claude-3-haiku:free",
+  gemini:   "google/gemini-2.0-flash-exp:free",
+  deepseek: "deepseek/deepseek-chat-v3-0324:free"
+};
 
-// ============================================================
-// CHATGPT (GPT-4o-mini) — via Pollinations openai model
-// ============================================================
-async function scrapeChatGPT(message, history) {
-  const messages = [...history, { role:"user", content: message }];
-  const resp = await withTimeout(fetch("https://text.pollinations.ai/openai", {
-    method:"POST",
-    headers:{ "Content-Type":"application/json" },
-    body: JSON.stringify({
-      model:"openai",
-      messages,
-      seed: 42,
-      private: true
-    })
-  }));
-  if(!resp.ok) throw new Error("ChatGPT/Pollinations " + resp.status);
-  const text = await resp.text();
-  // Pollinations returns plain text or JSON
+/* Fallback models jika model utama unavailable */
+const OR_FALLBACKS = {
+  qwen:     "qwen/qwen-2-7b-instruct:free",
+  chatgpt:  "meta-llama/llama-3.1-8b-instruct:free",
+  claude:   "meta-llama/llama-3.2-3b-instruct:free",
+  gemini:   "google/gemma-3-12b-it:free",
+  deepseek: "deepseek/deepseek-r1-distill-llama-70b:free"
+};
+
+async function scrapeOpenRouter(api, message, history){
+  const messages = [...history, {role:"user",content:message}];
+  const modelId = OR_MODELS[api];
+
+  async function tryModel(model){
+    const resp = await withTimeout(fetch("https://openrouter.ai/api/v1/chat/completions",{
+      method:"POST",
+      headers:{
+        "Content-Type":"application/json",
+        "Authorization":"Bearer "+OR_KEY,
+        "HTTP-Referer":"https://localhost",
+        "X-Title":"AIVA"
+      },
+      body:JSON.stringify({model,messages,max_tokens:1024,temperature:0.7})
+    }));
+    const d = await resp.json();
+    if(!resp.ok) throw new Error((d.error?.message||"HTTP "+resp.status));
+    return parseOAI(d);
+  }
+
   try {
-    const d = JSON.parse(text);
-    return d.choices?.[0]?.message?.content || d.text || text.trim();
-  } catch {
-    return text.trim() || "Tidak ada respons";
+    return await tryModel(modelId);
+  } catch(e1) {
+    // Coba fallback model
+    const fallback = OR_FALLBACKS[api];
+    if(fallback && fallback !== modelId){
+      try { return await tryModel(fallback); }
+      catch(e2){ throw new Error(e1.message); }
+    }
+    throw e1;
   }
 }
 
-// ============================================================
-// CLAUDE — via Pollinations claude model
-// ============================================================
-async function scrapeClaude(message, history) {
-  const messages = [...history, { role:"user", content: message }];
-  const resp = await withTimeout(fetch("https://text.pollinations.ai/openai", {
-    method:"POST",
-    headers:{ "Content-Type":"application/json" },
-    body: JSON.stringify({
-      model:"claude-hybridspace",
-      messages,
-      seed: 42,
-      private: true
-    })
-  }));
-  if(!resp.ok) throw new Error("Claude/Pollinations " + resp.status);
-  const text = await resp.text();
-  try {
-    const d = JSON.parse(text);
-    return d.choices?.[0]?.message?.content || d.text || text.trim();
-  } catch {
-    return text.trim() || "Tidak ada respons";
-  }
+/* ================================================================
+   ROUTER — dispatch ke scraper yang tepat
+================================================================ */
+async function callAPI(api, message, history){
+  if(api === "groq")    return scrapeGroq(message, history);
+  if(OR_MODELS[api])    return scrapeOpenRouter(api, message, history);
+  throw new Error("Unknown model: " + api);
 }
 
-// ============================================================
-// GEMINI — via Pollinations mistral (fallback karena Gemini butuh key)
-// ============================================================
-async function scrapeGemini(message, history) {
-  const messages = [...history, { role:"user", content: message }];
-  const resp = await withTimeout(fetch("https://text.pollinations.ai/openai", {
-    method:"POST",
-    headers:{ "Content-Type":"application/json" },
-    body: JSON.stringify({
-      model:"gemini",
-      messages,
-      seed: 42,
-      private: true
-    })
-  }));
-  if(!resp.ok) throw new Error("Gemini/Pollinations " + resp.status);
-  const text = await resp.text();
-  try {
-    const d = JSON.parse(text);
-    return d.choices?.[0]?.message?.content || d.text || text.trim();
-  } catch {
-    return text.trim() || "Tidak ada respons";
-  }
-}
-
-// ============================================================
-// DEEPSEEK — via Pollinations deepseek model
-// ============================================================
-async function scrapeDeepSeek(message, history) {
-  const messages = [...history, { role:"user", content: message }];
-  const resp = await withTimeout(fetch("https://text.pollinations.ai/openai", {
-    method:"POST",
-    headers:{ "Content-Type":"application/json" },
-    body: JSON.stringify({
-      model:"deepseek",
-      messages,
-      seed: 42,
-      private: true
-    })
-  }));
-  if(!resp.ok) throw new Error("DeepSeek/Pollinations " + resp.status);
-  const text = await resp.text();
-  try {
-    const d = JSON.parse(text);
-    return d.choices?.[0]?.message?.content || d.text || text.trim();
-  } catch {
-    return text.trim() || "Tidak ada respons";
-  }
-}
-
-// ============================================================
-// ROUTER — pilih scraper sesuai model
-// ============================================================
-async function callAPI(api, message, history) {
-  switch(api) {
-    case "groq":     return scrapeGroq(message, history);
-    case "qwen":     return scrapeQwen(message, history);
-    case "chatgpt":  return scrapeChatGPT(message, history);
-    case "claude":   return scrapeClaude(message, history);
-    case "gemini":   return scrapeGemini(message, history);
-    case "deepseek": return scrapeDeepSeek(message, history);
-    default: throw new Error("Unknown model: " + api);
-  }
-}
-
-// Kirim ke semua model sekaligus paralel
-async function callMultiAPI(message, models) {
+/* Kirim ke semua model paralel */
+async function callMultiAPI(message, models){
   const promises = models.map(api =>
     callAPI(api, message, [])
-      .then(reply => ({ api, reply }))
-      .catch(err => ({ api, reply: "⚠️ Gagal: " + err.message }))
+      .then(reply => ({api, reply}))
+      .catch(err  => ({api, reply:"⚠️ "+err.message}))
   );
   const results = await Promise.all(promises);
   const replies = {};
-  results.forEach(({ api, reply }) => { replies[api] = reply; });
+  results.forEach(({api,reply}) => { replies[api] = reply; });
   return replies;
 }
 
