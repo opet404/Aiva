@@ -1080,91 +1080,63 @@ const MODEL_BADGES   = { groq:"Llama", qwen:"Qwen3", chatgpt:"GPT-4o", claude:"C
 let activeMultiModels = ["groq","qwen"];
 
 /* ================================================================
-   SCRAPE ENGINE — Direct browser fetch (Groq + OpenRouter support CORS)
-   Tidak butuh server proxy. Authorization header dikirim langsung.
-   Groq: https://console.groq.com  (CORS open by design)
-   OpenRouter: https://openrouter.ai (CORS open by design)
+   SCRAPE ENGINE — Pollinations AI (100% gratis, tanpa API key)
+   https://text.pollinations.ai — CORS open, no auth required
+   Semua model di bawah bisa diakses langsung dari browser.
 ================================================================ */
 
-const GROQ_KEY = "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";
-const OR_KEY   = "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";
-
 /* ---- timeout helper ---- */
-function withTimeout(p, ms=25000){
+function withTimeout(p, ms=30000){
   return Promise.race([p, new Promise((_,r)=>setTimeout(()=>r(new Error("Timeout "+ms/1000+"s")),ms))]);
 }
 
-/* ---- parse OpenAI-style response ---- */
-function parseOAI(d){
-  if(d.error) throw new Error(d.error.message||JSON.stringify(d.error).slice(0,120));
-  const c = d.choices?.[0];
-  return c?.message?.content || c?.text || "Tidak ada respons";
-}
-
-/* ================================================================
-   GROQ — Llama 3.1 8B (gratis, CORS open dari browser)
-================================================================ */
-async function scrapeGroq(message, history){
-  const messages = [...history, {role:"user",content:message}];
-  const resp = await withTimeout(fetch("https://api.groq.com/openai/v1/chat/completions",{
-    method:"POST",
-    headers:{
-      "Content-Type":"application/json",
-      "Authorization":"Bearer "+GROQ_KEY
-    },
-    body:JSON.stringify({model:"llama-3.1-8b-instant",messages,max_tokens:1024,temperature:0.7})
-  }));
-  const d = await resp.json();
-  if(!resp.ok) throw new Error("Groq "+resp.status+": "+(d.error?.message||"error"));
-  return parseOAI(d);
-}
-
-/* ================================================================
-   OpenRouter — Qwen / ChatGPT / Claude / Gemini / DeepSeek
-   Model :free = tidak dikenakan biaya, OpenRouter support CORS
-================================================================ */
-const OR_MODELS = {
-  qwen:     "qwen/qwen3-235b-a22b:free",
-  chatgpt:  "openai/gpt-4o-mini:free",
-  claude:   "anthropic/claude-3-haiku:free",
-  gemini:   "google/gemini-2.0-flash-exp:free",
-  deepseek: "deepseek/deepseek-chat-v3-0324:free"
+/* ---- Model mapping ke Pollinations model ID ---- */
+const POLL_MODELS = {
+  groq:     "llama",          // Meta Llama 3.3 70B
+  qwen:     "qwen-coder",     // Qwen 2.5 Coder 32B
+  chatgpt:  "openai",         // OpenAI GPT-4o mini
+  claude:   "claude-hybridspace", // Claude via Pollinations
+  gemini:   "gemini",         // Google Gemini 2.0 Flash
+  deepseek: "deepseek"        // DeepSeek V3
 };
 
-/* Fallback models jika model utama unavailable */
-const OR_FALLBACKS = {
-  qwen:     "qwen/qwen-2-7b-instruct:free",
-  chatgpt:  "meta-llama/llama-3.1-8b-instruct:free",
-  claude:   "meta-llama/llama-3.2-3b-instruct:free",
-  gemini:   "google/gemma-3-12b-it:free",
-  deepseek: "deepseek/deepseek-r1-distill-llama-70b:free"
+/* Fallback jika model utama gagal */
+const POLL_FALLBACKS = {
+  groq:     "mistral",
+  qwen:     "llama",
+  chatgpt:  "llama",
+  claude:   "openai",
+  gemini:   "llama",
+  deepseek: "llama"
 };
 
-async function scrapeOpenRouter(api, message, history){
-  const messages = [...history, {role:"user",content:message}];
-  const modelId = OR_MODELS[api];
+/* ---- Core scraper: POST ke Pollinations text API ---- */
+async function scrapePollinations(api, message, history){
+  const modelId = POLL_MODELS[api] || "llama";
+  const messages = [...history, {role:"user", content:message}];
 
   async function tryModel(model){
-    const resp = await withTimeout(fetch("https://openrouter.ai/api/v1/chat/completions",{
-      method:"POST",
-      headers:{
-        "Content-Type":"application/json",
-        "Authorization":"Bearer "+OR_KEY,
-        "HTTP-Referer":"https://localhost",
-        "X-Title":"AIVA"
-      },
-      body:JSON.stringify({model,messages,max_tokens:1024,temperature:0.7})
+    const resp = await withTimeout(fetch("https://text.pollinations.ai/", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model,
+        messages,
+        seed: Math.floor(Math.random() * 99999),
+        jsonMode: false,
+        private: true
+      })
     }));
-    const d = await resp.json();
-    if(!resp.ok) throw new Error((d.error?.message||"HTTP "+resp.status));
-    return parseOAI(d);
+    if(!resp.ok) throw new Error("HTTP " + resp.status);
+    const text = await resp.text();
+    if(!text || !text.trim()) throw new Error("Respons kosong dari server");
+    return text.trim();
   }
 
   try {
     return await tryModel(modelId);
   } catch(e1) {
-    // Coba fallback model
-    const fallback = OR_FALLBACKS[api];
+    const fallback = POLL_FALLBACKS[api];
     if(fallback && fallback !== modelId){
       try { return await tryModel(fallback); }
       catch(e2){ throw new Error(e1.message); }
@@ -1177,9 +1149,7 @@ async function scrapeOpenRouter(api, message, history){
    ROUTER — dispatch ke scraper yang tepat
 ================================================================ */
 async function callAPI(api, message, history){
-  if(api === "groq")    return scrapeGroq(message, history);
-  if(OR_MODELS[api])    return scrapeOpenRouter(api, message, history);
-  throw new Error("Unknown model: " + api);
+  return scrapePollinations(api, message, history);
 }
 
 /* Kirim ke semua model paralel */
