@@ -37,6 +37,12 @@ const GPT_OSS_MODELS = [
   "openai/gpt-oss-20b:free",   // OpenAI 21B fallback, 131K context
 ];
 
+// GLM (ZhipuAI) models
+const GLM_MODELS = [
+  "thudm/glm-4.5-air:free", // GLM-4.5 Air ⭐
+  "thudm/glm-4-32b:free",   // GLM-4 32B fallback
+];
+
 // ============================================================
 // 🔁 KEY INDEX TRACKER — persist per-API
 //
@@ -45,7 +51,7 @@ const GPT_OSS_MODELS = [
 // Request berikutnya mulai dari key terakhir yang berhasil,
 // bukan balik ke key 1 lagi (itulah bug yang bikin key 1 cepat habis).
 // ============================================================
-const keyPointer = { qwen: 0, gpt: 0 };
+const keyPointer = { qwen: 0, gpt: 0, glm: 0 };
 
 const ROTATE_ON_STATUS = new Set([401, 402, 403, 429]);
 
@@ -160,6 +166,10 @@ function fetchWithTimeout(url, options, timeout = 90000) {
 // ============================================================
 async function callAPI(api, message, history) {
 
+  // ===== ALIAS MAPPING =====
+  // Frontend bisa kirim "gemma" → dimap ke "qwen" (model Gemma ada di QWEN_MODELS)
+  if (api === "gemma") api = "qwen";
+
   // ===== GROQ =====
   if (api === "groq") {
     const resp = await fetchWithTimeout(
@@ -251,6 +261,36 @@ async function callAPI(api, message, history) {
     throw lastError || new Error("Semua GPT-OSS model gagal");
   }
 
+  // ===== GLM (ZhipuAI — 2 model fallback + key rotation persist) =====
+  if (api === "glm") {
+    let lastError = null;
+    for (const model of GLM_MODELS) {
+      try {
+        console.log("🔥 GLM coba model:", model);
+        const { data } = await fetchOpenRouter("glm", {
+          model,
+          temperature: 0.7,
+          max_tokens: 4096,
+          messages: [
+            { role: "system", content: SYSTEM_CODING },
+            ...history,
+            { role: "user", content: message }
+          ]
+        });
+        let content = data?.choices?.[0]?.message?.content;
+        if (!content) { lastError = new Error("Kosong dari " + model); continue; }
+        content = content.replace(/<think>[\s\S]*?<\/think>/gi, "").trim();
+        if (!content) { lastError = new Error("Kosong setelah strip think dari " + model); continue; }
+        console.log("✅ GLM sukses:", model);
+        return content;
+      } catch (err) {
+        console.log("❌ GLM model gagal:", model, "—", err.message);
+        lastError = err;
+      }
+    }
+    throw lastError || new Error("Semua GLM model gagal");
+  }
+
   throw new Error("API tidak dikenal: " + api);
 }
 
@@ -334,12 +374,14 @@ app.get("/status", (req, res) => {
     current_key_pointer: {
       qwen: `Key ${keyPointer.qwen + 1}`,
       gpt:  `Key ${keyPointer.gpt  + 1}`,
+      glm:  `Key ${keyPointer.glm  + 1}`,
     },
     models: {
       qwen:    QWEN_MODELS,
       gpt_oss: GPT_OSS_MODELS,
+      glm:     GLM_MODELS,
     },
-    info: "Key persist per-API. Qwen punya 4 model fallback, GPT 2 model fallback."
+    info: "Key persist per-API. Qwen/Gemma 2 model, GPT 2 model, GLM 2 model fallback."
   });
 });
 
@@ -349,7 +391,8 @@ app.get("/status", (req, res) => {
 app.listen(PORT, () => {
   console.log(`🔥 AIVA jalan di http://localhost:${PORT}`);
   console.log(`🔑 OpenRouter keys: ${OPENROUTER_KEYS.length} keys`);
-  console.log(`🤖 Qwen   : ${QWEN_MODELS.length} model → ${QWEN_MODELS.join(", ")}`);
-  console.log(`🤖 GPT-OSS: ${GPT_OSS_MODELS.length} model → ${GPT_OSS_MODELS.join(", ")}`);
+  console.log(`🤖 Qwen/Gemma: ${QWEN_MODELS.length} model → ${QWEN_MODELS.join(", ")}`);
+  console.log(`🤖 GPT-OSS  : ${GPT_OSS_MODELS.length} model → ${GPT_OSS_MODELS.join(", ")}`);
+  console.log(`🤖 GLM      : ${GLM_MODELS.length} model → ${GLM_MODELS.join(", ")}`);
   console.log(`📊 Status : http://localhost:${PORT}/status`);
 });
