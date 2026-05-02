@@ -20,6 +20,12 @@ const QWEN_MODELS = [
   "qwen/qwen3-30b-a3b"
 ];
 
+// 🧠 MODEL GLM (z.ai - Free via OpenRouter)
+const GLM_MODELS = [
+  "z-ai/glm-4-5-air",
+  "z-ai/glm-4-plus"
+];
+
 app.use(cors());
 app.use(express.json());
 app.use(express.static(__dirname));
@@ -149,6 +155,53 @@ async function callAPI(api, message, history) {
     throw lastError || new Error("Semua Qwen gagal");
   }
 
+  // ================= GLM (z.ai via OpenRouter) =================
+  if (api === "glm") {
+    let lastError = null;
+    for (const model of GLM_MODELS) {
+      try {
+        console.log("🔥 GLM coba:", model);
+        const resp = await fetchWithTimeout(
+          "https://openrouter.ai/api/v1/chat/completions",
+          {
+            method: "POST",
+            headers: {
+              "Authorization": "Bearer " + OPENROUTER_API_KEY,
+              "Content-Type": "application/json",
+              "HTTP-Referer": "http://localhost:" + PORT,
+              "X-Title": "AIVA",
+              "User-Agent": "AIVA/1.0"
+            },
+            body: JSON.stringify({
+              model,
+              temperature: 0.7,
+              max_tokens: 1024,
+              messages: [
+                { role: "system", content: "Kamu adalah AIVA. Kreatif, cerdas, dan membantu." },
+                ...history,
+                { role: "user", content: message }
+              ]
+            })
+          }
+        );
+        const text = await resp.text();
+        console.log("RAW GLM:", text.slice(0, 200));
+        if (!resp.ok) { lastError = new Error(`HTTP ${resp.status} (${model})`); continue; }
+        let data;
+        try { data = JSON.parse(text); } catch { lastError = new Error("JSON rusak dari " + model); continue; }
+        if (data.error) { lastError = new Error(data.error.message); continue; }
+        const content = data?.choices?.[0]?.message?.content;
+        if (!content) { lastError = new Error("Kosong dari " + model); continue; }
+        console.log("✅ GLM sukses:", model);
+        return content;
+      } catch (err) {
+        console.log("❌ GLM error:", err.message);
+        lastError = err;
+      }
+    }
+    throw lastError || new Error("Semua GLM gagal");
+  }
+
   throw new Error("API tidak dikenal");
 }
 
@@ -186,15 +239,17 @@ app.post("/multi-chat", async (req, res) => {
     const { message } = req.body;
     if (!message) return res.json({ error: "Pesan kosong!" });
 
-    const [groq, qwen] = await Promise.allSettled([
+    const [groq, qwen, glm] = await Promise.allSettled([
       callAPI("groq", message, []),
-      callAPI("qwen", message, [])
+      callAPI("qwen", message, []),
+      callAPI("glm", message, [])
     ]);
 
     res.json({
       replies: {
         groq: groq.status === "fulfilled" ? groq.value : "Gagal",
-        qwen: qwen.status === "fulfilled" ? qwen.value : "Gagal"
+        qwen: qwen.status === "fulfilled" ? qwen.value : "Gagal",
+        glm:  glm.status  === "fulfilled" ? glm.value  : "Gagal"
       }
     });
 
