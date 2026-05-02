@@ -30,7 +30,7 @@ const OPENROUTER_KEYS = [
 const QWEN_MODELS = [
   "google/gemma-4-31b-it:free",     // Gemma 4 31B ⭐ (primary)
   "google/gemma-4-26b-a4b-it:free", // Gemma 4 26B MoE fallback
-  "qwen/qwen3-30b-a3b:free",        // Qwen3 30B MoE fallback (lebih kecil, lebih jarang 429)
+  "qwen/qwen3.6-plus:free",         // Qwen3.6 Plus fallback (confirmed aktif Mei 2026)
 ];
 
 const GPT_OSS_MODELS = [
@@ -40,8 +40,8 @@ const GPT_OSS_MODELS = [
 
 // GLM (Z.ai) models — provider prefix adalah z-ai bukan thudm!
 const GLM_MODELS = [
-  "z-ai/glm-4.5-air:free", // GLM-4.5 Air ⭐ (131K context, free)
-  "thudm/glm-4-32b:free",  // GLM-4 32B fallback (thudm ini benar)
+  "z-ai/glm-4.5-air:free",          // GLM-4.5 Air ⭐ (131K context, free)
+  "google/gemma-4-26b-a4b-it:free", // Gemma fallback kalau GLM down
 ];
 
 // ============================================================
