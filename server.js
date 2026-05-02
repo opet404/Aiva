@@ -20,11 +20,20 @@ const QWEN_MODELS = [
   "qwen/qwen3-30b-a3b"
 ];
 
-// 🧠 MODEL GLM (z.ai - Free via OpenRouter)
+// 🧠 MODEL GLM (z.ai - Free via OpenRouter) — pakai titik bukan dash!
 const GLM_MODELS = [
-  "z-ai/glm-4-5-air",
-  "z-ai/glm-4-plus"
+  "z-ai/glm-4.5-air:free",
+  "z-ai/glm-4.5-air"
 ];
+
+// 🧠 SYSTEM PROMPT — full coding explanation
+const SYSTEM_CODING = `Kamu adalah AIVA, asisten AI yang cerdas dan helpful.
+PENTING: Jika user meminta kode/coding/program, WAJIB berikan:
+1. Penjelasan lengkap apa yang akan dibuat
+2. Kode LENGKAP dan PENUH — jangan dipotong, jangan tulis "// lanjutkan sendiri" atau sejenisnya
+3. Penjelasan tiap bagian kode (fungsi, logika, alur)
+4. Contoh penggunaan / output jika relevan
+Jangan pernah memotong kode di tengah. Selalu berikan jawaban yang tuntas dan informatif.`;
 
 app.use(cors());
 app.use(express.json());
@@ -62,9 +71,9 @@ async function callAPI(api, message, history) {
         body: JSON.stringify({
           model: "llama-3.3-70b-versatile",
           temperature: 0.7,
-          max_tokens: 1024,
+          max_tokens: 4096,
           messages: [
-            { role: "system", content: "Kamu adalah AIVA. Santai, natural, ringkas." },
+            { role: "system", content: SYSTEM_CODING },
             ...history,
             { role: "user", content: message }
           ]
@@ -104,9 +113,9 @@ async function callAPI(api, message, history) {
             body: JSON.stringify({
               model,
               temperature: 0.6,
-              max_tokens: 1024,
+              max_tokens: 4096,
               messages: [
-                { role: "system", content: "Kamu adalah AIVA. Jawaban rapi, jelas, informatif." },
+                { role: "system", content: SYSTEM_CODING },
                 ...history,
                 { role: "user", content: message }
               ]
@@ -175,9 +184,9 @@ async function callAPI(api, message, history) {
             body: JSON.stringify({
               model,
               temperature: 0.7,
-              max_tokens: 1024,
+              max_tokens: 4096,
               messages: [
-                { role: "system", content: "Kamu adalah AIVA. Kreatif, cerdas, dan membantu." },
+                { role: "system", content: SYSTEM_CODING },
                 ...history,
                 { role: "user", content: message }
               ]
@@ -185,13 +194,19 @@ async function callAPI(api, message, history) {
           }
         );
         const text = await resp.text();
-        console.log("RAW GLM:", text.slice(0, 200));
-        if (!resp.ok) { lastError = new Error(`HTTP ${resp.status} (${model})`); continue; }
+        console.log("RAW GLM:", text.slice(0, 300));
+        if (!resp.ok) {
+          lastError = new Error(`HTTP ${resp.status} (${model}): ${text.slice(0,200)}`);
+          continue;
+        }
         let data;
         try { data = JSON.parse(text); } catch { lastError = new Error("JSON rusak dari " + model); continue; }
         if (data.error) { lastError = new Error(data.error.message); continue; }
-        const content = data?.choices?.[0]?.message?.content;
+        let content = data?.choices?.[0]?.message?.content;
         if (!content) { lastError = new Error("Kosong dari " + model); continue; }
+        // Strip <think>...</think> tags (GLM thinking mode)
+        content = content.replace(/<think>[\s\S]*?<\/think>/gi, "").trim();
+        if (!content) { lastError = new Error("Konten kosong setelah strip think dari " + model); continue; }
         console.log("✅ GLM sukses:", model);
         return content;
       } catch (err) {
