@@ -20,7 +20,7 @@
   --F:'Syne',sans-serif;--FM:'Space Mono',monospace;
   --ease:cubic-bezier(0.22,1,0.36,1);
   /* model colors */
-  --groq:#3d72f6;--qwen:#a855f7;
+  --groq:#3d72f6;--qwen:#a855f7;--glm:#10b981;
 }
 body.light{
   --bg:#f1f3fb;--surface:rgba(255,255,255,0.92);--surface2:rgba(243,245,255,0.85);
@@ -293,10 +293,17 @@ body.light #canvasSpace::before{
   border:1.5px solid rgba(168,85,247,0.4);
   box-shadow:0 6px 36px rgba(168,85,247,0.16);
 }
+.cn-node.glm{
+  background:rgba(4,20,16,0.92);
+  border:1.5px solid rgba(16,185,129,0.4);
+  box-shadow:0 6px 36px rgba(16,185,129,0.16);
+}
 .cn-node.groq:hover{box-shadow:0 12px 48px rgba(61,114,246,0.28),0 0 0 3px rgba(61,114,246,0.08)}
 .cn-node.qwen:hover{box-shadow:0 12px 48px rgba(168,85,247,0.28),0 0 0 3px rgba(168,85,247,0.08)}
+.cn-node.glm:hover{box-shadow:0 12px 48px rgba(16,185,129,0.28),0 0 0 3px rgba(16,185,129,0.08)}
 body.light .cn-node.groq{background:rgba(240,246,255,0.97);border-color:rgba(61,114,246,0.3)}
 body.light .cn-node.qwen{background:rgba(248,242,255,0.97);border-color:rgba(168,85,247,0.3)}
+body.light .cn-node.glm{background:rgba(240,255,249,0.97);border-color:rgba(16,185,129,0.3)}
 
 /* Node header */
 .cn-node-hdr{
@@ -331,10 +338,12 @@ body.light .cn-node.qwen .cn-node-hdr{background:linear-gradient(90deg,rgba(168,
 .cn-node-label{font-size:11px;font-weight:700;letter-spacing:1.8px;text-transform:uppercase;flex:1}
 .cn-node.groq .cn-node-label{color:#7aa8f7}
 .cn-node.qwen .cn-node-label{color:#c4a8ff}
+.cn-node.glm  .cn-node-label{color:#6ee7b7}
 
 .cn-node-badge{font-size:9px;padding:2px 8px;border-radius:20px;font-weight:600;letter-spacing:0.4px}
 .cn-node.groq .cn-node-badge{background:rgba(61,114,246,0.15);color:#7aa8f7;border:1px solid rgba(61,114,246,0.28)}
 .cn-node.qwen .cn-node-badge{background:rgba(168,85,247,0.15);color:#c4a8ff;border:1px solid rgba(168,85,247,0.28)}
+.cn-node.glm  .cn-node-badge{background:rgba(16,185,129,0.15);color:#6ee7b7;border:1px solid rgba(16,185,129,0.28)}
 
 /* Node body */
 .cn-node-body{
@@ -369,6 +378,7 @@ body.light .cn-node-time{border-top-color:rgba(0,0,0,0.06)}
 .cn-loading .td{width:6px;height:6px;border-radius:50%;animation:tdA 1.3s ease-in-out infinite}
 .cn-node.groq .cn-loading .td{background:var(--groq)}
 .cn-node.qwen .cn-loading .td{background:var(--qwen)}
+.cn-node.glm  .cn-loading .td{background:var(--glm)}
 .cn-loading .td:nth-child(2){animation-delay:0.15s}
 .cn-loading .td:nth-child(3){animation-delay:0.3s}
 
@@ -499,11 +509,13 @@ body.light .ctb-input-wrap{background:rgba(0,0,0,0.04);border-color:rgba(0,0,0,0
 @keyframes dashFlow{from{stroke-dashoffset:0}to{stroke-dashoffset:-20}}
 .cv-edge.groq{stroke:url(#edgeGradGroq)}
 .cv-edge.qwen{stroke:url(#edgeGradQwen)}
+.cv-edge.glm{stroke:url(#edgeGradGlm)}
 
 /* Edge dot terminus */
 .cv-edge-dot{r:4;animation:dotPop 0.5s var(--ease) both}
 .cv-edge-dot.groq{fill:var(--groq)}
 .cv-edge-dot.qwen{fill:var(--qwen)}
+.cv-edge-dot.glm{fill:var(--glm)}
 @keyframes dotPop{from{r:0;opacity:0}to{opacity:1}}
 
 /* ---- MINI MAP ---- */
@@ -558,6 +570,7 @@ body.light .ctb-input-wrap{background:rgba(0,0,0,0.04);border-color:rgba(0,0,0,0
 }
 .cib-tag.groq{background:rgba(61,114,246,0.2);color:#7aa8f7;border:1px solid rgba(61,114,246,0.3)}
 .cib-tag.qwen{background:rgba(168,85,247,0.2);color:#c4a8ff;border:1px solid rgba(168,85,247,0.3)}
+.cib-tag.glm{background:rgba(16,185,129,0.2);color:#6ee7b7;border:1px solid rgba(16,185,129,0.3)}
 
 #canvasText{
   flex:1;border:none;outline:none;resize:none;
@@ -714,6 +727,9 @@ body.light .ctb-input-wrap{background:rgba(0,0,0,0.04);border-color:rgba(0,0,0,0
   <button onclick="setAPI('qwen')">
     <img src="https://upload.wikimedia.org/wikipedia/commons/6/69/Qwen_logo.svg" style="width:15px;height:15px;border-radius:4px"> Qwen
   </button>
+  <button onclick="setAPI('glm')">
+    <img src="https://logo.svgcdn.com/token-branded/glm.png" style="width:15px;height:15px;border-radius:4px;background:#10b981"> GLM (z.ai)
+  </button>
 </div>
 
 <!-- ABOUT PAGE -->
@@ -723,7 +739,7 @@ body.light .ctb-input-wrap{background:rgba(0,0,0,0.04);border-color:rgba(0,0,0,0
     <div class="fp-h1">AIVA</div>
     <p class="fp-lead">Artificial Intelligence Virtual Assistant — sistem AI modern yang dirancang untuk memberikan pengalaman interaksi yang cepat, ringan, dan futuristik di berbagai perangkat.</p>
     <div class="fp-card"><div class="fp-card-title">Function</div><p>AIVA berfungsi sebagai asisten digital yang dapat membantu menjawab pertanyaan, memberikan ide, membantu coding, serta mendukung aktivitas kreatif pengguna secara real-time.</p></div>
-    <div class="fp-card"><div class="fp-card-title">Multi Chat</div><p>Fitur Multi Chat memungkinkan kamu membandingkan jawaban dari 2 model AI sekaligus: Groq dan Qwen — dalam satu pertanyaan.</p></div>
+    <div class="fp-card"><div class="fp-card-title">Multi Chat</div><p>Fitur Multi Chat memungkinkan kamu membandingkan jawaban dari 3 model AI sekaligus: Groq (Llama), Qwen, dan GLM (z.ai) — dalam satu pertanyaan di infinite canvas.</p></div>
     <div class="fp-card"><div class="fp-card-title">Status</div><p>Sistem ini masih dalam tahap pengembangan (beta), sehingga beberapa fitur mungkin belum sepenuhnya stabil dan akan terus diperbarui secara berkala.</p></div>
     <div class="fp-footer">Created by opetxdy — AIVA is still in development</div>
   </div>
@@ -761,6 +777,10 @@ body.light .ctb-input-wrap{background:rgba(0,0,0,0.04);border-color:rgba(0,0,0,0
         <stop offset="0%" stop-color="#a855f7" stop-opacity="0.9"/>
         <stop offset="100%" stop-color="#a855f7" stop-opacity="0.3"/>
       </linearGradient>
+      <linearGradient id="edgeGradGlm" x1="0%" y1="0%" x2="100%" y2="0%">
+        <stop offset="0%" stop-color="#10b981" stop-opacity="0.9"/>
+        <stop offset="100%" stop-color="#10b981" stop-opacity="0.3"/>
+      </linearGradient>
     </defs>
   </svg>
   <div id="canvasWorld">
@@ -770,7 +790,7 @@ body.light .ctb-input-wrap{background:rgba(0,0,0,0.04);border-color:rgba(0,0,0,0
   <!-- Canvas welcome state — fixed center, outside canvasWorld so pan doesn't move it -->
   <div id="canvasWelcome">
     <div class="cv-title">MULTI CHAT</div>
-    <div class="cv-sub">Bandingkan 2 AI dalam satu canvas</div>
+    <div class="cv-sub">Bandingkan 3 AI dalam satu canvas</div>
     <div class="cv-hint">
       <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
       Ketik pertanyaan di bawah — drag nodes untuk atur layout
@@ -796,8 +816,9 @@ body.light .ctb-input-wrap{background:rgba(0,0,0,0.04);border-color:rgba(0,0,0,0
     <div class="cib-model-tags">
       <span class="cib-tag groq">GROQ</span>
       <span class="cib-tag qwen">QWEN</span>
+      <span class="cib-tag glm">GLM</span>
     </div>
-    <textarea id="canvasText" placeholder="Tanya ke 2 model sekaligus..." rows="1"></textarea>
+    <textarea id="canvasText" placeholder="Tanya ke 3 model sekaligus..." rows="1"></textarea>
     <button class="cib-stop" id="cibStop" onclick="stopCanvas()">
       <svg viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>
     </button>
@@ -805,7 +826,7 @@ body.light .ctb-input-wrap{background:rgba(0,0,0,0.04);border-color:rgba(0,0,0,0
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
     </button>
   </div>
-  <div id="canvasModeHint">Multi Chat — Groq • Qwen • Drag nodes untuk atur layout</div>
+  <div id="canvasModeHint">Multi Chat — Groq • Qwen • GLM — Drag nodes untuk atur layout</div>
 </div>
 
 <!-- INPUT (single chat mode) -->
@@ -829,7 +850,7 @@ const GROQ_API_KEY       = "gsk_mIT1gfbMdIRA9KcPRYqMWGdyb3FYorNs63T5ghBB3fob5WT0
 const OPENROUTER_API_KEY = "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"
 const DARK_LOGO      = "https://i.ibb.co.com/SD7LZgmv/Picsart-26-04-29-23-27-26-445.jpg";
 const LIGHT_LOGO     = "https://i.ibb.co.com/XrH4nnQy/file-0000000005a87208a1ebd9aff2438f5f.png";
-const MODEL_LABELS   = { groq:"Groq (Llama)", qwen:"Qwen" };
+const MODEL_LABELS   = { groq:"Groq (Llama)", qwen:"Qwen", glm:"GLM (z.ai)" };
 
 // Model fallback lists
 const QWEN_MODELS = [
@@ -862,9 +883,22 @@ async function callQwen(message, history) {
   return d.reply;
 }
 
+async function callGlm(message, history) {
+  const resp = await fetch("/chat", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ message, api: "glm", sessionId: activeId || "default", history })
+  });
+  if (!resp.ok) throw new Error("Server HTTP " + resp.status);
+  const d = await resp.json();
+  if (d.reply && d.reply.startsWith("Server error:")) throw new Error(d.reply);
+  return d.reply;
+}
+
 async function callAPI(api, message, history) {
   if (api === "groq") return callGroq(message, history);
   if (api === "qwen") return callQwen(message, history);
+  if (api === "glm")  return callGlm(message, history);
   throw new Error("Unknown API: " + api);
 }
 
@@ -877,7 +911,7 @@ async function callMultiAPI(message) {
   if (!resp.ok) throw new Error("Server HTTP " + resp.status);
   const d = await resp.json();
   if (d.error) throw new Error(d.error);
-  return d.replies; // { groq: "...", qwen: "..." }
+  return d.replies; // { groq: "...", qwen: "...", glm: "..." }
 }
 
 /* ======================== STATE ======================== */
@@ -1598,11 +1632,11 @@ function cvSend(){
   const space = document.getElementById("canvasSpace");
   const vw = space.clientWidth;
 
-  // Node dimensions
-  const nodeW = Math.min(260, (vw - 60) / 2);
-  const nodeSpacing = 16;
-  const totalNodesW = nodeW * 2 + nodeSpacing;
-  const canvasCenterX = vw / 2;  // canvas center X in world space (ox=0)
+  // Node dimensions — 3 columns
+  const nodeW = Math.min(230, (vw - 72) / 3);
+  const nodeSpacing = 12;
+  const totalNodesW = nodeW * 3 + nodeSpacing * 2;
+  const canvasCenterX = vw / 2;
 
   const promptW = Math.min(280, vw - 40);
   const promptX = canvasCenterX - promptW / 2;
@@ -1625,10 +1659,12 @@ function cvSend(){
   const nodeY = promptY + 80;
   const groqX = canvasCenterX - totalNodesW / 2;
   const qwenX = groqX + nodeW + nodeSpacing;
+  const glmX  = qwenX + nodeW + nodeSpacing;
 
   const models = [
-    {api:"groq", label:"GROQ", badge:"Llama", x:groqX, y:nodeY, delay:60},
-    {api:"qwen",  label:"QWEN",  badge:"Qwen3", x:qwenX, y:nodeY, delay:160},
+    {api:"groq", label:"GROQ", badge:"Llama",   x:groqX, y:nodeY, delay:60},
+    {api:"qwen", label:"QWEN", badge:"Qwen3",   x:qwenX, y:nodeY, delay:160},
+    {api:"glm",  label:"GLM",  badge:"GLM-4.5", x:glmX,  y:nodeY, delay:260},
   ];
 
   models.forEach(({api,label,badge,x,y,delay})=>{
@@ -1676,7 +1712,7 @@ function cvSend(){
 
   callMultiAPI(msg)
   .then(replies => {
-    ["groq","qwen"].forEach(api => {
+    ["groq","qwen","glm"].forEach(api => {
       const reply = replies[api] || "Tidak ada respons";
       const ts = ut.replace(/:/g,"");
       const nodeEl = document.getElementById(`cvnode_${api}_${ts}`);
@@ -1698,11 +1734,11 @@ function cvSend(){
       }
     });
     const t = getTime();
-    addMsgToSession({ role:"multi-answer", groq:replies.groq||"", qwen:replies.qwen||"", time:t });
+    addMsgToSession({ role:"multi-answer", groq:replies.groq||"", qwen:replies.qwen||"", glm:replies.glm||"", time:t });
     cvFinish();
   })
   .catch(err=>{
-    ["groq","qwen"].forEach(api=>{
+    ["groq","qwen","glm"].forEach(api=>{
       const ts = ut.replace(/:/g,"");
       const nodeEl = document.getElementById(`cvnode_${api}_${ts}`);
       if(nodeEl){
@@ -1779,9 +1815,17 @@ function cvRestoreSession(sess){
       const lastPrompt = canvas.nodes.filter(n=>n.type==="prompt").slice(-1)[0];
       if(!lastPrompt) return;
       const nodeY = lastPrompt.y + 80;
+      const nodeW = Math.min(230, (vw - 72) / 3);
+      const nodeSpacing = 12;
+      const totalNodesW = nodeW * 3 + nodeSpacing * 2;
       const groqX = vw/2 - totalNodesW/2;
       const qwenX = groqX + nodeW + nodeSpacing;
-      [["groq",m.groq,"GROQ","Llama",groqX],["qwen",m.qwen,"QWEN","Qwen3",qwenX]].forEach(([api,reply,label,badge,x])=>{
+      const glmX  = qwenX + nodeW + nodeSpacing;
+      [
+        ["groq", m.groq, "GROQ", "Llama",   groqX],
+        ["qwen", m.qwen, "QWEN", "Qwen3",   qwenX],
+        ["glm",  m.glm,  "GLM",  "GLM-4.5", glmX]
+      ].forEach(([api,reply,label,badge,x])=>{
         const nodeEl = document.createElement("div");
         nodeEl.className = `cn-node ${api}`;
         nodeEl.style.width = nodeW + "px";
