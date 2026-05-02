@@ -19,7 +19,7 @@ const OPENROUTER_KEYS = [
   "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",
   "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",
   "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",
-  "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",
+  "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",
 ];
 
 // ============================================================
@@ -28,10 +28,14 @@ const OPENROUTER_KEYS = [
 // ============================================================
 // Gemma 4 — Google free, 262K context
 const QWEN_MODELS = [
-  "google/gemma-4-31b-it:free",              // Gemma 4 31B ⭐ (primary)
-  "google/gemma-4-26b-a4b-it:free",          // Gemma 4 26B MoE fallback
-  "qwen/qwen3-next-80b-a3b-instruct:free",   // Qwen3 Next 80B fallback
-  "meta-llama/llama-3.3-70b-instruct:free",  // Llama 70B last resort
+  "google/gemma-4-31b-it:free",
+  "google/gemma-4-26b-a4b-it:free",
+  "nvidia/nemotron-3-super-120b-a12b:free",
+  "qwen/qwen3-next-80b-a3b-instruct:free",
+  "qwen/qwen3-coder:free",
+  "meta-llama/llama-3.3-70b-instruct:free",
+  "minimax/minimax-m2.5:free",
+  "tencent/hy3-preview:free",
 ];
 
 const GPT_OSS_MODELS = [
@@ -55,6 +59,7 @@ const GLM_MODELS = [
 // bukan balik ke key 1 lagi (itulah bug yang bikin key 1 cepat habis).
 // ============================================================
 const keyPointer = { qwen: 0, gpt: 0, glm: 0 };
+const deadKeys = new Set(); // key index yang sudah 401/403 permanen
 
 const ROTATE_ON_STATUS = new Set([401, 402, 403, 429]);
 
@@ -64,6 +69,7 @@ async function fetchOpenRouter(apiName, body, timeout = 90000) {
 
   for (let attempt = 0; attempt < total; attempt++) {
     const i   = (keyPointer[apiName] + attempt) % total;
+    if (deadKeys.has(i)) continue; // skip key yang sudah mati permanen
     const key = OPENROUTER_KEYS[i];
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), timeout);
@@ -88,9 +94,14 @@ async function fetchOpenRouter(apiName, body, timeout = 90000) {
       const text = await resp.text();
 
       if (ROTATE_ON_STATUS.has(resp.status)) {
-        // Geser pointer supaya request berikutnya skip key yang habis ini
+        // 401/403 = key mati permanen, masuk blacklist
+        if (resp.status === 401 || resp.status === 403) {
+          deadKeys.add(i);
+          console.log(`💀 [${apiName}] Key ${i + 1} HTTP ${resp.status} — BLACKLISTED permanen`);
+        } else {
+          console.log(`⚠️  [${apiName}] Key ${i + 1} HTTP ${resp.status} → pindah key berikutnya`);
+        }
         keyPointer[apiName] = (i + 1) % total;
-        console.log(`⚠️  [${apiName}] Key ${i + 1} HTTP ${resp.status} → pindah key ${keyPointer[apiName] + 1}`);
         lastError = new Error(`Key ${i + 1} HTTP ${resp.status}`);
         continue;
       }
