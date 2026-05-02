@@ -194,9 +194,10 @@ header{position:relative;z-index:1000;height:var(--hdr);display:flex;align-items
 
 /* Code */
 .code-box{background:rgba(0,0,0,0.65);border:1px solid rgba(255,255,255,0.07);border-radius:12px;margin-top:10px;overflow:hidden}
-.code-hdr{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:rgba(0,0,0,0.4);border-bottom:1px solid rgba(255,255,255,0.06);gap:8px}
-.code-lang-wrap{display:flex;align-items:center;gap:7px;flex:1;min-width:0}
-.code-lang-icon{width:18px;height:18px;border-radius:4px;object-fit:contain;flex-shrink:0}
+/* Top bar: logo+lang LEFT, actions RIGHT — single flex row */
+.code-hdr{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:rgba(0,0,0,0.4);border-bottom:1px solid rgba(255,255,255,0.06);gap:8px;flex-wrap:nowrap}
+.code-lang-wrap{display:flex;align-items:center;gap:7px;flex:1;min-width:0;overflow:hidden}
+.code-lang-icon{width:18px;height:18px;border-radius:4px;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;padding:2px}
 .code-lang-icon.icon-bg-html{background:#e34c26}
 .code-lang-icon.icon-bg-css{background:#264de4}
 .code-lang-icon.icon-bg-js{background:#f0db4f}
@@ -216,20 +217,47 @@ header{position:relative;z-index:1000;height:var(--hdr);display:flex;align-items
 .code-lang-icon.icon-bg-md{background:#083fa1}
 .code-lang-icon.icon-bg-dart{background:#0175c2}
 .code-lang-icon.icon-bg-swift{background:#f05138}
-.code-lang{font-size:11px;color:rgba(255,255,255,0.45);font-family:var(--FM);letter-spacing:1px;white-space:nowrap}
+.code-lang{font-size:11px;color:rgba(255,255,255,0.5);font-family:var(--FM);letter-spacing:1px;white-space:nowrap;text-transform:uppercase}
 .code-hdr-actions{display:flex;align-items:center;gap:6px;flex-shrink:0}
 /* Preview/Code tab buttons */
-.code-tab-btn{background:transparent;border:1px solid rgba(255,255,255,0.1);color:rgba(255,255,255,0.4);padding:3px 9px;border-radius:6px;cursor:pointer;font-size:10px;font-family:var(--F);font-weight:600;letter-spacing:0.5px;transition:all 0.18s}
-.code-tab-btn.active{background:rgba(61,114,246,0.22);border-color:rgba(61,114,246,0.4);color:#7aa8f7}
-.code-tab-btn:hover:not(.active){background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.7)}
+.code-tab-btn{background:transparent;border:1px solid rgba(255,255,255,0.12);color:rgba(255,255,255,0.45);padding:3px 10px;border-radius:6px;cursor:pointer;font-size:10px;font-family:var(--F);font-weight:600;letter-spacing:0.5px;transition:all 0.18s;white-space:nowrap}
+.code-tab-btn.active{background:rgba(61,114,246,0.22);border-color:rgba(61,114,246,0.45);color:#7aa8f7}
+.code-tab-btn:hover:not(.active){background:rgba(255,255,255,0.07);color:rgba(255,255,255,0.75)}
 .copy-btn{background:rgba(61,114,246,0.16);border:1px solid rgba(61,114,246,0.26);color:#7aa8f7;padding:3px 10px;border-radius:7px;cursor:pointer;font-size:11px;font-family:var(--F);font-weight:600;transition:all 0.2s;white-space:nowrap}
 .copy-btn:hover{background:rgba(61,114,246,0.3);color:#fff}
 pre{margin:0;padding:14px;font-family:var(--FM);font-size:12px;line-height:1.7;color:#c9d2e0;overflow-x:auto;white-space:pre}
-/* Code preview iframe */
-.code-preview{width:100%;border:none;background:#fff;display:none;min-height:200px;max-height:420px;border-top:1px solid rgba(255,255,255,0.05)}
-.code-preview.active{display:block}
 .code-pre-wrap{display:block}
 .code-pre-wrap.hidden{display:none}
+
+/* ---- FULLSCREEN PREVIEW OVERLAY ---- */
+#previewOverlay{
+  display:none;position:fixed;inset:0;z-index:999990;
+  flex-direction:column;background:#fff;
+}
+#previewOverlay.active{display:flex}
+#previewOverlay .pov-hdr{
+  display:flex;align-items:center;gap:10px;
+  padding:10px 14px;
+  background:#111827;
+  border-bottom:1px solid rgba(255,255,255,0.08);
+  flex-shrink:0;
+}
+#previewOverlay .pov-back{
+  display:flex;align-items:center;gap:6px;
+  background:rgba(61,114,246,0.15);border:1px solid rgba(61,114,246,0.3);
+  color:#7aa8f7;padding:6px 12px;border-radius:9px;
+  cursor:pointer;font-family:var(--F);font-size:12px;font-weight:600;
+  transition:all 0.2s;white-space:nowrap;
+}
+#previewOverlay .pov-back:hover{background:rgba(61,114,246,0.28);color:#fff}
+#previewOverlay .pov-back svg{width:14px;height:14px;stroke:currentColor;stroke-width:2.2;fill:none}
+#previewOverlay .pov-title{font-size:12px;font-weight:600;color:rgba(255,255,255,0.5);font-family:var(--FM);letter-spacing:1px}
+#previewOverlay iframe{flex:1;width:100%;border:none;background:#fff}
+
+/* Light mode fix — multi chat user text */
+body.light .cn-prompt-text{color:#0e1226}
+body.light .cn-prompt-time{color:rgba(14,18,38,0.45)}
+body.light .cn-prompt-label{color:rgba(61,114,246,0.7)}
 
 /* ================================================================
    CANVAS SPACE — Flowith-style infinite canvas for Multi Chat
@@ -868,6 +896,18 @@ body.light .ctb-input-wrap{background:rgba(0,0,0,0.04);border-color:rgba(0,0,0,0
   </div>
 </div>
 
+<!-- FULLSCREEN PREVIEW OVERLAY -->
+<div id="previewOverlay">
+  <div class="pov-hdr">
+    <div class="pov-back" onclick="closePreviewOverlay()">
+      <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+      Kembali ke Chat
+    </div>
+    <div class="pov-title" id="previewOverlayTitle">HTML PREVIEW</div>
+  </div>
+  <iframe id="previewOverlayFrame" sandbox="allow-scripts allow-same-origin"></iframe>
+</div>
+
 <!-- MAIN CHAT -->
 <div id="chat"></div>
 
@@ -1402,15 +1442,9 @@ function renderMessage(text){
         if(isHtml){
           const iframe = document.getElementById(pid);
           if(iframe){
+            iframe.setAttribute("data-src-raw", raw);
             const doc = iframe.contentDocument || iframe.contentWindow.document;
             doc.open(); doc.write(raw); doc.close();
-            // Auto-resize iframe
-            iframe.onload = ()=>{
-              try{
-                const h = iframe.contentDocument.body.scrollHeight;
-                iframe.style.height = Math.min(Math.max(h+20,120),420)+"px";
-              }catch(e){}
-            };
           }
         }
       },80);
@@ -1421,7 +1455,7 @@ function renderMessage(text){
           <div class="code-hdr-actions">${tabBtns}<button class="copy-btn" id="${cid}">Copy</button></div>
         </div>
         <div class="code-pre-wrap" id="pre-${cid}"><pre>${code}</pre></div>
-        ${isHtml ? `<iframe class="code-preview" id="${pid}" sandbox="allow-scripts allow-same-origin"></iframe>` : ""}
+        ${isHtml ? `<iframe id="${pid}" style="display:none" sandbox="allow-scripts allow-same-origin"></iframe>` : ""}
       </div>`;
     }
   }
@@ -1430,26 +1464,44 @@ function renderMessage(text){
 
 function switchCodeTab(cid, pid, tab){
   const preWrap = document.getElementById("pre-"+cid);
-  const iframe  = document.getElementById(pid);
   const btnCode = document.getElementById("tab-code-"+cid);
   const btnPrev = document.getElementById("tab-prev-"+cid);
-  if(!preWrap || !iframe) return;
   if(tab === "preview"){
-    preWrap.classList.add("hidden");
-    iframe.classList.add("active");
-    btnCode && btnCode.classList.remove("active");
-    btnPrev && btnPrev.classList.add("active");
-    // Resize
-    try{
-      const h = iframe.contentDocument.body.scrollHeight;
-      iframe.style.height = Math.min(Math.max(h+20,120),420)+"px";
-    }catch(e){}
+    // Open fullscreen overlay
+    openPreviewOverlay(pid);
+    // Keep code tab active visually (overlay is separate)
   } else {
-    preWrap.classList.remove("hidden");
-    iframe.classList.remove("active");
+    preWrap && preWrap.classList.remove("hidden");
     btnCode && btnCode.classList.add("active");
     btnPrev && btnPrev.classList.remove("active");
   }
+}
+
+function openPreviewOverlay(pid){
+  const srcIframe = document.getElementById(pid);
+  const overlay = document.getElementById("previewOverlay");
+  const destFrame = document.getElementById("previewOverlayFrame");
+  if(!srcIframe || !overlay || !destFrame) return;
+  // Copy content from source iframe
+  try{
+    const srcDoc = srcIframe.contentDocument || srcIframe.contentWindow.document;
+    const html = srcDoc.documentElement.outerHTML;
+    const doc = destFrame.contentDocument || destFrame.contentWindow.document;
+    doc.open(); doc.write(html); doc.close();
+  } catch(e){
+    // fallback: re-write from data attribute
+    const raw = srcIframe.getAttribute("data-src-raw") || "";
+    const doc = destFrame.contentDocument || destFrame.contentWindow.document;
+    doc.open(); doc.write(raw); doc.close();
+  }
+  overlay.classList.add("active");
+  document.body.style.overflow = "hidden";
+}
+
+function closePreviewOverlay(){
+  const overlay = document.getElementById("previewOverlay");
+  if(overlay) overlay.classList.remove("active");
+  document.body.style.overflow = "";
 }
 
 /* ======================== ADD NORMAL MSG ======================== */
