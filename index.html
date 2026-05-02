@@ -498,7 +498,8 @@ body.light .ctb-input-wrap{background:rgba(0,0,0,0.04);border-color:rgba(0,0,0,0
 }
 #canvasWelcome.hiding{
   opacity:0;
-  transform:translateY(-12px) scale(0.96);
+  transform:translateY(-16px) scale(0.93);
+  filter:blur(6px);
 }
 .cv-title{
   font-size:clamp(26px,7vw,40px);
@@ -527,6 +528,46 @@ body.light .ctb-input-wrap{background:rgba(0,0,0,0.04);border-color:rgba(0,0,0,0
   box-sizing:border-box;
 }
 .cv-hint svg{width:13px;height:13px;stroke:var(--accent);stroke-width:1.8;fill:none;flex-shrink:0;opacity:0.7}
+
+/* ---- Model cards in welcome ---- */
+.cv-model-row{
+  display:flex;align-items:stretch;justify-content:center;gap:8px;
+  pointer-events:none;width:100%;max-width:340px;
+}
+.cv-model-card{
+  flex:1;
+  display:flex;flex-direction:column;align-items:center;gap:6px;
+  padding:12px 8px;border-radius:16px;
+  background:rgba(255,255,255,0.03);
+  border:1px solid rgba(255,255,255,0.07);
+  backdrop-filter:blur(12px);
+  position:relative;overflow:hidden;
+  transition:transform 0.2s;
+}
+.cv-model-card::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(160deg,rgba(255,255,255,0.04) 0%,transparent 60%);
+  pointer-events:none;
+}
+.cv-model-card.groq{border-color:rgba(61,114,246,0.25);background:rgba(61,114,246,0.06)}
+.cv-model-card.qwen{border-color:rgba(168,85,247,0.25);background:rgba(168,85,247,0.06)}
+.cv-model-card.glm{border-color:rgba(16,185,129,0.25);background:rgba(16,185,129,0.06)}
+.cv-model-icon{
+  width:36px;height:36px;border-radius:10px;
+  display:flex;align-items:center;justify-content:center;
+  overflow:hidden;
+  background:rgba(255,255,255,0.06);
+}
+.cv-model-icon img{width:26px;height:26px;object-fit:contain;border-radius:4px}
+.cv-model-card.groq .cv-model-icon{background:rgba(61,114,246,0.15);box-shadow:0 0 16px rgba(61,114,246,0.35)}
+.cv-model-card.qwen .cv-model-icon{background:rgba(168,85,247,0.08);box-shadow:0 0 16px rgba(168,85,247,0.3)}
+.cv-model-card.glm  .cv-model-icon{background:#0d1f18;box-shadow:0 0 16px rgba(16,185,129,0.3)}
+.cv-model-icon.glm-bg img{width:22px;height:22px}
+.cv-model-name{font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase}
+.cv-model-card.groq .cv-model-name{color:#7aa8f7}
+.cv-model-card.qwen .cv-model-name{color:#c4a8ff}
+.cv-model-card.glm  .cv-model-name{color:#6ee7b7}
+.cv-model-sub{font-size:9.5px;color:var(--muted);letter-spacing:0.3px;font-weight:400}
 
 /* SVG connector path styles */
 .cv-edge{stroke-width:2.2;fill:none;stroke-dasharray:6 4;animation:dashFlow 1.6s linear infinite;opacity:0.75}
@@ -628,7 +669,19 @@ body.light .ctb-input-wrap{background:rgba(0,0,0,0.04);border-color:rgba(0,0,0,0
 .cib-send:not(:disabled):hover{transform:scale(1.07) translateY(-1px);box-shadow:0 6px 24px rgba(114,72,245,0.52)}
 .cib-send svg{width:17px;height:17px}
 
-#canvasModeHint{text-align:center;font-size:11px;color:var(--muted);padding:5px 0 0;letter-spacing:0.8px;opacity:0.65}
+#canvasModeHint{text-align:center;padding:8px 0 0}
+.cib-info-row{display:flex;align-items:center;justify-content:center;gap:10px}
+.cib-chip{
+  display:inline-flex;align-items:center;gap:5px;
+  font-size:10.5px;font-weight:600;letter-spacing:0.4px;
+  pointer-events:none;
+}
+.cib-chip.groq{color:#7aa8f7}
+.cib-chip.qwen{color:#c4a8ff}
+.cib-chip.glm{color:#6ee7b7}
+.cib-logo{width:14px;height:14px;object-fit:contain;border-radius:3px;flex-shrink:0}
+.cib-logo.glm-logo{background:#0d2018;border-radius:3px;padding:1px}
+.cib-divider{width:1px;height:11px;background:rgba(255,255,255,0.12);display:inline-block;vertical-align:middle}
 
 /* Canvas mobile adjustments */
 @media(max-width:480px){
@@ -814,10 +867,27 @@ body.light .ctb-input-wrap{background:rgba(0,0,0,0.04);border-color:rgba(0,0,0,0
   <!-- Canvas welcome state — fixed center, outside canvasWorld so pan doesn't move it -->
   <div id="canvasWelcome">
     <div class="cv-title">MULTI CHAT</div>
-    <div class="cv-sub">Bandingkan 3 AI dalam satu canvas</div>
+    <div class="cv-sub">Tiga AI, satu pertanyaan, perbandingan instan</div>
+    <div class="cv-model-row">
+      <div class="cv-model-card groq">
+        <div class="cv-model-icon"><img src="https://avatars.githubusercontent.com/u/139895814?s=200&v=4" alt="Groq" onerror="this.style.display='none'"></div>
+        <div class="cv-model-name">Groq</div>
+        <div class="cv-model-sub">Llama · Fast</div>
+      </div>
+      <div class="cv-model-card qwen">
+        <div class="cv-model-icon"><img src="https://upload.wikimedia.org/wikipedia/commons/6/69/Qwen_logo.svg" alt="Qwen" onerror="this.style.display='none'"></div>
+        <div class="cv-model-name">Qwen</div>
+        <div class="cv-model-sub">Alibaba · Smart</div>
+      </div>
+      <div class="cv-model-card glm">
+        <div class="cv-model-icon glm-bg"><img src="https://logo.svgcdn.com/token-branded/glm.png" alt="GLM" onerror="this.style.display='none'"></div>
+        <div class="cv-model-name">GLM</div>
+        <div class="cv-model-sub">Zhipu · Deep</div>
+      </div>
+    </div>
     <div class="cv-hint">
-      <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-      Ketik pertanyaan di bawah untuk memulai
+      <svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+      Ketik pertanyaan di bawah untuk mulai
     </div>
   </div>
 
@@ -850,7 +920,15 @@ body.light .ctb-input-wrap{background:rgba(0,0,0,0.04);border-color:rgba(0,0,0,0
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
     </button>
   </div>
-  <div id="canvasModeHint">Groq • Qwen • GLM — Drag nodes • Pinch to zoom</div>
+  <div id="canvasModeHint">
+    <div class="cib-info-row">
+      <span class="cib-chip groq"><img class="cib-logo" src="https://avatars.githubusercontent.com/u/139895814?s=200&v=4" alt="Groq">Groq · Llama</span>
+      <span class="cib-divider"></span>
+      <span class="cib-chip qwen"><img class="cib-logo" src="https://upload.wikimedia.org/wikipedia/commons/6/69/Qwen_logo.svg" alt="Qwen">Qwen · Alibaba</span>
+      <span class="cib-divider"></span>
+      <span class="cib-chip glm"><img class="cib-logo glm-logo" src="https://logo.svgcdn.com/token-branded/glm.png" alt="GLM">GLM · Zhipu</span>
+    </div>
+  </div>
 </div>
 
 <!-- INPUT (single chat mode) -->
@@ -1776,16 +1854,19 @@ function cvSend(){
   // Reserve space for next conversation block (prompt + nodes + gap)
   canvasLayoutY += 480;
 
-  // Pan canvas to show the new block centered
+  // Kick off API call IMMEDIATELY — don't wait for pan/layout
+  const apiPromise = callMultiAPI(msg);
+
+  // Pan canvas to show the new block centered (non-blocking)
   setTimeout(()=>{
     canvas.scale = 1;
     canvas.ox = -(promptX - (vw/2 - promptW/2));
     canvas.oy = -(promptY - 40);
     cvApplyTransform();
     document.getElementById("zoomLabel").textContent = "100%";
-  }, 100);
+  }, 80);
 
-  callMultiAPI(msg)
+  apiPromise
   .then(replies => {
     ["groq","qwen","glm"].forEach(api => {
       const reply = replies[api] || "Tidak ada respons";
@@ -1843,8 +1924,9 @@ function cvHideWelcome(){
   const wc = document.getElementById("canvasWelcome");
   if(!wc || wc._gone) return;
   wc._gone = true;
+  wc.style.transition = "opacity 0.45s ease, transform 0.45s var(--ease), filter 0.45s ease";
   wc.classList.add("hiding");
-  setTimeout(()=>{ wc.style.display = "none"; }, 400);
+  setTimeout(()=>{ wc.style.display = "none"; }, 480);
 }
 
 /* ======================== CANVAS RESTORE SESSION ======================== */
