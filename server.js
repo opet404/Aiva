@@ -7,8 +7,8 @@ const app  = express();
 const PORT = 3000;
 
 // 🔑 API KEY
-const GROQ_API_KEY       = "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";
-const OPENROUTER_API_KEY = "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";
+const GROQ_API_KEY       = "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";
+const OPENROUTER_API_KEY = "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";
 
 // 🧠 SESSION MEMORY
 let chatHistories = {};
