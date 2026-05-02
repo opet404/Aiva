@@ -194,10 +194,17 @@ header{position:relative;z-index:1000;height:var(--hdr);display:flex;align-items
 
 /* Code */
 .code-box{background:rgba(0,0,0,0.65);border:1px solid rgba(255,255,255,0.07);border-radius:12px;margin-top:10px;overflow:hidden}
-/* Top bar: logo+lang LEFT, actions RIGHT — single flex row */
-.code-hdr{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:rgba(0,0,0,0.4);border-bottom:1px solid rgba(255,255,255,0.06);gap:8px;flex-wrap:nowrap}
-.code-lang-wrap{display:flex;align-items:center;gap:7px;flex:1;min-width:0;overflow:hidden}
-.code-lang-icon{width:18px;height:18px;border-radius:4px;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;padding:2px}
+/* Row 1: language badge (logo + name) */
+.code-lang-bar{
+  display:flex;align-items:center;gap:8px;
+  padding:9px 14px 8px;
+  background:rgba(0,0,0,0.55);
+  border-bottom:1px solid rgba(255,255,255,0.05);
+}
+.code-lang-icon{
+  width:20px;height:20px;border-radius:5px;flex-shrink:0;
+  display:inline-flex;align-items:center;justify-content:center;padding:2px;
+}
 .code-lang-icon.icon-bg-html{background:#e34c26}
 .code-lang-icon.icon-bg-css{background:#264de4}
 .code-lang-icon.icon-bg-js{background:#f0db4f}
@@ -217,8 +224,18 @@ header{position:relative;z-index:1000;height:var(--hdr);display:flex;align-items
 .code-lang-icon.icon-bg-md{background:#083fa1}
 .code-lang-icon.icon-bg-dart{background:#0175c2}
 .code-lang-icon.icon-bg-swift{background:#f05138}
-.code-lang{font-size:11px;color:rgba(255,255,255,0.5);font-family:var(--FM);letter-spacing:1px;white-space:nowrap;text-transform:uppercase}
-.code-hdr-actions{display:flex;align-items:center;gap:6px;flex-shrink:0}
+.code-lang-name{
+  font-size:12px;font-weight:700;letter-spacing:1.5px;
+  text-transform:uppercase;color:rgba(255,255,255,0.75);
+  font-family:var(--FM);
+}
+/* Row 2: actions (tabs + copy) */
+.code-hdr{
+  display:flex;justify-content:flex-end;align-items:center;
+  padding:6px 10px;background:rgba(0,0,0,0.4);
+  border-bottom:1px solid rgba(255,255,255,0.06);gap:6px;
+}
+.code-hdr-actions{display:flex;align-items:center;gap:6px}
 /* Preview/Code tab buttons */
 .code-tab-btn{background:transparent;border:1px solid rgba(255,255,255,0.12);color:rgba(255,255,255,0.45);padding:3px 10px;border-radius:6px;cursor:pointer;font-size:10px;font-family:var(--F);font-weight:600;letter-spacing:0.5px;transition:all 0.18s;white-space:nowrap}
 .code-tab-btn.active{background:rgba(61,114,246,0.22);border-color:rgba(61,114,246,0.45);color:#7aa8f7}
@@ -1408,8 +1425,8 @@ const LANG_ICONS = {
 function getLangIcon(lang) {
   const key = lang.toLowerCase().replace(/\s/g,'');
   const info = LANG_ICONS[key];
-  if(!info) return null;
-  return `<span class="code-lang-icon ${info.bg}" style="display:inline-flex;align-items:center;justify-content:center;padding:2px;flex-shrink:0">${info.svg}</span>`;
+  if(!info) return `<span class="code-lang-icon" style="display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;background:rgba(255,255,255,0.08);border-radius:5px"><svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="2" style="width:13px;height:13px"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg></span>`;
+  return `<span class="code-lang-icon ${info.bg}">${info.svg}</span>`;
 }
 
 /* ======================== RENDER MESSAGE ======================== */
@@ -1450,8 +1467,8 @@ function renderMessage(text){
       },80);
 
       html += `<div class="code-box">
+        <div class="code-lang-bar">${iconHtml}<span class="code-lang-name">${displayLang}</span></div>
         <div class="code-hdr">
-          <div class="code-lang-wrap">${iconHtml}<span class="code-lang">${displayLang}</span></div>
           <div class="code-hdr-actions">${tabBtns}<button class="copy-btn" id="${cid}">Copy</button></div>
         </div>
         <div class="code-pre-wrap" id="pre-${cid}"><pre>${code}</pre></div>
