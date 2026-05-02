@@ -28,8 +28,9 @@ const OPENROUTER_KEYS = [
 // ============================================================
 // Gemma 4 — Google free, 262K context
 const QWEN_MODELS = [
-  "google/gemma-4-31b-it:free",     // Gemma 4 31B, vision+tools, 262K context ⭐
-  "google/gemma-4-26b-a4b-it:free", // Gemma 4 26B MoE fallback, 262K context
+  "google/gemma-4-31b-it:free",     // Gemma 4 31B ⭐ (primary)
+  "google/gemma-4-26b-a4b-it:free", // Gemma 4 26B MoE fallback
+  "qwen/qwen3-30b-a3b:free",        // Qwen3 30B MoE fallback (lebih kecil, lebih jarang 429)
 ];
 
 const GPT_OSS_MODELS = [
@@ -37,10 +38,10 @@ const GPT_OSS_MODELS = [
   "openai/gpt-oss-20b:free",   // OpenAI 21B fallback, 131K context
 ];
 
-// GLM (ZhipuAI) models
+// GLM (Z.ai) models — provider prefix adalah z-ai bukan thudm!
 const GLM_MODELS = [
-  "thudm/glm-4.5-air:free", // GLM-4.5 Air ⭐
-  "thudm/glm-4-32b:free",   // GLM-4 32B fallback
+  "z-ai/glm-4.5-air:free", // GLM-4.5 Air ⭐ (131K context, free)
+  "thudm/glm-4-32b:free",  // GLM-4 32B fallback (thudm ini benar)
 ];
 
 // ============================================================
@@ -393,6 +394,6 @@ app.listen(PORT, () => {
   console.log(`🔑 OpenRouter keys: ${OPENROUTER_KEYS.length} keys`);
   console.log(`🤖 Qwen/Gemma: ${QWEN_MODELS.length} model → ${QWEN_MODELS.join(", ")}`);
   console.log(`🤖 GPT-OSS  : ${GPT_OSS_MODELS.length} model → ${GPT_OSS_MODELS.join(", ")}`);
-  console.log(`🤖 GLM      : ${GLM_MODELS.length} model → ${GLM_MODELS.join(", ")}`);
+  console.log(`🤖 GLM      : ${GLM_MODELS.length} model → ${GLM_MODELS.join(", ")} [provider: z-ai]`);
   console.log(`📊 Status : http://localhost:${PORT}/status`);
 });
