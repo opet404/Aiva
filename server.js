@@ -7,7 +7,7 @@ const app  = express();
 const PORT = 3000;
 
 // 🔑 API KEY
-const GROQ_API_KEY       = "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";
+const GROQ_API_KEY       = "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";
 const OPENROUTER_API_KEY = "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";
 
 // 🧠 SESSION MEMORY
