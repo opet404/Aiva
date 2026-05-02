@@ -26,6 +26,13 @@ const GLM_MODELS = [
   "z-ai/glm-4.5-air"
 ];
 
+// 🧠 MODEL GPT-OSS 20B (OpenRouter Free)
+const GPT_OSS_MODELS = [
+  "openai/gpt-4o-mini-search-preview",
+  "microsoft/phi-4-reasoning-plus:free",
+  "microsoft/phi-4:free"
+];
+
 // 🧠 SYSTEM PROMPT — full coding explanation
 const SYSTEM_CODING = `Kamu adalah AIVA, asisten AI yang cerdas dan helpful.
 PENTING: Jika user meminta kode/coding/program, WAJIB berikan:
@@ -217,6 +224,56 @@ async function callAPI(api, message, history) {
     throw lastError || new Error("Semua GLM gagal");
   }
 
+  // ================= GPT-OSS 20B (OpenRouter Free) =================
+  if (api === "gpt") {
+    let lastError = null;
+    for (const model of GPT_OSS_MODELS) {
+      try {
+        console.log("🔥 GPT-OSS coba:", model);
+        const resp = await fetchWithTimeout(
+          "https://openrouter.ai/api/v1/chat/completions",
+          {
+            method: "POST",
+            headers: {
+              "Authorization": "Bearer " + OPENROUTER_API_KEY,
+              "Content-Type": "application/json",
+              "HTTP-Referer": "http://localhost:" + PORT,
+              "X-Title": "AIVA",
+              "User-Agent": "AIVA/1.0"
+            },
+            body: JSON.stringify({
+              model,
+              temperature: 0.7,
+              max_tokens: 4096,
+              messages: [
+                { role: "system", content: SYSTEM_CODING },
+                ...history,
+                { role: "user", content: message }
+              ]
+            })
+          }
+        );
+        const text = await resp.text();
+        console.log("RAW GPT-OSS:", text.slice(0, 300));
+        if (!resp.ok) {
+          lastError = new Error(`HTTP ${resp.status} (${model}): ${text.slice(0,200)}`);
+          continue;
+        }
+        let data;
+        try { data = JSON.parse(text); } catch { lastError = new Error("JSON rusak dari " + model); continue; }
+        if (data.error) { lastError = new Error(data.error.message); continue; }
+        const content = data?.choices?.[0]?.message?.content;
+        if (!content) { lastError = new Error("Kosong dari " + model); continue; }
+        console.log("✅ GPT-OSS sukses:", model);
+        return content;
+      } catch (err) {
+        console.log("❌ GPT-OSS error:", err.message);
+        lastError = err;
+      }
+    }
+    throw lastError || new Error("Semua GPT-OSS gagal");
+  }
+
   throw new Error("API tidak dikenal");
 }
 
@@ -251,22 +308,24 @@ app.post("/chat", async (req, res) => {
 // ============================
 app.post("/multi-chat", async (req, res) => {
   try {
-    const { message } = req.body;
+    const { message, models: selectedModels } = req.body;
     if (!message) return res.json({ error: "Pesan kosong!" });
 
-    const [groq, qwen, glm] = await Promise.allSettled([
-      callAPI("groq", message, []),
-      callAPI("qwen", message, []),
-      callAPI("glm", message, [])
-    ]);
+    // selectedModels is an array like ["groq","qwen","glm","gpt"] or subset
+    const allModels = selectedModels && selectedModels.length >= 2
+      ? selectedModels
+      : ["groq","qwen","glm","gpt"];
 
-    res.json({
-      replies: {
-        groq: groq.status === "fulfilled" ? groq.value : "Gagal",
-        qwen: qwen.status === "fulfilled" ? qwen.value : "Gagal",
-        glm:  glm.status  === "fulfilled" ? glm.value  : "Gagal"
-      }
+    const results = await Promise.allSettled(
+      allModels.map(api => callAPI(api, message, []))
+    );
+
+    const replies = {};
+    allModels.forEach((api, i) => {
+      replies[api] = results[i].status === "fulfilled" ? results[i].value : "Gagal";
     });
+
+    res.json({ replies });
 
   } catch (err) {
     res.json({ error: err.message });
