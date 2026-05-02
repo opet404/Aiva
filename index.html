@@ -21,7 +21,6 @@
   --ease:cubic-bezier(0.22,1,0.36,1);
   /* model colors */
   --groq:#3d72f6;--qwen:#a855f7;
-  --chatgpt:#10a37f;--claude:#d97706;--gemini:#4285f4;--deepseek:#06b6d4;
 }
 body.light{
   --bg:#f1f3fb;--surface:rgba(255,255,255,0.92);--surface2:rgba(243,245,255,0.85);
@@ -178,14 +177,14 @@ header{position:relative;z-index:1000;height:var(--hdr);display:flex;align-items
 @keyframes slideDown{to{opacity:0;transform:translateY(-18px);height:0;padding:0;overflow:hidden}}
 
 /* Normal messages */
-.msg{max-width:88%;padding:12px 16px;border-radius:var(--r-md);font-size:14px;line-height:1.65;word-break:break-word;animation:msgIn 0.28s var(--ease)}
-.user{white-space:pre-wrap;background:var(--user-grad);color:#fff;align-self:flex-end;border-radius:var(--r-md) var(--r-md) 4px var(--r-md);box-shadow:0 4px 22px rgba(61,114,246,0.28);font-weight:500}
+.msg{max-width:80%;padding:12px 16px;border-radius:var(--r-md);font-size:14px;line-height:1.65;white-space:pre-wrap;word-break:break-word;animation:msgIn 0.28s var(--ease)}
 @keyframes msgIn{from{opacity:0;transform:translateY(10px) scale(0.97)}to{opacity:1;transform:none}}
-.ai{background:var(--ai-bg);color:var(--text);align-self:flex-start;border:1px solid var(--gb);border-radius:var(--r-md) var(--r-md) var(--r-md) 4px;backdrop-filter:blur(14px);transition:box-shadow 0.2s;}
+.user{background:var(--user-grad);color:#fff;align-self:flex-end;border-radius:var(--r-md) var(--r-md) 4px var(--r-md);box-shadow:0 4px 22px rgba(61,114,246,0.28);font-weight:500}
+.ai{background:var(--ai-bg);color:var(--text);align-self:flex-start;border:1px solid var(--gb);border-radius:var(--r-md) var(--r-md) var(--r-md) 4px;backdrop-filter:blur(14px);transition:box-shadow 0.2s}
 .ai:hover{box-shadow:0 0 28px rgba(61,114,246,0.14)}
 .msg-time{font-size:10px;color:rgba(255,255,255,0.32);margin-top:5px;text-align:right;letter-spacing:0.5px}
 .ai .msg-time{color:var(--muted);text-align:left}
-.text{line-height:1.7;white-space:pre-wrap;word-break:break-word;}
+.text{line-height:1.7}
 
 /* Typing */
 .typing-bubble{align-self:flex-start;background:var(--ai-bg);border:1px solid var(--gb);border-radius:var(--r-md) var(--r-md) var(--r-md) 4px;padding:14px 18px;display:inline-flex;align-items:center;gap:5px;backdrop-filter:blur(14px);animation:msgIn 0.28s var(--ease)}
@@ -194,12 +193,12 @@ header{position:relative;z-index:1000;height:var(--hdr);display:flex;align-items
 @keyframes tdA{0%,60%,100%{transform:translateY(0);opacity:0.35}30%{transform:translateY(-6px);opacity:1}}
 
 /* Code */
-.code-box{background:rgba(0,0,0,0.65);border:1px solid rgba(255,255,255,0.07);border-radius:12px;margin-top:10px;overflow:hidden;max-width:100%;}
+.code-box{background:rgba(0,0,0,0.65);border:1px solid rgba(255,255,255,0.07);border-radius:12px;margin-top:10px;overflow:hidden}
 .code-hdr{display:flex;justify-content:space-between;align-items:center;padding:8px 14px;background:rgba(0,0,0,0.4);border-bottom:1px solid rgba(255,255,255,0.06)}
 .code-lang{font-size:11px;color:rgba(255,255,255,0.32);font-family:var(--FM);letter-spacing:1px}
 .copy-btn{background:rgba(61,114,246,0.16);border:1px solid rgba(61,114,246,0.26);color:#7aa8f7;padding:3px 10px;border-radius:7px;cursor:pointer;font-size:11px;font-family:var(--F);font-weight:600;transition:all 0.2s}
 .copy-btn:hover{background:rgba(61,114,246,0.3);color:#fff}
-pre{margin:0;padding:14px;font-family:var(--FM);font-size:12px;line-height:1.7;color:#c9d2e0;overflow-x:auto;overflow-y:visible;white-space:pre;word-break:normal;word-wrap:normal;}
+pre{margin:0;padding:14px;font-family:var(--FM);font-size:12px;line-height:1.7;color:#c9d2e0;overflow-x:auto;white-space:pre}
 
 /* ================================================================
    CANVAS SPACE — Flowith-style infinite canvas for Multi Chat
@@ -277,10 +276,10 @@ body.light #canvasSpace::before{
   box-shadow:0 6px 36px rgba(0,0,0,0.35);
   animation:cnNodeIn 0.42s var(--ease) both;
   transition:box-shadow 0.22s, transform 0.18s var(--ease);
-  cursor:default;
+  cursor:grab;
   user-select:none;
 }
-.cn-node:active{cursor:default}
+.cn-node:active{cursor:grabbing}
 .cn-node:hover{transform:translateY(-2px);}
 @keyframes cnNodeIn{from{opacity:0;transform:scale(0.88) translateY(20px)}to{opacity:1;transform:none}}
 
@@ -294,38 +293,10 @@ body.light #canvasSpace::before{
   border:1.5px solid rgba(168,85,247,0.4);
   box-shadow:0 6px 36px rgba(168,85,247,0.16);
 }
-.cn-node.chatgpt{
-  background:rgba(4,26,22,0.92);
-  border:1.5px solid rgba(16,163,127,0.4);
-  box-shadow:0 6px 36px rgba(16,163,127,0.16);
-}
-.cn-node.claude{
-  background:rgba(28,18,6,0.92);
-  border:1.5px solid rgba(217,119,6,0.4);
-  box-shadow:0 6px 36px rgba(217,119,6,0.16);
-}
-.cn-node.gemini{
-  background:rgba(5,14,35,0.92);
-  border:1.5px solid rgba(66,133,244,0.4);
-  box-shadow:0 6px 36px rgba(66,133,244,0.16);
-}
-.cn-node.deepseek{
-  background:rgba(2,22,26,0.92);
-  border:1.5px solid rgba(6,182,212,0.4);
-  box-shadow:0 6px 36px rgba(6,182,212,0.16);
-}
 .cn-node.groq:hover{box-shadow:0 12px 48px rgba(61,114,246,0.28),0 0 0 3px rgba(61,114,246,0.08)}
 .cn-node.qwen:hover{box-shadow:0 12px 48px rgba(168,85,247,0.28),0 0 0 3px rgba(168,85,247,0.08)}
-.cn-node.chatgpt:hover{box-shadow:0 12px 48px rgba(16,163,127,0.28),0 0 0 3px rgba(16,163,127,0.08)}
-.cn-node.claude:hover{box-shadow:0 12px 48px rgba(217,119,6,0.28),0 0 0 3px rgba(217,119,6,0.08)}
-.cn-node.gemini:hover{box-shadow:0 12px 48px rgba(66,133,244,0.28),0 0 0 3px rgba(66,133,244,0.08)}
-.cn-node.deepseek:hover{box-shadow:0 12px 48px rgba(6,182,212,0.28),0 0 0 3px rgba(6,182,212,0.08)}
 body.light .cn-node.groq{background:rgba(240,246,255,0.97);border-color:rgba(61,114,246,0.3)}
 body.light .cn-node.qwen{background:rgba(248,242,255,0.97);border-color:rgba(168,85,247,0.3)}
-body.light .cn-node.chatgpt{background:rgba(240,252,249,0.97);border-color:rgba(16,163,127,0.3)}
-body.light .cn-node.claude{background:rgba(255,250,240,0.97);border-color:rgba(217,119,6,0.3)}
-body.light .cn-node.gemini{background:rgba(240,246,255,0.97);border-color:rgba(66,133,244,0.3)}
-body.light .cn-node.deepseek{background:rgba(240,252,255,0.97);border-color:rgba(6,182,212,0.3)}
 
 /* Node header */
 .cn-node-hdr{
@@ -339,18 +310,8 @@ body.light .cn-node.deepseek{background:rgba(240,252,255,0.97);border-color:rgba
 }
 .cn-node.groq .cn-node-hdr{background:linear-gradient(90deg,rgba(61,114,246,0.18),rgba(61,114,246,0.04));border-bottom:1px solid rgba(61,114,246,0.2)}
 .cn-node.qwen .cn-node-hdr{background:linear-gradient(90deg,rgba(168,85,247,0.18),rgba(168,85,247,0.04));border-bottom:1px solid rgba(168,85,247,0.2)}
-.cn-node.groq .cn-node-hdr{background:linear-gradient(90deg,rgba(61,114,246,0.18),rgba(61,114,246,0.04));border-bottom:1px solid rgba(61,114,246,0.2)}
-.cn-node.qwen .cn-node-hdr{background:linear-gradient(90deg,rgba(168,85,247,0.18),rgba(168,85,247,0.04));border-bottom:1px solid rgba(168,85,247,0.2)}
-.cn-node.chatgpt .cn-node-hdr{background:linear-gradient(90deg,rgba(16,163,127,0.18),rgba(16,163,127,0.04));border-bottom:1px solid rgba(16,163,127,0.2)}
-.cn-node.claude .cn-node-hdr{background:linear-gradient(90deg,rgba(217,119,6,0.18),rgba(217,119,6,0.04));border-bottom:1px solid rgba(217,119,6,0.2)}
-.cn-node.gemini .cn-node-hdr{background:linear-gradient(90deg,rgba(66,133,244,0.18),rgba(66,133,244,0.04));border-bottom:1px solid rgba(66,133,244,0.2)}
-.cn-node.deepseek .cn-node-hdr{background:linear-gradient(90deg,rgba(6,182,212,0.18),rgba(6,182,212,0.04));border-bottom:1px solid rgba(6,182,212,0.2)}
 body.light .cn-node.groq .cn-node-hdr{background:linear-gradient(90deg,rgba(61,114,246,0.1),transparent);border-bottom-color:rgba(61,114,246,0.15)}
 body.light .cn-node.qwen .cn-node-hdr{background:linear-gradient(90deg,rgba(168,85,247,0.1),transparent);border-bottom-color:rgba(168,85,247,0.15)}
-body.light .cn-node.chatgpt .cn-node-hdr{background:linear-gradient(90deg,rgba(16,163,127,0.1),transparent);border-bottom-color:rgba(16,163,127,0.15)}
-body.light .cn-node.claude .cn-node-hdr{background:linear-gradient(90deg,rgba(217,119,6,0.1),transparent);border-bottom-color:rgba(217,119,6,0.15)}
-body.light .cn-node.gemini .cn-node-hdr{background:linear-gradient(90deg,rgba(66,133,244,0.1),transparent);border-bottom-color:rgba(66,133,244,0.15)}
-body.light .cn-node.deepseek .cn-node-hdr{background:linear-gradient(90deg,rgba(6,182,212,0.1),transparent);border-bottom-color:rgba(6,182,212,0.15)}
 
 /* Drag grip dots */
 .cn-node-grip{
@@ -359,37 +320,21 @@ body.light .cn-node.deepseek .cn-node-hdr{background:linear-gradient(90deg,rgba(
 .cn-node-grip span{width:3px;height:3px;border-radius:50%;background:currentColor;display:block}
 .cn-node.groq .cn-node-grip{color:#7aa8f7}
 .cn-node.qwen .cn-node-grip{color:#c4a8ff}
-.cn-node.chatgpt .cn-node-grip{color:#5eead4}
-.cn-node.claude .cn-node-grip{color:#fbbf24}
-.cn-node.gemini .cn-node-grip{color:#93c5fd}
-.cn-node.deepseek .cn-node-grip{color:#67e8f9}
 
 /* Status dot (glow) */
 .cn-node-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
 .cn-node.groq .cn-node-dot{background:var(--groq);box-shadow:0 0 10px rgba(61,114,246,0.8)}
 .cn-node.qwen .cn-node-dot{background:var(--qwen);box-shadow:0 0 10px rgba(168,85,247,0.8)}
-.cn-node.chatgpt .cn-node-dot{background:var(--chatgpt);box-shadow:0 0 10px rgba(16,163,127,0.8)}
-.cn-node.claude .cn-node-dot{background:var(--claude);box-shadow:0 0 10px rgba(217,119,6,0.8)}
-.cn-node.gemini .cn-node-dot{background:var(--gemini);box-shadow:0 0 10px rgba(66,133,244,0.8)}
-.cn-node.deepseek .cn-node-dot{background:var(--deepseek);box-shadow:0 0 10px rgba(6,182,212,0.8)}
 .cn-node.loading .cn-node-dot{animation:dotPulse 1.2s ease-in-out infinite}
 @keyframes dotPulse{0%,100%{opacity:0.4;transform:scale(0.8)}50%{opacity:1;transform:scale(1.2)}}
 
 .cn-node-label{font-size:11px;font-weight:700;letter-spacing:1.8px;text-transform:uppercase;flex:1}
 .cn-node.groq .cn-node-label{color:#7aa8f7}
 .cn-node.qwen .cn-node-label{color:#c4a8ff}
-.cn-node.chatgpt .cn-node-label{color:#5eead4}
-.cn-node.claude .cn-node-label{color:#fbbf24}
-.cn-node.gemini .cn-node-label{color:#93c5fd}
-.cn-node.deepseek .cn-node-label{color:#67e8f9}
 
 .cn-node-badge{font-size:9px;padding:2px 8px;border-radius:20px;font-weight:600;letter-spacing:0.4px}
 .cn-node.groq .cn-node-badge{background:rgba(61,114,246,0.15);color:#7aa8f7;border:1px solid rgba(61,114,246,0.28)}
 .cn-node.qwen .cn-node-badge{background:rgba(168,85,247,0.15);color:#c4a8ff;border:1px solid rgba(168,85,247,0.28)}
-.cn-node.chatgpt .cn-node-badge{background:rgba(16,163,127,0.15);color:#5eead4;border:1px solid rgba(16,163,127,0.28)}
-.cn-node.claude .cn-node-badge{background:rgba(217,119,6,0.15);color:#fbbf24;border:1px solid rgba(217,119,6,0.28)}
-.cn-node.gemini .cn-node-badge{background:rgba(66,133,244,0.15);color:#93c5fd;border:1px solid rgba(66,133,244,0.28)}
-.cn-node.deepseek .cn-node-badge{background:rgba(6,182,212,0.15);color:#67e8f9;border:1px solid rgba(6,182,212,0.28)}
 
 /* Node body */
 .cn-node-body{
@@ -397,14 +342,13 @@ body.light .cn-node.deepseek .cn-node-hdr{background:linear-gradient(90deg,rgba(
   font-size:12.5px;line-height:1.68;
   color:var(--text);
   word-break:break-word;
-  max-height:520px;
+  max-height:260px;
   min-height:60px;
   overflow-y:auto;
   overflow-x:hidden;
   scrollbar-width:thin;
   scrollbar-color:rgba(255,255,255,0.15) transparent;
   -webkit-overflow-scrolling:touch;
-  touch-action:pan-y;
 }
 .cn-node-body::-webkit-scrollbar{width:3px}
 .cn-node-body::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.18);border-radius:3px}
@@ -425,10 +369,6 @@ body.light .cn-node-time{border-top-color:rgba(0,0,0,0.06)}
 .cn-loading .td{width:6px;height:6px;border-radius:50%;animation:tdA 1.3s ease-in-out infinite}
 .cn-node.groq .cn-loading .td{background:var(--groq)}
 .cn-node.qwen .cn-loading .td{background:var(--qwen)}
-.cn-node.chatgpt .cn-loading .td{background:var(--chatgpt)}
-.cn-node.claude .cn-loading .td{background:var(--claude)}
-.cn-node.gemini .cn-loading .td{background:var(--gemini)}
-.cn-node.deepseek .cn-loading .td{background:var(--deepseek)}
 .cn-loading .td:nth-child(2){animation-delay:0.15s}
 .cn-loading .td:nth-child(3){animation-delay:0.3s}
 
@@ -520,29 +460,26 @@ body.light .ctb-input-wrap{background:rgba(0,0,0,0.04);border-color:rgba(0,0,0,0
 /* ---- CANVAS WELCOME ---- */
 #canvasWelcome{
   position:fixed;
-  top:50%;
-  left:50%;
-  transform:translate(-50%, calc(-50% + var(--hdr)/2));
+  top:50%;left:50%;
+  transform:translate(-50%,-50%);
   text-align:center;
   display:flex;flex-direction:column;align-items:center;gap:16px;
   animation:cnNodeIn 0.5s var(--ease) 0.1s both;
   z-index:50;
-  width:min(340px, 88vw);
+  width:min(320px, 84vw);
   pointer-events:none;
   transition:opacity 0.35s ease, transform 0.35s ease;
 }
 #canvasWelcome.hiding{
   opacity:0;
-  transform:translate(-50%, calc(-54% + var(--hdr)/2)) scale(0.94);
+  transform:translate(-50%,-54%) scale(0.94);
 }
 .cv-title{
-  font-size:clamp(22px,8vw,40px);
-  font-weight:800;letter-spacing:6px;line-height:1.15;
+  font-size:clamp(26px,9vw,42px);
+  font-weight:800;letter-spacing:6px;line-height:1.1;
   background:linear-gradient(90deg,#3d72f6,#a78bf5);
   -webkit-background-clip:text;-webkit-text-fill-color:transparent;
-  white-space:normal;
-  word-break:keep-all;
-  width:100%;
+  white-space:nowrap;
 }
 .cv-sub{
   font-size:13px;color:var(--muted);letter-spacing:0.3px;line-height:1.65;
@@ -562,19 +499,11 @@ body.light .ctb-input-wrap{background:rgba(0,0,0,0.04);border-color:rgba(0,0,0,0
 @keyframes dashFlow{from{stroke-dashoffset:0}to{stroke-dashoffset:-20}}
 .cv-edge.groq{stroke:url(#edgeGradGroq)}
 .cv-edge.qwen{stroke:url(#edgeGradQwen)}
-.cv-edge.chatgpt{stroke:url(#edgeGradChatgpt)}
-.cv-edge.claude{stroke:url(#edgeGradClaude)}
-.cv-edge.gemini{stroke:url(#edgeGradGemini)}
-.cv-edge.deepseek{stroke:url(#edgeGradDeeseek)}
 
 /* Edge dot terminus */
 .cv-edge-dot{r:4;animation:dotPop 0.5s var(--ease) both}
 .cv-edge-dot.groq{fill:var(--groq)}
 .cv-edge-dot.qwen{fill:var(--qwen)}
-.cv-edge-dot.chatgpt{fill:var(--chatgpt)}
-.cv-edge-dot.claude{fill:var(--claude)}
-.cv-edge-dot.gemini{fill:var(--gemini)}
-.cv-edge-dot.deepseek{fill:var(--deepseek)}
 @keyframes dotPop{from{r:0;opacity:0}to{opacity:1}}
 
 /* ---- MINI MAP ---- */
@@ -599,11 +528,10 @@ body.light .ctb-input-wrap{background:rgba(0,0,0,0.04);border-color:rgba(0,0,0,0
   bottom:0;left:0;right:0;
   z-index:200;
   display:none;
-  padding:6px 0 10px;
+  padding:10px 16px 16px;
   background:var(--surface);
   border-top:1px solid var(--gb);
   backdrop-filter:blur(22px);
-  text-align:center;
 }
 #canvasInputBar.visible{display:block}
 
@@ -614,114 +542,22 @@ body.light .ctb-input-wrap{background:rgba(0,0,0,0.04);border-color:rgba(0,0,0,0
   border-radius:20px;
   padding:8px 8px 8px 16px;
   transition:border-color 0.22s,box-shadow 0.22s;
-  margin:4px 14px 0;
+  position:relative;
 }
 .cib-wrap:focus-within{
   border-color:rgba(168,85,247,0.55);
   box-shadow:0 0 0 3px rgba(168,85,247,0.1),0 8px 28px rgba(0,0,0,0.2);
 }
 .cib-model-tags{
-  display:flex;gap:4px;flex-wrap:wrap;
-  padding:4px 14px 0;
-  min-height:0;
+  position:absolute;top:-10px;left:14px;
+  display:flex;gap:5px;
 }
-.cib-model-tags:empty{display:none}
 .cib-tag{
-  font-size:9px;font-weight:700;letter-spacing:0.8px;
+  font-size:9px;font-weight:700;letter-spacing:1px;
   padding:2px 8px;border-radius:20px;
-  flex-shrink:0;
 }
 .cib-tag.groq{background:rgba(61,114,246,0.2);color:#7aa8f7;border:1px solid rgba(61,114,246,0.3)}
 .cib-tag.qwen{background:rgba(168,85,247,0.2);color:#c4a8ff;border:1px solid rgba(168,85,247,0.3)}
-.cib-tag.chatgpt{background:rgba(16,163,127,0.2);color:#5eead4;border:1px solid rgba(16,163,127,0.3)}
-.cib-tag.claude{background:rgba(217,119,6,0.2);color:#fbbf24;border:1px solid rgba(217,119,6,0.3)}
-.cib-tag.gemini{background:rgba(66,133,244,0.2);color:#93c5fd;border:1px solid rgba(66,133,244,0.3)}
-.cib-tag.deepseek{background:rgba(6,182,212,0.2);color:#67e8f9;border:1px solid rgba(6,182,212,0.3)}
-
-/* Multi-model selector for canvas — compact collapsible */
-.cib-model-selector{
-  display:grid;
-  grid-template-columns:repeat(6,1fr);
-  gap:5px;
-  padding:6px 10px 4px;
-  max-height:100px;
-  transition:all 0.3s var(--ease);
-  overflow:hidden;
-}
-.cib-model-selector.collapsed{
-  max-height:0;padding:0 10px;pointer-events:none;opacity:0;
-}
-.cib-model-check{
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
-  gap:3px;
-  padding:6px 4px 5px;
-  border-radius:11px;
-  border:1.5px solid rgba(255,255,255,0.07);
-  background:rgba(255,255,255,0.03);
-  cursor:pointer;
-  font-size:9px;font-weight:700;letter-spacing:0.3px;
-  color:rgba(255,255,255,0.3);
-  transition:all 0.22s var(--ease);
-  user-select:none;
-  position:relative;
-  overflow:hidden;
-}
-.cib-model-check::before{
-  content:'';position:absolute;inset:0;opacity:0;
-  transition:opacity 0.22s;
-  background:radial-gradient(ellipse at 50% 0%,currentColor 0%,transparent 70%);
-  pointer-events:none;
-}
-.cib-model-check.on::before{opacity:0.07}
-.cib-model-check .cmc-logo{
-  width:22px;height:22px;border-radius:6px;
-  object-fit:contain;
-  opacity:0.35;
-  transition:opacity 0.22s, transform 0.22s var(--ease);
-  flex-shrink:0;
-}
-.cib-model-check.on .cmc-logo{opacity:1;transform:scale(1.08)}
-.cib-model-check .cmc-name{
-  font-size:8px;font-weight:700;letter-spacing:0.3px;
-  transition:color 0.22s;
-  white-space:nowrap;
-}
-.cib-model-check .cmc-check{
-  position:absolute;top:3px;right:4px;
-  width:11px;height:11px;border-radius:50%;
-  border:1.5px solid rgba(255,255,255,0.15);
-  display:flex;align-items:center;justify-content:center;
-  transition:all 0.2s var(--ease);
-  background:transparent;
-}
-.cib-model-check.on .cmc-check{
-  border-color:currentColor;
-  background:currentColor;
-}
-.cib-model-check .cmc-check::after{
-  content:'';width:4px;height:4px;border-radius:50%;
-  background:#fff;opacity:0;transition:opacity 0.15s;
-}
-.cib-model-check.on .cmc-check::after{opacity:1}
-
-/* Model-specific active colors */
-.cib-model-check.on.groq{border-color:rgba(61,114,246,0.55);color:#7aa8f7;background:rgba(61,114,246,0.1)}
-.cib-model-check.on.qwen{border-color:rgba(168,85,247,0.55);color:#c4a8ff;background:rgba(168,85,247,0.1)}
-.cib-model-check.on.chatgpt{border-color:rgba(16,163,127,0.55);color:#5eead4;background:rgba(16,163,127,0.1)}
-.cib-model-check.on.claude{border-color:rgba(217,119,6,0.55);color:#fbbf24;background:rgba(217,119,6,0.1)}
-.cib-model-check.on.gemini{border-color:rgba(66,133,244,0.55);color:#93c5fd;background:rgba(66,133,244,0.1)}
-.cib-model-check.on.deepseek{border-color:rgba(6,182,212,0.55);color:#67e8f9;background:rgba(6,182,212,0.1)}
-
-body.light .cib-model-check{border-color:rgba(0,0,0,0.1);background:rgba(0,0,0,0.03);color:rgba(0,0,0,0.35)}
-body.light .cib-model-check.on.groq{background:rgba(61,114,246,0.08)}
-body.light .cib-model-check.on.qwen{background:rgba(168,85,247,0.08)}
-body.light .cib-model-check.on.chatgpt{background:rgba(16,163,127,0.08)}
-body.light .cib-model-check.on.claude{background:rgba(217,119,6,0.08)}
-body.light .cib-model-check.on.gemini{background:rgba(66,133,244,0.08)}
-body.light .cib-model-check.on.deepseek{background:rgba(6,182,212,0.08)}
-
-/* Single mode model switcher in panel */
-.panel-model-row{display:flex;flex-direction:column;gap:3px;padding:2px 0}
 
 #canvasText{
   flex:1;border:none;outline:none;resize:none;
@@ -755,7 +591,7 @@ body.light .cib-model-check.on.deepseek{background:rgba(6,182,212,0.08)}
 .cib-send:not(:disabled):hover{transform:scale(1.07) translateY(-1px);box-shadow:0 6px 24px rgba(114,72,245,0.52)}
 .cib-send svg{width:17px;height:17px}
 
-#canvasModeHint{text-align:center;font-size:10px;color:var(--muted);padding:4px 14px 0;letter-spacing:0.3px;width:100%;display:block}
+#canvasModeHint{text-align:center;font-size:11px;color:var(--muted);padding:4px 0 0;letter-spacing:0.5px}
 
 /* Canvas mobile adjustments */
 @media(max-width:480px){
@@ -873,22 +709,10 @@ body.light .cib-model-check.on.deepseek{background:rgba(6,182,212,0.08)}
   </button>
   <div class="panel-label" style="margin-top:6px">API (Single Mode)</div>
   <button onclick="setAPI('groq')">
-    <img src="https://avatars.githubusercontent.com/u/139895814?s=200&v=4" style="width:16px;height:16px;border-radius:5px;object-fit:cover"> Groq (Llama)
+    <img src="https://avatars.githubusercontent.com/u/139895814?s=200&v=4" style="width:15px;height:15px;border-radius:4px"> Groq
   </button>
   <button onclick="setAPI('qwen')">
-    <img src="https://upload.wikimedia.org/wikipedia/commons/6/69/Qwen_logo.svg" style="width:16px;height:16px;border-radius:5px;object-fit:contain"> Qwen
-  </button>
-  <button onclick="setAPI('chatgpt')">
-    <img src="https://upload.wikimedia.org/wikipedia/commons/0/04/ChatGPT_logo.svg" style="width:16px;height:16px;border-radius:5px;object-fit:contain"> ChatGPT
-  </button>
-  <button onclick="setAPI('claude')">
-    <img src="https://storage.googleapis.com/prd-rekko-public/anthropic.png" style="width:16px;height:16px;border-radius:5px;object-fit:contain" onerror="this.src='https://www.anthropic.com/favicon.ico'"> Claude
-  </button>
-  <button onclick="setAPI('gemini')">
-    <img src="https://www.gstatic.com/lamda/images/gemini_sparkle_v002_d4735304ff6292a690345.svg" style="width:16px;height:16px;border-radius:5px;object-fit:contain"> Gemini
-  </button>
-  <button onclick="setAPI('deepseek')">
-    <img src="https://www.deepseek.com/favicon.ico" style="width:16px;height:16px;border-radius:5px;object-fit:contain" onerror="this.style.display='none'"> DeepSeek
+    <img src="https://upload.wikimedia.org/wikipedia/commons/6/69/Qwen_logo.svg" style="width:15px;height:15px;border-radius:4px"> Qwen
   </button>
 </div>
 
@@ -937,22 +761,6 @@ body.light .cib-model-check.on.deepseek{background:rgba(6,182,212,0.08)}
         <stop offset="0%" stop-color="#a855f7" stop-opacity="0.9"/>
         <stop offset="100%" stop-color="#a855f7" stop-opacity="0.3"/>
       </linearGradient>
-      <linearGradient id="edgeGradChatgpt" x1="0%" y1="0%" x2="100%" y2="0%">
-        <stop offset="0%" stop-color="#10a37f" stop-opacity="0.9"/>
-        <stop offset="100%" stop-color="#10a37f" stop-opacity="0.3"/>
-      </linearGradient>
-      <linearGradient id="edgeGradClaude" x1="0%" y1="0%" x2="100%" y2="0%">
-        <stop offset="0%" stop-color="#d97706" stop-opacity="0.9"/>
-        <stop offset="100%" stop-color="#d97706" stop-opacity="0.3"/>
-      </linearGradient>
-      <linearGradient id="edgeGradGemini" x1="0%" y1="0%" x2="100%" y2="0%">
-        <stop offset="0%" stop-color="#4285f4" stop-opacity="0.9"/>
-        <stop offset="100%" stop-color="#4285f4" stop-opacity="0.3"/>
-      </linearGradient>
-      <linearGradient id="edgeGradDeeseek" x1="0%" y1="0%" x2="100%" y2="0%">
-        <stop offset="0%" stop-color="#06b6d4" stop-opacity="0.9"/>
-        <stop offset="100%" stop-color="#06b6d4" stop-opacity="0.3"/>
-      </linearGradient>
     </defs>
   </svg>
   <div id="canvasWorld">
@@ -984,75 +792,20 @@ body.light .cib-model-check.on.deepseek{background:rgba(6,182,212,0.08)}
 
 <!-- CANVAS INPUT BAR (bottom, only shown in multi mode) -->
 <div id="canvasInputBar">
-  <!-- Minimize handle — tap strip di atas untuk minimize seluruh bar -->
-  <div id="cibMinimizeHandle" onclick="toggleInputBar()" style="display:flex;align-items:center;justify-content:center;padding:4px 0 2px;cursor:pointer;opacity:0.4;transition:opacity 0.2s" onmouseenter="this.style.opacity='0.9'" onmouseleave="this.style.opacity='0.4'">
-    <div style="width:36px;height:4px;border-radius:3px;background:var(--muted)"></div>
+  <div class="cib-wrap" id="cibWrap">
+    <div class="cib-model-tags">
+      <span class="cib-tag groq">GROQ</span>
+      <span class="cib-tag qwen">QWEN</span>
+    </div>
+    <textarea id="canvasText" placeholder="Tanya ke 2 model sekaligus..." rows="1"></textarea>
+    <button class="cib-stop" id="cibStop" onclick="stopCanvas()">
+      <svg viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>
+    </button>
+    <button class="cib-send" id="cibSend" disabled>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+    </button>
   </div>
-
-  <!-- Bar isi (selector + input) -->
-  <div id="cibInner">
-    <div style="padding:2px 14px 0;display:flex;align-items:center;justify-content:space-between">
-      <span style="font-size:9px;font-weight:700;letter-spacing:2px;color:rgba(255,255,255,0.2);text-transform:uppercase">Pilih Model</span>
-      <div style="display:flex;align-items:center;gap:8px">
-        <span id="cibModelCount" style="font-size:9px;font-weight:600;color:var(--muted);letter-spacing:0.5px">2 aktif</span>
-        <button id="cibCollapseBtn" onclick="toggleModelSelector(event)" style="width:22px;height:22px;border:1px solid rgba(255,255,255,0.1);border-radius:6px;background:rgba(255,255,255,0.05);color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s;padding:0" title="Sembunyikan/tampilkan pilihan model">
-          <svg id="cibCollapseIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:11px;height:11px;transition:transform 0.3s"><polyline points="18 15 12 9 6 15"/></svg>
-        </button>
-      </div>
-    </div>
-    <div class="cib-model-selector" id="cibModelSelector">
-      <div class="cib-model-check on groq" data-model="groq" onclick="toggleMultiModel('groq')">
-        <div class="cmc-check"></div>
-        <img class="cmc-logo" src="https://avatars.githubusercontent.com/u/139895814?s=200&v=4" alt="Groq">
-        <span class="cmc-name">GROQ</span>
-      </div>
-      <div class="cib-model-check on qwen" data-model="qwen" onclick="toggleMultiModel('qwen')">
-        <div class="cmc-check"></div>
-        <img class="cmc-logo" src="https://upload.wikimedia.org/wikipedia/commons/6/69/Qwen_logo.svg" alt="Qwen">
-        <span class="cmc-name">QWEN</span>
-      </div>
-      <div class="cib-model-check chatgpt" data-model="chatgpt" onclick="toggleMultiModel('chatgpt')">
-        <div class="cmc-check"></div>
-        <img class="cmc-logo" src="https://upload.wikimedia.org/wikipedia/commons/0/04/ChatGPT_logo.svg" alt="ChatGPT">
-        <span class="cmc-name">ChatGPT</span>
-      </div>
-      <div class="cib-model-check claude" data-model="claude" onclick="toggleMultiModel('claude')">
-        <div class="cmc-check"></div>
-        <img class="cmc-logo" src="https://storage.googleapis.com/prd-rekko-public/anthropic.png" alt="Claude" onerror="this.src='https://www.anthropic.com/favicon.ico'">
-        <span class="cmc-name">Claude</span>
-      </div>
-      <div class="cib-model-check gemini" data-model="gemini" onclick="toggleMultiModel('gemini')">
-        <div class="cmc-check"></div>
-        <img class="cmc-logo" src="https://www.gstatic.com/lamda/images/gemini_sparkle_v002_d4735304ff6292a690345.svg" alt="Gemini">
-        <span class="cmc-name">Gemini</span>
-      </div>
-      <div class="cib-model-check deepseek" data-model="deepseek" onclick="toggleMultiModel('deepseek')">
-        <div class="cmc-check"></div>
-        <img class="cmc-logo" src="https://www.deepseek.com/favicon.ico" alt="DeepSeek" onerror="this.style.display='none'">
-        <span class="cmc-name">DeepSeek</span>
-      </div>
-    </div>
-    <div class="cib-model-tags" id="cibModelTags">
-      <span class="cib-tag groq">Groq (Llama)</span>
-      <span class="cib-tag qwen">Qwen</span>
-    </div>
-    <div class="cib-wrap" id="cibWrap">
-      <textarea id="canvasText" placeholder="Tanya ke model yang dipilih..." rows="1"></textarea>
-      <button class="cib-stop" id="cibStop" onclick="stopCanvas()">
-        <svg viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>
-      </button>
-      <button class="cib-send" id="cibSend" disabled>
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-      </button>
-    </div>
-    <div id="canvasModeHint">Multi Chat — Pilih model di atas • Drag nodes untuk atur layout</div>
-  </div>
-
-  <!-- Minimized state — hanya tampil saat bar di-minimize -->
-  <div id="cibMinimized" style="display:none;padding:6px 16px;align-items:center;justify-content:space-between;gap:8px">
-    <div id="cibMinTags" style="display:flex;gap:4px;flex-wrap:wrap;flex:1"></div>
-    <button onclick="toggleInputBar()" style="flex-shrink:0;padding:5px 10px;border-radius:10px;border:1px solid rgba(168,85,247,0.3);background:rgba(168,85,247,0.1);color:#c4a8ff;font-size:10px;font-weight:700;cursor:pointer;font-family:var(--F)">Buka ↑</button>
-  </div>
+  <div id="canvasModeHint">Multi Chat — Groq • Qwen • Drag nodes untuk atur layout</div>
 </div>
 
 <!-- INPUT (single chat mode) -->
@@ -1071,98 +824,60 @@ body.light .cib-model-check.on.deepseek{background:rgba(6,182,212,0.08)}
 
 <script>
 /* ======================== CONFIG ======================== */
+// ⚠️ GANTI KEDUA KEY INI DENGAN KEY BARU KAMU:
+const GROQ_API_KEY       = "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";
+const OPENROUTER_API_KEY = "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"
 const DARK_LOGO      = "https://i.ibb.co.com/SD7LZgmv/Picsart-26-04-29-23-27-26-445.jpg";
 const LIGHT_LOGO     = "https://i.ibb.co.com/XrH4nnQy/file-0000000005a87208a1ebd9aff2438f5f.png";
-const MODEL_LABELS   = { groq:"Groq (Llama)", qwen:"Qwen", chatgpt:"ChatGPT", claude:"Claude", gemini:"Gemini", deepseek:"DeepSeek" };
-const MODEL_BADGES   = { groq:"Llama", qwen:"Qwen3", chatgpt:"GPT-4o", claude:"Claude", gemini:"Gemini", deepseek:"DeepSeek" };
+const MODEL_LABELS   = { groq:"Groq (Llama)", qwen:"Qwen" };
 
-// Active multi-models (which are toggled ON)
-let activeMultiModels = ["groq","qwen"];
+// Model fallback lists
+const QWEN_MODELS = [
+  "qwen/qwen3-235b-a22b:free"
+];
 
-/* ================================================================
-   SCRAPE ENGINE — Pollinations AI (100% gratis, tanpa API key)
-   https://text.pollinations.ai — CORS open, no auth required
-   Semua model di bawah bisa diakses langsung dari browser.
-================================================================ */
-
-/* ---- timeout helper ---- */
-function withTimeout(p, ms=30000){
-  return Promise.race([p, new Promise((_,r)=>setTimeout(()=>r(new Error("Timeout "+ms/1000+"s")),ms))]);
+/* ======================== API CALLS (via server proxy) ======================== */
+// Semua call lewat server Node.js untuk hindari CORS block dari browser
+async function callGroq(message, history) {
+  const resp = await fetch("/chat", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ message, api: "groq", sessionId: activeId || "default", history })
+  });
+  if (!resp.ok) throw new Error("Server HTTP " + resp.status);
+  const d = await resp.json();
+  if (d.reply && d.reply.startsWith("Server error:")) throw new Error(d.reply);
+  return d.reply;
 }
 
-/* ---- Model mapping ke Pollinations model ID ---- */
-const POLL_MODELS = {
-  groq:     "llama",          // Meta Llama 3.3 70B
-  qwen:     "qwen-coder",     // Qwen 2.5 Coder 32B
-  chatgpt:  "openai",         // OpenAI GPT-4o mini
-  claude:   "claude-hybridspace", // Claude via Pollinations
-  gemini:   "gemini",         // Google Gemini 2.0 Flash
-  deepseek: "deepseek"        // DeepSeek V3
-};
-
-/* Fallback jika model utama gagal */
-const POLL_FALLBACKS = {
-  groq:     "mistral",
-  qwen:     "llama",
-  chatgpt:  "llama",
-  claude:   "openai",
-  gemini:   "llama",
-  deepseek: "llama"
-};
-
-/* ---- Core scraper: POST ke Pollinations text API ---- */
-async function scrapePollinations(api, message, history){
-  const modelId = POLL_MODELS[api] || "llama";
-  const messages = [...history, {role:"user", content:message}];
-
-  async function tryModel(model){
-    const resp = await withTimeout(fetch("https://text.pollinations.ai/", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model,
-        messages,
-        seed: Math.floor(Math.random() * 99999),
-        jsonMode: false,
-        private: true
-      })
-    }));
-    if(!resp.ok) throw new Error("HTTP " + resp.status);
-    const text = await resp.text();
-    if(!text || !text.trim()) throw new Error("Respons kosong dari server");
-    return text.trim();
-  }
-
-  try {
-    return await tryModel(modelId);
-  } catch(e1) {
-    const fallback = POLL_FALLBACKS[api];
-    if(fallback && fallback !== modelId){
-      try { return await tryModel(fallback); }
-      catch(e2){ throw new Error(e1.message); }
-    }
-    throw e1;
-  }
+async function callQwen(message, history) {
+  const resp = await fetch("/chat", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ message, api: "qwen", sessionId: activeId || "default", history })
+  });
+  if (!resp.ok) throw new Error("Server HTTP " + resp.status);
+  const d = await resp.json();
+  if (d.reply && d.reply.startsWith("Server error:")) throw new Error(d.reply);
+  return d.reply;
 }
 
-/* ================================================================
-   ROUTER — dispatch ke scraper yang tepat
-================================================================ */
-async function callAPI(api, message, history){
-  return scrapePollinations(api, message, history);
+async function callAPI(api, message, history) {
+  if (api === "groq") return callGroq(message, history);
+  if (api === "qwen") return callQwen(message, history);
+  throw new Error("Unknown API: " + api);
 }
 
-/* Kirim ke semua model paralel */
-async function callMultiAPI(message, models){
-  const promises = models.map(api =>
-    callAPI(api, message, [])
-      .then(reply => ({api, reply}))
-      .catch(err  => ({api, reply:"⚠️ "+err.message}))
-  );
-  const results = await Promise.all(promises);
-  const replies = {};
-  results.forEach(({api,reply}) => { replies[api] = reply; });
-  return replies;
+async function callMultiAPI(message) {
+  const resp = await fetch("/multi-chat", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ message })
+  });
+  if (!resp.ok) throw new Error("Server HTTP " + resp.status);
+  const d = await resp.json();
+  if (d.error) throw new Error(d.error);
+  return d.replies; // { groq: "...", qwen: "..." }
 }
 
 /* ======================== STATE ======================== */
@@ -1247,7 +962,6 @@ function applyModeUI(){
     document.getElementById("canvasSpace").classList.add("active");
     document.getElementById("canvasZoomBar").style.display = "flex";
     document.getElementById("chat").style.display = "none";
-    updateCibTags();
   }
 }
 
@@ -1411,80 +1125,6 @@ function setAPI(api){
   currentAPI = api;
   localStorage.setItem("api", api);
   panel.style.display = "none";
-  // Update mode hint
-  modeHint.textContent = "Chat biasa — " + (MODEL_LABELS[api] || api);
-}
-
-/* ======================== MULTI MODEL TOGGLE ======================== */
-function toggleMultiModel(model){
-  const el = document.querySelector(`.cib-model-check[data-model="${model}"]`);
-  const idx = activeMultiModels.indexOf(model);
-  if(idx >= 0){
-    // Must keep at least 1 model active
-    if(activeMultiModels.length <= 1) return;
-    activeMultiModels.splice(idx, 1);
-    el.classList.remove("on");
-  } else {
-    activeMultiModels.push(model);
-    el.classList.add("on");
-  }
-  updateCibTags();
-  updateModelCount();
-}
-
-function updateModelCount(){
-  const el = document.getElementById("cibModelCount");
-  if(el) el.textContent = activeMultiModels.length + " aktif";
-}
-
-/* ======================== MODEL SELECTOR COLLAPSE ======================== */
-let modelSelectorCollapsed = false;
-function toggleModelSelector(e){
-  if(e) e.stopPropagation();
-  modelSelectorCollapsed = !modelSelectorCollapsed;
-  const sel = document.getElementById("cibModelSelector");
-  const icon = document.getElementById("cibCollapseIcon");
-  const tagsEl = document.getElementById("cibModelTags");
-  if(modelSelectorCollapsed){
-    sel.classList.add("collapsed");
-    if(tagsEl) tagsEl.style.display = "none";
-    icon.style.transform = "rotate(180deg)";
-  } else {
-    sel.classList.remove("collapsed");
-    if(tagsEl) tagsEl.style.display = "";
-    icon.style.transform = "rotate(0deg)";
-  }
-}
-
-/* ======================== INPUT BAR MINIMIZE ======================== */
-let inputBarMinimized = false;
-function toggleInputBar(){
-  inputBarMinimized = !inputBarMinimized;
-  const inner = document.getElementById("cibInner");
-  const minimized = document.getElementById("cibMinimized");
-  const handle = document.getElementById("cibMinimizeHandle");
-  if(inputBarMinimized){
-    inner.style.display = "none";
-    minimized.style.display = "flex";
-    handle.style.display = "none";
-    // Update mini tags
-    const minTags = document.getElementById("cibMinTags");
-    if(minTags) minTags.innerHTML = activeMultiModels.map(m =>
-      `<span class="cib-tag ${m}" style="font-size:8px;padding:2px 6px">${MODEL_LABELS[m]||m}</span>`
-    ).join("");
-  } else {
-    inner.style.display = "";
-    minimized.style.display = "none";
-    handle.style.display = "flex";
-  }
-}
-
-function updateCibTags(){
-  const tagsEl = document.getElementById("cibModelTags");
-  if(!tagsEl) return;
-  tagsEl.innerHTML = activeMultiModels.map(m =>
-    `<span class="cib-tag ${m}">${MODEL_LABELS[m]||m}</span>`
-  ).join("");
 }
 
 /* ======================== ABOUT / SUPPORT ======================== */
@@ -1642,18 +1282,14 @@ function sendSingle(msg){
   .then(reply => {
     loader.remove();
     if(!isGenerating) return; // stopped
-    // Selalu buat gelembung baru untuk setiap jawaban AI
     const dEl = document.createElement("div");
     dEl.className = "msg ai";
     chatEl.appendChild(dEl);
-    autoScroll();
-    // Langsung render penuh tanpa typing animation untuk respons panjang
-    // agar tidak terpotong
-    dEl.innerHTML = renderMessage(reply) + `<div class="msg-time">${getTime()}</div>`;
-    autoScroll();
-    const t = getTime();
-    addMsgToSession({ role:"ai", text:reply, time:t });
-    finishAI();
+    typeText(dEl, reply, 0, ()=>{
+      const t = getTime();
+      addMsgToSession({ role:"ai", text:reply, time:t });
+      finishAI();
+    });
   })
   .catch(err => {
     loader.remove();
@@ -1733,19 +1369,13 @@ function cvPanMove(e){
 function cvPanEnd(){ canvas.isPanning = false; canvas.world.classList.remove("panning"); }
 
 let cvTouchLast = null;
-let cvTouchNodeDragging = false; // tracks if a node is being dragged
-
 function cvTouchStart(e){
-  if(cvTouchNodeDragging) return;
   if(e.touches.length === 1){
     cvTouchLast = {x:e.touches[0].clientX, y:e.touches[0].clientY};
     canvas.panOX = canvas.ox; canvas.panOY = canvas.oy;
   }
 }
 function cvTouchMove(e){
-  if(cvTouchNodeDragging) return;
-  // Don't pan canvas if user is scrolling inside a node body
-  if(e.target && e.target.closest && e.target.closest(".cn-node-body")) return;
   if(e.touches.length === 1 && cvTouchLast){
     const dx = e.touches[0].clientX - cvTouchLast.x;
     const dy = e.touches[0].clientY - cvTouchLast.y;
@@ -1829,7 +1459,7 @@ function cvMakeDraggable(el, nodeRef){
   // Mouse
   el.addEventListener("mousedown", e=>{
     if(e.button !== 0) return;
-    if(!e.target.closest(".cn-node-hdr")) return;
+    if(e.target.closest(".cn-node-body,button,a,textarea")) return;
     e.stopPropagation(); e.preventDefault();
     onStart(e.clientX, e.clientY);
     function mm(e){ onMove(e.clientX, e.clientY); }
@@ -1840,19 +1470,13 @@ function cvMakeDraggable(el, nodeRef){
 
   // Touch
   el.addEventListener("touchstart", e=>{
-    // Only allow drag from header, NOT from body
-    if(!e.target.closest(".cn-node-hdr")) return;
+    if(e.target.closest(".cn-node-body,button,a,textarea")) return;
     e.stopPropagation();
-    // Mark that a node is being dragged so canvas pan is blocked
-    cvTouchNodeDragging = true;
-    cvTouchLast = null;
     const t = e.touches[0];
     onStart(t.clientX, t.clientY);
   }, {passive:true});
 
   el.addEventListener("touchmove", e=>{
-    // Only drag if started from header
-    if(!startX && !startY) return;
     const t = e.touches[0];
     const dx = (t.clientX - startX) / canvas.scale;
     const dy = (t.clientY - startY) / canvas.scale;
@@ -1866,12 +1490,6 @@ function cvMakeDraggable(el, nodeRef){
 
   el.addEventListener("touchend", e=>{
     onEnd();
-    startX = null; startY = null;
-    // Re-enable canvas pan after node drag ends
-    cvTouchNodeDragging = false;
-    cvTouchLast = null;
-    canvas.panOX = canvas.ox;
-    canvas.panOY = canvas.oy;
     e.stopPropagation();
   }, {passive:true});
 }
@@ -1974,22 +1592,20 @@ function cvSend(){
   controller = new AbortController();
 
   const ut = getTime();
-  const uid = Date.now();
   addMsgToSession({ role:"multi-user", text:msg, time:ut });
 
+  // Fixed layout: place nodes in absolute canvas space (not relative to current pan)
   const space = document.getElementById("canvasSpace");
   const vw = space.clientWidth;
 
-  const selectedModels = [...activeMultiModels];
-  const n = selectedModels.length;
-
-  // Node dimensions — scale width based on count
-  const nodeW = Math.min(260, Math.max(160, (vw - 20 - (n-1)*12) / n));
-  const nodeSpacing = 12;
-  const totalNodesW = nodeW * n + nodeSpacing * (n - 1);
+  // Node dimensions
+  const nodeW = Math.min(260, (vw - 60) / 2);
+  const nodeSpacing = 16;
+  const totalNodesW = nodeW * 2 + nodeSpacing;
+  const canvasCenterX = vw / 2;  // canvas center X in world space (ox=0)
 
   const promptW = Math.min(280, vw - 40);
-  const promptX = vw/2 - promptW/2;
+  const promptX = canvasCenterX - promptW / 2;
   const promptY = canvasLayoutY;
 
   const promptEl = document.createElement("div");
@@ -1999,6 +1615,7 @@ function cvSend(){
   promptEl.innerHTML = escHtml(msg) + `<div class="cn-prompt-time">${ut}</div>`;
   const promptRef = cvPlaceNode(promptEl, promptX, promptY, "prompt");
 
+  // Update prompt size after render
   requestAnimationFrame(()=>{
     promptRef.w = promptEl.offsetWidth || promptW;
     promptRef.h = promptEl.offsetHeight || 50;
@@ -2006,23 +1623,20 @@ function cvSend(){
   });
 
   const nodeY = promptY + 80;
-  const startX = vw/2 - totalNodesW/2;
+  const groqX = canvasCenterX - totalNodesW / 2;
+  const qwenX = groqX + nodeW + nodeSpacing;
 
-  const models = selectedModels.map((api, i) => ({
-    api,
-    label: (MODEL_LABELS[api]||api).toUpperCase(),
-    badge: MODEL_BADGES[api]||api,
-    x: startX + i * (nodeW + nodeSpacing),
-    y: nodeY,
-    delay: 60 + i * 80
-  }));
+  const models = [
+    {api:"groq", label:"GROQ", badge:"Llama", x:groqX, y:nodeY, delay:60},
+    {api:"qwen",  label:"QWEN",  badge:"Qwen3", x:qwenX, y:nodeY, delay:160},
+  ];
 
   models.forEach(({api,label,badge,x,y,delay})=>{
     setTimeout(()=>{
       const nodeEl = document.createElement("div");
       nodeEl.className = `cn-node ${api} loading`;
       nodeEl.style.width = nodeW + "px";
-      nodeEl.id = `cvnode_${api}_${uid}`;
+      nodeEl.id = `cvnode_${api}_${ut.replace(/:/g,"")}`;
       nodeEl.innerHTML = `
         <div class="cn-node-hdr">
           <div class="cn-node-grip">${'<span></span>'.repeat(6)}</div>
@@ -2048,28 +1662,30 @@ function cvSend(){
     }, delay);
   });
 
+  // Reserve space for next conversation block (prompt + nodes + gap)
   canvasLayoutY += 480;
 
+  // Pan canvas to show the new block centered
   setTimeout(()=>{
-    const space2 = document.getElementById("canvasSpace");
-    const vw2 = space2.clientWidth;
     canvas.scale = 1;
-    canvas.ox = -(promptX - (vw2/2 - promptW/2));
-    canvas.oy = -(promptY - 60);
+    canvas.ox = -(promptX - (vw/2 - promptW/2));
+    canvas.oy = -(promptY - 40);
     cvApplyTransform();
     document.getElementById("zoomLabel").textContent = "100%";
   }, 100);
 
-  callMultiAPI(msg, selectedModels)
+  callMultiAPI(msg)
   .then(replies => {
-    selectedModels.forEach(api => {
+    ["groq","qwen"].forEach(api => {
       const reply = replies[api] || "Tidak ada respons";
-      const nodeEl = document.getElementById(`cvnode_${api}_${uid}`);
+      const ts = ut.replace(/:/g,"");
+      const nodeEl = document.getElementById(`cvnode_${api}_${ts}`);
       if(nodeEl){
         nodeEl.classList.remove("loading");
         const body = nodeEl.querySelector(".cn-node-body");
         if(body) body.innerHTML = renderMessage(reply) + `<div class="cn-node-time">${getTime()}</div>`;
-        [50,150,350].forEach(delay => {
+        // Redraw edges at multiple points as content settles
+        [50, 150, 350].forEach(delay => {
           setTimeout(()=>{
             const ref = canvas.nodes.find(n=>n.el===nodeEl);
             if(ref){
@@ -2082,14 +1698,13 @@ function cvSend(){
       }
     });
     const t = getTime();
-    const answerObj = { role:"multi-answer", time:t };
-    selectedModels.forEach(api => { answerObj[api] = replies[api]||""; });
-    addMsgToSession(answerObj);
+    addMsgToSession({ role:"multi-answer", groq:replies.groq||"", qwen:replies.qwen||"", time:t });
     cvFinish();
   })
   .catch(err=>{
-    selectedModels.forEach(api=>{
-      const nodeEl = document.getElementById(`cvnode_${api}_${uid}`);
+    ["groq","qwen"].forEach(api=>{
+      const ts = ut.replace(/:/g,"");
+      const nodeEl = document.getElementById(`cvnode_${api}_${ts}`);
       if(nodeEl){
         nodeEl.classList.remove("loading");
         const body = nodeEl.querySelector(".cn-node-body");
@@ -2142,6 +1757,9 @@ function cvRestoreSession(sess){
 
   let hasContent = false;
   const vw = document.getElementById("canvasSpace").clientWidth;
+  const nodeW = Math.min(260, (vw - 56) / 2);
+  const nodeSpacing = 16;
+  const totalNodesW = nodeW * 2 + nodeSpacing;
 
   sess.messages.forEach(m=>{
     if(m.role==="multi-user"){
@@ -2161,19 +1779,9 @@ function cvRestoreSession(sess){
       const lastPrompt = canvas.nodes.filter(n=>n.type==="prompt").slice(-1)[0];
       if(!lastPrompt) return;
       const nodeY = lastPrompt.y + 80;
-      // Determine which models are in this answer
-      const ansModels = Object.keys(m).filter(k => !["role","time"].includes(k) && m[k]);
-      const n = ansModels.length || 2;
-      const nodeW = Math.min(260, Math.max(160, (vw - 20 - (n-1)*12) / n));
-      const nodeSpacing = 12;
-      const totalNodesW = nodeW * n + nodeSpacing * (n-1);
-      const startX = vw/2 - totalNodesW/2;
-
-      ansModels.forEach((api, i)=>{
-        const reply = m[api];
-        const label = (MODEL_LABELS[api]||api).toUpperCase();
-        const badge = MODEL_BADGES[api]||api;
-        const x = startX + i*(nodeW+nodeSpacing);
+      const groqX = vw/2 - totalNodesW/2;
+      const qwenX = groqX + nodeW + nodeSpacing;
+      [["groq",m.groq,"GROQ","Llama",groqX],["qwen",m.qwen,"QWEN","Qwen3",qwenX]].forEach(([api,reply,label,badge,x])=>{
         const nodeEl = document.createElement("div");
         nodeEl.className = `cn-node ${api}`;
         nodeEl.style.width = nodeW + "px";
@@ -2229,7 +1837,6 @@ function newChat(){
   closeSidebar();
   if(chatMode === "multi"){
     if(canvas.world) cvClearCanvas();
-    canvasLayoutY = 80; // reset posisi node ke atas
     const wc = document.getElementById("canvasWelcome");
     if(wc){ wc.style.display = ""; wc.classList.remove("hiding"); wc._gone = false; }
     if(canvas.world) cvApplyTransform();
