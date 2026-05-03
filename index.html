@@ -919,7 +919,7 @@ body.light .ctb-input-wrap{background:rgba(0,0,0,0.04);border-color:rgba(0,0,0,0
     <img src="https://avatars.githubusercontent.com/u/139895814?s=200&v=4" style="width:15px;height:15px;border-radius:4px"> Groq
   </button>
   <button onclick="setAPI('qwen')">
-    <img src="https://upload.wikimedia.org/wikipedia/commons/6/69/Qwen_logo.svg" style="width:15px;height:15px;border-radius:4px"> Qwen
+    <img src="https://i.ibb.co.com/dw9zhBFG/Picsart-26-05-03-07-15-14-213.png" style="width:15px;height:15px;border-radius:4px"> Aiva-4o-mini
   </button>
   <button onclick="setAPI('glm')">
     <img src="https://logo.svgcdn.com/token-branded/glm.png" style="width:15px;height:15px;border-radius:4px;background:#10b981"> GLM (z.ai)
@@ -937,7 +937,7 @@ body.light .ctb-input-wrap{background:rgba(0,0,0,0.04);border-color:rgba(0,0,0,0
     <div class="fp-h1">AIVA</div>
     <p class="fp-lead">Artificial Intelligence Virtual Assistant — sistem AI modern yang dirancang untuk memberikan pengalaman interaksi yang cepat, ringan, dan futuristik di berbagai perangkat.</p>
     <div class="fp-card"><div class="fp-card-title">Function</div><p>AIVA berfungsi sebagai asisten digital yang dapat membantu menjawab pertanyaan, memberikan ide, membantu coding, serta mendukung aktivitas kreatif pengguna secara real-time.</p></div>
-    <div class="fp-card"><div class="fp-card-title">Multi Chat</div><p>Fitur Multi Chat memungkinkan kamu membandingkan jawaban dari 3 model AI sekaligus: Groq (Llama), Qwen, dan GLM (z.ai) — dalam satu pertanyaan di infinite canvas.</p></div>
+    <div class="fp-card"><div class="fp-card-title">Multi Chat</div><p>Fitur Multi Chat memungkinkan kamu membandingkan jawaban dari 3 model AI sekaligus: Groq (Llama), Aiva, dan GLM (z.ai) — dalam satu pertanyaan di infinite canvas.</p></div>
     <div class="fp-card"><div class="fp-card-title">Status</div><p>Sistem ini masih dalam tahap pengembangan (beta), sehingga beberapa fitur mungkin belum sepenuhnya stabil dan akan terus diperbarui secara berkala.</p></div>
     <div class="fp-footer">Created by opetxdy — AIVA is still in development</div>
   </div>
@@ -1012,9 +1012,9 @@ body.light .ctb-input-wrap{background:rgba(0,0,0,0.04);border-color:rgba(0,0,0,0
         <div class="cv-model-sub">Llama · Fast</div>
       </div>
       <div class="cv-model-card qwen">
-        <div class="cv-model-icon"><img src="https://upload.wikimedia.org/wikipedia/commons/6/69/Qwen_logo.svg" alt="Qwen" onerror="this.style.display='none'"></div>
-        <div class="cv-model-name">Qwen</div>
-        <div class="cv-model-sub">Alibaba · Smart</div>
+        <div class="cv-model-icon"><img src="https://i.ibb.co.com/dw9zhBFG/Picsart-26-05-03-07-15-14-213.png" alt="Qwen" onerror="this.style.display='none'"></div>
+        <div class="cv-model-name">Aiva</div>
+        <div class="cv-model-sub">Model 4o-mini</div>
       </div>
       <div class="cv-model-card glm">
         <div class="cv-model-icon glm-bg"><img src="https://logo.svgcdn.com/token-branded/glm.png" alt="GLM" onerror="this.style.display='none'"></div>
@@ -1053,7 +1053,7 @@ body.light .ctb-input-wrap{background:rgba(0,0,0,0.04);border-color:rgba(0,0,0,0
   <div class="cib-wrap" id="cibWrap">
     <div class="cib-model-tags">
       <span class="cib-tag groq active-tag" data-model="groq" onclick="toggleMultiModel('groq')" title="Klik untuk toggle">GROQ</span>
-      <span class="cib-tag qwen active-tag" data-model="qwen" onclick="toggleMultiModel('qwen')" title="Klik untuk toggle">QWEN</span>
+      <span class="cib-tag qwen active-tag" data-model="qwen" onclick="toggleMultiModel('qwen')" title="Klik untuk toggle">Aiva-4o-mini</span>
       <span class="cib-tag glm active-tag" data-model="glm" onclick="toggleMultiModel('glm')" title="Klik untuk toggle">GLM</span>
       <span class="cib-tag gpt active-tag" data-model="gpt" onclick="toggleMultiModel('gpt')" title="Klik untuk toggle">GPT-OSS</span>
     </div>
@@ -1069,7 +1069,7 @@ body.light .ctb-input-wrap{background:rgba(0,0,0,0.04);border-color:rgba(0,0,0,0
     <div class="cib-info-row">
       <span class="cib-chip groq" id="chip-groq"><img class="cib-logo" src="https://avatars.githubusercontent.com/u/139895814?s=200&v=4" alt="Groq">Groq · Llama</span>
       <span class="cib-divider" id="cdiv1"></span>
-      <span class="cib-chip qwen" id="chip-qwen"><img class="cib-logo" src="https://upload.wikimedia.org/wikipedia/commons/6/69/Qwen_logo.svg" alt="Qwen">Qwen · Alibaba</span>
+      <span class="cib-chip qwen" id="chip-qwen"><img class="cib-logo" src="https://i.ibb.co.com/dw9zhBFG/Picsart-26-05-03-07-15-14-213.png" alt="Aiva">Aiva · 4o-mini</span>
       <span class="cib-divider" id="cdiv2"></span>
       <span class="cib-chip glm" id="chip-glm"><img class="cib-logo glm-logo" src="https://logo.svgcdn.com/token-branded/glm.png" alt="GLM">GLM · Zhipu</span>
       <span class="cib-divider" id="cdiv3"></span>
@@ -1102,7 +1102,7 @@ const GROQ_API_KEY       = "gsk_mIT1gfbMdIRA9KcPRYqMWGdyb3FYorNs63T5ghBB3fob5WT0
 const OPENROUTER_API_KEY = "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"
 const DARK_LOGO      = "https://i.ibb.co.com/SD7LZgmv/Picsart-26-04-29-23-27-26-445.jpg";
 const LIGHT_LOGO     = "https://i.ibb.co.com/XrH4nnQy/file-0000000005a87208a1ebd9aff2438f5f.png";
-const MODEL_LABELS   = { groq:"Groq (Llama)", qwen:"Qwen", glm:"GLM (z.ai)", gpt:"GPT-OSS 20B" };
+const MODEL_LABELS   = { groq:"Groq (Llama)", qwen:"Aiva", glm:"GLM (z.ai)", gpt:"GPT-OSS 20B" };
 
 // Active models for multi-chat (min 2 selected)
 let activeMultiModels = ["groq","qwen","glm","gpt"];
@@ -2130,7 +2130,7 @@ function cvSend(){
   // Model config map
   const MODEL_CONFIG = {
     groq: { label:"GROQ", badge:"Llama" },
-    qwen: { label:"QWEN", badge:"Qwen3" },
+    qwen: { label:"AIVA", badge:"4o-mini" },
     glm:  { label:"GLM",  badge:"GLM-4.5" },
     gpt:  { label:"GPT-OSS", badge:"20B" },
   };
@@ -2308,7 +2308,7 @@ function cvRestoreSession(sess){
 
       const MODEL_CONFIG2 = {
         groq: { label:"GROQ",    badge:"Llama" },
-        qwen: { label:"QWEN",    badge:"Qwen3" },
+        qwen: { label:"AIVA",    badge:"4o-mini" },
         glm:  { label:"GLM",     badge:"GLM-4.5" },
         gpt:  { label:"GPT-OSS", badge:"20B" },
       };
