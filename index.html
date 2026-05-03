@@ -193,9 +193,9 @@ header{position:relative;z-index:1000;height:var(--hdr);display:flex;align-items
 @keyframes tdA{0%,60%,100%{transform:translateY(0);opacity:0.35}30%{transform:translateY(-6px);opacity:1}}
 
 /* Code */
-.code-box{background:linear-gradient(135deg,#2d5be3 0%,#6234d4 100%);border:2px solid rgba(61,114,246,0.6);border-radius:14px;margin-top:10px;overflow:hidden;box-shadow:0 4px 28px rgba(61,114,246,0.3)}
+.code-box{background:#0d1117;border:1.5px solid rgba(61,114,246,0.4);border-radius:14px;margin-top:10px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,0.5)}
 /* Row 1: language badge (logo + name) — BIRU GRADIENT */
-.code-lang-bar{display:flex;align-items:center;gap:8px;padding:10px 14px;background:linear-gradient(90deg,#3d72f6 0%,#7248f5 100%);border-bottom:2px solid rgba(255,255,255,0.1);}
+.code-lang-bar{display:flex;align-items:center;gap:8px;padding:10px 14px;background:linear-gradient(90deg,#3d72f6 0%,#7248f5 100%);border-bottom:none;}
 .code-lang-icon{
   width:20px;height:20px;border-radius:5px;flex-shrink:0;
   display:inline-flex;align-items:center;justify-content:center;padding:2px;
@@ -225,12 +225,7 @@ header{position:relative;z-index:1000;height:var(--hdr);display:flex;align-items
   font-family:var(--FM);text-shadow:0 1px 3px rgba(0,0,0,0.5);
 }
 /* Row 2: actions (tabs + copy) — BIRU GELAP, beda dari bar atas */
-.code-hdr{
-  display:flex;justify-content:flex-end;align-items:center;
-  padding:6px 10px;
-  background:rgba(15,22,60,0.92);
-  border-bottom:1px solid rgba(61,114,246,0.2);gap:6px;
-}
+.code-hdr{display:flex;justify-content:flex-end;align-items:center;padding:6px 10px;background:#111827;border-bottom:1px solid rgba(255,255,255,0.06);gap:6px;}
 .code-hdr-actions{display:flex;align-items:center;gap:6px}
 /* Preview/Code tab buttons */
 .code-tab-btn{background:transparent;border:1px solid rgba(100,140,255,0.28);color:rgba(150,190,255,0.55);padding:3px 10px;border-radius:6px;cursor:pointer;font-size:10px;font-family:var(--F);font-weight:600;letter-spacing:0.5px;transition:all 0.18s;white-space:nowrap}
@@ -238,8 +233,8 @@ header{position:relative;z-index:1000;height:var(--hdr);display:flex;align-items
 .code-tab-btn:hover:not(.active){background:rgba(61,114,246,0.18);color:#b0ccff}
 .copy-btn{background:rgba(61,114,246,0.28);border:1px solid rgba(61,114,246,0.55);color:#a8c8ff;padding:3px 10px;border-radius:7px;cursor:pointer;font-size:11px;font-family:var(--F);font-weight:700;transition:all 0.2s;white-space:nowrap}
 .copy-btn:hover{background:rgba(61,114,246,0.55);color:#fff;box-shadow:0 0 12px rgba(61,114,246,0.45)}
-pre{margin:0;padding:14px;font-family:var(--FM);font-size:12px;line-height:1.7;color:#9cdcfe;overflow-x:auto;white-space:pre;background:#0d1117;margin:0}
-.code-pre-wrap{display:block}
+pre{margin:0;padding:14px;font-family:var(--FM);font-size:12.5px;line-height:1.75;color:#9cdcfe;overflow-x:auto;white-space:pre;background:#0d1117;}
+.code-pre-wrap{display:block;background:#0d1117;}
 .code-pre-wrap.hidden{display:none}
 /* ---- VS Code syntax highlight tokens ---- */
 .tok-kw{color:#c586c0}
