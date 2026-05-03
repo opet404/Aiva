@@ -1237,6 +1237,19 @@ window.addEventListener("load", () => {
   }, 2200);
 });
 
+(function(){
+  function forceHideSplash(){
+    const s = document.getElementById("splash");
+    if(!s) return;
+    s.style.transition = "opacity 0.6s";
+    s.style.opacity = "0";
+    s.style.pointerEvents = "none";
+    setTimeout(function(){ if(s && s.parentNode) s.parentNode.removeChild(s); }, 700);
+  }
+  setTimeout(forceHideSplash, 3500);
+  window.addEventListener("load", function(){ setTimeout(forceHideSplash, 1800); });
+})();
+
 function updateWcLogo(){
   const el = document.getElementById("welcomeLogo");
   if(el) el.src = document.body.classList.contains("light") ? LIGHT_LOGO : DARK_LOGO;
