@@ -1,19 +1,12 @@
 {
   "name": "aiva",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "AIVA AI Chat — Vercel Serverless",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "vercel dev",
+    "deploy": "vercel --prod"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "type": "commonjs",
   "dependencies": {
-    "axios": "^1.15.2",
-    "cors": "^2.8.6",
-    "express": "^5.2.1",
     "node-fetch": "^2.7.0"
   }
 }
