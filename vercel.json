@@ -1,11 +1,9 @@
 {
-  "functions": {
-    "api/convert.js": { "maxDuration": 30 },
-    "api/download.js": { "maxDuration": 60, "memory": 1024 }
-  },
-  "routes": [
-    { "src": "/api/convert", "dest": "/api/convert.js" },
-    { "src": "/api/download", "dest": "/api/download.js" },
-    { "src": "/(.*)", "dest": "/index.html" }
+  "version": 2,
+  "rewrites": [
+    { "source": "/chat", "destination": "/api/chat" },
+    { "source": "/multi-chat", "destination": "/api/multi-chat" },
+    { "source": "/status", "destination": "/api/status" },
+    { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
