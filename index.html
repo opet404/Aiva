@@ -177,14 +177,14 @@ header{position:relative;z-index:1000;height:var(--hdr);display:flex;align-items
 @keyframes slideDown{to{opacity:0;transform:translateY(-18px);height:0;padding:0;overflow:hidden}}
 
 /* Normal messages */
-.msg{max-width:80%;padding:12px 16px;border-radius:var(--r-md);font-size:14px;line-height:1.65;word-break:break-word;animation:msgIn 0.28s var(--ease)}
+.msg{max-width:80%;padding:12px 16px;border-radius:var(--r-md);font-size:14px;line-height:1.65;white-space:pre-wrap;word-break:break-word;animation:msgIn 0.28s var(--ease)}
 @keyframes msgIn{from{opacity:0;transform:translateY(10px) scale(0.97)}to{opacity:1;transform:none}}
-.user{background:var(--user-grad);color:#fff;align-self:flex-end;border-radius:var(--r-md) var(--r-md) 4px var(--r-md);box-shadow:0 4px 22px rgba(61,114,246,0.28);font-weight:500;white-space:pre-wrap}
-.ai{background:var(--ai-bg);color:var(--text);align-self:flex-start;border:1px solid var(--gb);border-radius:var(--r-md) var(--r-md) var(--r-md) 4px;backdrop-filter:blur(14px);transition:box-shadow 0.2s;max-width:92%;white-space:normal}
+.user{background:var(--user-grad);color:#fff;align-self:flex-end;border-radius:var(--r-md) var(--r-md) 4px var(--r-md);box-shadow:0 4px 22px rgba(61,114,246,0.28);font-weight:500}
+.ai{background:var(--ai-bg);color:var(--text);align-self:flex-start;border:1px solid var(--gb);border-radius:var(--r-md) var(--r-md) var(--r-md) 4px;backdrop-filter:blur(14px);transition:box-shadow 0.2s}
 .ai:hover{box-shadow:0 0 28px rgba(61,114,246,0.14)}
 .msg-time{font-size:10px;color:rgba(255,255,255,0.32);margin-top:5px;text-align:right;letter-spacing:0.5px}
 .ai .msg-time{color:var(--muted);text-align:left}
-.text{line-height:1.7;white-space:pre-wrap;word-break:break-word}
+.text{line-height:1.7}
 
 /* Typing */
 .typing-bubble{align-self:flex-start;background:var(--ai-bg);border:1px solid var(--gb);border-radius:var(--r-md) var(--r-md) var(--r-md) 4px;padding:14px 18px;display:inline-flex;align-items:center;gap:5px;backdrop-filter:blur(14px);animation:msgIn 0.28s var(--ease)}
@@ -193,7 +193,7 @@ header{position:relative;z-index:1000;height:var(--hdr);display:flex;align-items
 @keyframes tdA{0%,60%,100%{transform:translateY(0);opacity:0.35}30%{transform:translateY(-6px);opacity:1}}
 
 /* Code */
-.code-box{background:#0d1117;border:none;border-radius:14px;margin-top:12px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.5);display:flex;flex-direction:column;width:100%;min-width:0;}
+.code-box{background:#0d1117;border:none;border-radius:14px;margin-top:12px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.5);display:flex;flex-direction:column;}
 /* Row 1: language badge (logo + name) — BIRU GRADIENT */
 .code-lang-bar{display:flex;align-items:center;gap:8px;padding:11px 14px;background:linear-gradient(90deg,#3d72f6 0%,#7248f5 100%);margin:0;width:100%;flex-shrink:0;}
 .code-lang-icon{
@@ -367,7 +367,7 @@ body.light #canvasSpace::before{
   position:absolute;
   border-radius:18px;
   overflow:hidden;
-  width:310px;
+  width:360px;
   box-shadow:0 6px 36px rgba(0,0,0,0.35);
   animation:cnNodeIn 0.42s var(--ease) both;
   transition:box-shadow 0.22s, transform 0.18s var(--ease);
@@ -377,6 +377,7 @@ body.light #canvasSpace::before{
 .cn-node:active{cursor:grabbing}
 .cn-node:hover{transform:translateY(-2px);}
 @keyframes cnNodeIn{from{opacity:0;transform:scale(0.88) translateY(20px)}to{opacity:1;transform:none}}
+
 
 .cn-node.groq{
   background:rgba(8,13,35,0.92);
@@ -461,7 +462,7 @@ body.light .cn-node.qwen .cn-node-hdr{background:linear-gradient(90deg,rgba(168,
   font-size:13px;line-height:1.72;
   color:var(--text);
   word-break:break-word;
-  max-height:340px;
+  max-height:520px;
   min-height:70px;
   overflow-y:auto;
   overflow-x:hidden;
@@ -470,10 +471,26 @@ body.light .cn-node.qwen .cn-node-hdr{background:linear-gradient(90deg,rgba(168,
   -webkit-overflow-scrolling:touch;
   overscroll-behavior:contain;
   touch-action:pan-y;
+  border-radius:0 0 18px 18px;
 }
 .cn-node-body::-webkit-scrollbar{width:4px}
 .cn-node-body::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.22);border-radius:4px}
 .cn-node-body::-webkit-scrollbar-track{background:transparent}
+/* code-box di dalam canvas node — full width, tampil penuh */
+.cn-node-body .code-box{
+  width:calc(100% + 30px);
+  margin-left:-15px;
+  margin-right:-15px;
+  border-radius:0;
+  overflow:visible;
+  margin-top:10px;
+  flex-shrink:0;
+}
+.cn-node-body .code-box:first-child{margin-top:0}
+.cn-node-body .code-box .code-lang-bar,
+.cn-node-body .code-box .code-hdr{border-radius:0;}
+.cn-node-body .code-box pre{overflow-x:auto;white-space:pre;max-width:100%;}
+.cn-node-body .code-pre-wrap{overflow-x:auto;}
 
 .cn-node-time{
   font-size:9px;color:var(--muted);
@@ -811,7 +828,7 @@ body.light .ctb-input-wrap{background:rgba(0,0,0,0.04);border-color:rgba(0,0,0,0
 
 /* Canvas mobile adjustments */
 @media(max-width:480px){
-  .cn-node{width:270px}
+  .cn-node{width:320px}
   .cn-prompt{max-width:260px}
 }
 
@@ -2239,7 +2256,7 @@ function cvSend(){
 
   // Dynamic columns based on selected models count
   const numModels = activeMultiModels.length;
-  const maxNodeW = Math.min(310, Math.max(200, (vw - 20 - (numModels-1)*10) / numModels));
+  const maxNodeW = Math.min(360, Math.max(240, (vw - 20 - (numModels-1)*10) / numModels));
   const nodeSpacing = 10;
   const totalNodesW = maxNodeW * numModels + nodeSpacing * (numModels - 1);
   const canvasCenterX = vw / 2;
@@ -2439,7 +2456,7 @@ function cvRestoreSession(sess){
       // Support both old format (groq/qwen/glm keys) and new format (models array)
       const sessionModels = m.models || ["groq","qwen","glm"];
       const numModels = sessionModels.length;
-      const nodeW2 = Math.min(310, Math.max(200, (vw - 20 - (numModels-1)*10) / numModels));
+      const nodeW2 = Math.min(360, Math.max(240, (vw - 20 - (numModels-1)*10) / numModels));
       const nodeSpacing2 = 10;
       const totalNodesW2 = nodeW2 * numModels + nodeSpacing2 * (numModels - 1);
 
