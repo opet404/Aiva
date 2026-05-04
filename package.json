@@ -1,8 +1,0 @@
-{
-  "name": "aiva",
-  "version": "1.0.0",
-  "description": "AIVA AI Chat — Vercel Serverless",
-  "engines": {
-    "node": ">=18.x"
-  }
-}
