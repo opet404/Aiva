@@ -2,11 +2,7 @@
   "name": "aiva",
   "version": "1.0.0",
   "description": "AIVA AI Chat — Vercel Serverless",
-  "scripts": {
-    "dev": "vercel dev",
-    "deploy": "vercel --prod"
-  },
-  "dependencies": {
-    "node-fetch": "^2.7.0"
+  "engines": {
+    "node": ">=18.x"
   }
 }
