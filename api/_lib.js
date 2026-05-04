@@ -14,28 +14,29 @@ const OPENROUTER_KEYS = [
   process.env.OR_KEY_7 || "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",
 ].filter(Boolean);
 
-// Model diurutkan dari yang paling ringan/cepat dulu
-// supaya dalam timeout 10 detik Vercel Hobby masih bisa dapet response
+// Model AIVA/Qwen — diurutkan dari paling cepat & reliable
 const QWEN_MODELS = [
-  "meta-llama/llama-3.3-70b-instruct:free",   // paling cepat
+  "meta-llama/llama-3.3-70b-instruct:free",   // paling cepat & stabil
+  "mistralai/mistral-7b-instruct:free",        // ringan, jarang 429
   "qwen/qwen3-coder:free",
+  "google/gemma-3-12b-it:free",
   "google/gemma-4-31b-it:free",
-  "google/gemma-4-26b-a4b-it:free",
-  "nvidia/nemotron-3-super-120b-a12b:free",
-  "qwen/qwen3-next-80b-a3b-instruct:free",
   "minimax/minimax-m2.5:free",
-  "tencent/hy3-preview:free",
 ];
 
+// Model GPT-OSS
 const GPT_OSS_MODELS = [
-  "openai/gpt-oss-20b:free",    // lebih kecil = lebih cepat
+  "openai/gpt-oss-20b:free",
   "openai/gpt-oss-120b:free",
+  "meta-llama/llama-3.3-70b-instruct:free",   // fallback kalau gpt-oss 429
 ];
 
+// Model GLM — z-ai/glm sering 429, pakai fallback yang kuat
 const GLM_MODELS = [
-  "meta-llama/llama-3.3-70b-instruct:free",   // paling cepat sebagai fallback pertama
   "z-ai/glm-4.5-air:free",
-  "minimax/minimax-m2.5:free",
+  "z-ai/glm-4.5:free",
+  "meta-llama/llama-3.3-70b-instruct:free",   // fallback reliable
+  "mistralai/mistral-7b-instruct:free",
 ];
 
 const SYSTEM_CODING = `Kamu adalah AIVA, asisten AI yang cerdas dan helpful.
@@ -55,13 +56,18 @@ function shuffle(arr) {
   return a;
 }
 
-const ROTATE_ON_STATUS = new Set([401, 402, 403, 429]);
+// Status yang perlu ganti KEY (bukan ganti model)
+const ROTATE_KEY_ON_STATUS = new Set([401, 402, 403, 429]);
+// Status yang perlu ganti MODEL
+const ROTATE_MODEL_ON_STATUS = new Set([503, 502, 404]);
 
-// Timeout per-key: 8 detik (aman untuk Vercel Hobby 10 detik limit)
-// Kalau pakai Vercel Pro, bisa naikkan ke 55000
-const KEY_TIMEOUT = parseInt(process.env.KEY_TIMEOUT || "7000");
+// Timeout per request ke OpenRouter — tidak ada batas waktu manual
+// supaya model yang "berpikir" lama (reasoning model) tetap bisa selesai.
+// Vercel Hobby akan cut off di 10 detik, tapi kita tidak paksa cut lebih awal.
+const KEY_TIMEOUT = parseInt(process.env.KEY_TIMEOUT || "25000");
 
-async function fetchOpenRouter(body) {
+// Coba satu model dengan semua key yang ada (rotate jika 429)
+async function fetchWithKeyRotation(model, messages) {
   const keys = shuffle(OPENROUTER_KEYS);
   if (!keys.length) throw new Error("Tidak ada OpenRouter key tersedia");
 
@@ -73,7 +79,7 @@ async function fetchOpenRouter(body) {
     const timer = setTimeout(() => controller.abort(), KEY_TIMEOUT);
 
     try {
-      console.log(`[OR] ${i+1}/${keys.length} model=${body.model} key=...${key.slice(-6)}`);
+      console.log(`[OR] key ${i+1}/${keys.length} model=${model}`);
 
       const resp = await fetch("https://openrouter.ai/api/v1/chat/completions", {
         method: "POST",
@@ -83,14 +89,16 @@ async function fetchOpenRouter(body) {
           "HTTP-Referer": "https://aiva.vercel.app",
           "X-Title": "AIVA",
         },
-        body: JSON.stringify(body),
+        body: JSON.stringify({ model, temperature: 0.7, max_tokens: 2048, messages }),
         signal: controller.signal,
       });
 
       clearTimeout(timer);
       const text = await resp.text();
 
-      if (ROTATE_ON_STATUS.has(resp.status)) {
+      // 429 / 401 / 403 → ganti key, coba lagi
+      if (ROTATE_KEY_ON_STATUS.has(resp.status)) {
+        console.log(`[OR] key ${i+1} status ${resp.status}, rotate key`);
         lastError = new Error("HTTP " + resp.status);
         continue;
       }
@@ -99,8 +107,8 @@ async function fetchOpenRouter(body) {
         let errMsg = "HTTP " + resp.status;
         try { errMsg = JSON.parse(text)?.error?.message || errMsg; } catch {}
         lastError = new Error(errMsg);
-        if (resp.status === 404) { lastError._modelNotFound = true; break; }
-        continue;
+        lastError._status = resp.status;
+        break; // status lain (404, 500) → jangan rotate key, langsung keluar
       }
 
       let data;
@@ -111,51 +119,49 @@ async function fetchOpenRouter(body) {
 
       if (data.error) {
         lastError = new Error(data.error.message || JSON.stringify(data.error));
+        // Kalau error dari body, tetap coba key lain
         continue;
       }
 
-      console.log(`[OR] sukses`);
+      console.log(`[OR] sukses model=${model}`);
       return data;
 
     } catch (err) {
       clearTimeout(timer);
       lastError = new Error(err.name === "AbortError" ? "Timeout " + KEY_TIMEOUT + "ms" : err.message);
       console.log(`[OR] err: ${lastError.message}`);
+      // Timeout = jangan coba key lain, langsung keluar (biar cepat fallback ke model lain)
+      if (err.name === "AbortError") break;
     }
   }
 
-  throw lastError || new Error("Semua key gagal");
+  throw lastError || new Error("Semua key gagal untuk model " + model);
 }
 
+// Coba model satu per satu, dengan key rotation di tiap model
 async function callWithModelFallback(models, messages) {
-  // Di Vercel Hobby (limit 10 detik), JANGAN loop banyak model — langsung pakai 1 model saja
-  // Pilih random dari 2 model pertama supaya ada variasi tapi tetap cepat
-  const fastModels = models.slice(0, 2);
-  const model = fastModels[Math.floor(Math.random() * fastModels.length)];
-  
-  try {
-    console.log(`[FB] using: ${model}`);
-    const data = await fetchOpenRouter({ model, temperature: 0.7, max_tokens: 1500, messages });
-    let content = data?.choices?.[0]?.message?.content;
-    if (!content) throw new Error("Kosong dari " + model);
-    content = content.replace(/<think>[\s\S]*?<\/think>/gi, "").trim();
-    if (!content) throw new Error("Kosong setelah strip " + model);
-    return content;
-  } catch (err) {
-    // Fallback ke model ke-3 kalau ada
-    if (models[2] && !err._modelNotFound) {
-      try {
-        console.log(`[FB] fallback: ${models[2]}`);
-        const data2 = await fetchOpenRouter({ model: models[2], temperature: 0.7, max_tokens: 1500, messages });
-        let content = data2?.choices?.[0]?.message?.content;
-        if (content) {
-          content = content.replace(/<think>[\s\S]*?<\/think>/gi, "").trim();
-          if (content) return content;
-        }
-      } catch (_) {}
+  let lastError = null;
+
+  for (const model of models) {
+    try {
+      console.log(`[FB] trying model: ${model}`);
+      const data = await fetchWithKeyRotation(model, messages);
+      let content = data?.choices?.[0]?.message?.content;
+      if (!content) { lastError = new Error("Kosong dari " + model); continue; }
+      // Strip <think>...</think> dari reasoning model
+      content = content.replace(/<think>[\s\S]*?<\/think>/gi, "").trim();
+      if (!content) { lastError = new Error("Kosong setelah strip " + model); continue; }
+      return content;
+    } catch (err) {
+      lastError = err;
+      console.log(`[FB] model ${model} gagal: ${err.message}`);
+      // Kalau 404 (model tidak ada), langsung skip ke model berikutnya
+      // Kalau error lain, juga coba model berikutnya
+      continue;
     }
-    throw err;
   }
+
+  throw lastError || new Error("Semua model gagal");
 }
 
 async function callAPI(api, message, history = []) {
@@ -167,6 +173,7 @@ async function callAPI(api, message, history = []) {
     { role: "user", content: message },
   ];
 
+  // Groq punya endpoint sendiri, bukan OpenRouter
   if (api === "groq") {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), KEY_TIMEOUT);
@@ -180,7 +187,7 @@ async function callAPI(api, message, history = []) {
         body: JSON.stringify({
           model: "llama-3.3-70b-versatile",
           temperature: 0.7,
-          max_tokens: 1500,
+          max_tokens: 2048,
           messages,
         }),
         signal: controller.signal,
