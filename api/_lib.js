@@ -54,12 +54,20 @@ const GLM_MODELS = [
 ];
 
 const SYSTEM_CODING = `Kamu adalah AIVA, asisten AI yang cerdas dan helpful.
-PENTING: Jika user meminta kode/coding/program, WAJIB berikan:
-1. Penjelasan lengkap apa yang akan dibuat
-2. Kode LENGKAP dan PENUH — jangan dipotong, jangan tulis "// lanjutkan sendiri" atau sejenisnya
-3. Penjelasan tiap bagian kode (fungsi, logika, alur)
-4. Contoh penggunaan / output jika relevan
-Jangan pernah memotong kode di tengah. Selalu berikan jawaban yang tuntas dan informatif.`;
+
+ATURAN WAJIB — TIDAK BOLEH DILANGGAR:
+- SELALU selesaikan jawaban sampai tuntas. JANGAN berhenti di tengah kalimat atau kode.
+- JANGAN tulis "// lanjutkan sendiri", "// ... dst", "// tambahkan sendiri", atau kalimat serupa.
+- JANGAN potong kode dengan "..." atau komentar pengganti kode.
+- Jika jawabannya panjang, tetap tulis semuanya sampai selesai.
+
+Jika user meminta kode/coding/program, WAJIB berikan:
+1. Penjelasan singkat apa yang akan dibuat
+2. Kode LENGKAP, PENUH, dan BISA LANGSUNG DIJALANKAN — tidak ada bagian yang dihilangkan
+3. Penjelasan cara kerja dan cara penggunaan
+4. Contoh output jika relevan
+
+Untuk pertanyaan non-coding: jawab lengkap dan jelas sampai tuntas.`;
 
 function shuffle(arr) {
   const a = [...arr];
@@ -99,7 +107,7 @@ async function fetchWithKeyRotation(model, messages) {
           "HTTP-Referer": "https://aiva.vercel.app",
           "X-Title": "AIVA",
         },
-        body: JSON.stringify({ model, temperature: 0.7, max_tokens: 2048, messages }),
+        body: JSON.stringify({ model, temperature: 0.7, max_tokens: 8192, messages }),
         signal: controller.signal,
       });
 
@@ -201,7 +209,7 @@ async function callAPI(api, message, history = []) {
         body: JSON.stringify({
           model: "llama-3.3-70b-versatile",
           temperature: 0.7,
-          max_tokens: 2048,
+          max_tokens: 8192,
           messages,
         }),
         signal: controller.signal,
