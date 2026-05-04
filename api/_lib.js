@@ -15,38 +15,42 @@ const OPENROUTER_KEYS = [
 ].filter(Boolean);
 
 // ============================================================
-// DAFTAR MODEL — semua dicek valid per Mei 2026
-// Sumber: https://openrouter.ai/models (free tier)
+// STRATEGI MODEL — per Mei 2026
+//
+// "openrouter/free" = auto-router resmi OpenRouter.
+// Dia pilih sendiri model free yang available saat itu.
+// Tidak akan kena 429 satu model terus karena dia spread otomatis.
+// Ini jadi model UTAMA untuk semua API.
+//
+// Fallback = model spesifik yang terbukti stabil.
 // ============================================================
 
-// AIVA / Qwen — model untuk coding & general
-// Diurutkan: paling stabil & cepat duluan
+const FREE_ROUTER = "openrouter/free"; // auto-pilih model free terbaik yang available
+
+// AIVA/Qwen — coding & general
 const QWEN_MODELS = [
-  "meta-llama/llama-3.3-70b-instruct:free",      // ✅ stabil, cepat, 66K ctx
-  "qwen/qwen3-coder:free",                        // ✅ terbaik untuk coding, 262K ctx
-  "qwen/qwen3-next-80b-a3b-instruct:free",        // ✅ reasoning bagus, 262K ctx
-  "nvidia/nemotron-3-super-120b-a12b:free",       // ✅ kuat, 262K ctx
-  "google/gemma-4-31b-it:free",                   // ✅ multimodal, 262K ctx
-  "minimax/minimax-m2.5:free",                    // ✅ 197K ctx
-  "nousresearch/hermes-3-llama-3.1-405b:free",   // ✅ 131K ctx
-  "meta-llama/llama-3.2-3b-instruct:free",        // ✅ kecil tapi stabil, fallback terakhir
+  FREE_ROUTER,                                    // 1. auto-router (tidak expire, tidak 429)
+  "meta-llama/llama-3.3-70b-instruct:free",      // 2. fallback stabil
+  "qwen/qwen3-coder:free",                        // 3. terbaik untuk coding
+  "nvidia/nemotron-3-super-120b-a12b:free",       // 4. powerful
+  "google/gemma-4-31b-it:free",                   // 5. reliable
+  "meta-llama/llama-3.2-3b-instruct:free",        // 6. ringan, last resort
 ];
 
-// GPT-OSS — model OpenAI open source
+// GPT-OSS
 const GPT_OSS_MODELS = [
-  "openai/gpt-oss-20b:free",                     // ✅ 131K ctx, cepat
-  "openai/gpt-oss-120b:free",                    // ✅ 131K ctx, lebih pintar
-  "meta-llama/llama-3.3-70b-instruct:free",      // ✅ fallback reliable
-  "nvidia/nemotron-3-super-120b-a12b:free",      // ✅ fallback ke-2
+  "openai/gpt-oss-20b:free",                     // coba model asli dulu
+  "openai/gpt-oss-120b:free",
+  FREE_ROUTER,                                    // fallback ke auto-router
+  "meta-llama/llama-3.3-70b-instruct:free",
 ];
 
-// GLM — Z.AI GLM model (BUKAN mistral, itu sudah dihapus)
+// GLM — Z.AI
 const GLM_MODELS = [
-  "z-ai/glm-4.5-air:free",                       // ✅ GLM resmi, 131K ctx
-  "meta-llama/llama-3.3-70b-instruct:free",      // ✅ fallback cepat
-  "google/gemma-3-27b-it:free",                  // ✅ 131K ctx
-  "nvidia/nemotron-nano-9b-v2:free",             // ✅ 128K ctx, ringan
-  "google/gemma-3-12b-it:free",                  // ✅ 33K ctx, fallback terakhir
+  "z-ai/glm-4.5-air:free",                       // GLM resmi
+  FREE_ROUTER,                                    // fallback ke auto-router kalau GLM 429
+  "meta-llama/llama-3.3-70b-instruct:free",
+  "google/gemma-3-27b-it:free",
 ];
 
 const SYSTEM_CODING = `Kamu adalah AIVA, asisten AI yang cerdas dan helpful.
@@ -66,12 +70,10 @@ function shuffle(arr) {
   return a;
 }
 
-// Status yang perlu ganti KEY (bukan ganti model)
 const ROTATE_KEY_ON_STATUS = new Set([401, 402, 403, 429]);
 
-// Timeout per API call — cukup lama supaya model reasoning bisa selesai berpikir
-// Vercel Hobby max 10 detik, tapi kita kasih 25 detik supaya ada buffer
-// (Vercel akan cut sendiri jika sudah 10 detik, bukan error dari kita)
+// Timeout cukup lama — biarkan model reasoning selesai berpikir
+// Vercel Hobby cut di 10 detik, kita tidak paksa cut lebih awal
 const KEY_TIMEOUT = parseInt(process.env.KEY_TIMEOUT || "25000");
 
 // Coba satu model dengan semua key (rotate jika 429)
@@ -87,7 +89,7 @@ async function fetchWithKeyRotation(model, messages) {
     const timer = setTimeout(() => controller.abort(), KEY_TIMEOUT);
 
     try {
-      console.log(`[OR] key ${i+1}/${keys.length} model=${model} key=...${key.slice(-6)}`);
+      console.log(`[OR] key ${i+1}/${keys.length} model=${model}`);
 
       const resp = await fetch("https://openrouter.ai/api/v1/chat/completions", {
         method: "POST",
@@ -104,9 +106,9 @@ async function fetchWithKeyRotation(model, messages) {
       clearTimeout(timer);
       const text = await resp.text();
 
-      // 429/401/403 → ganti key, coba lagi
+      // 429 / 401 / 403 → ganti key, coba lagi
       if (ROTATE_KEY_ON_STATUS.has(resp.status)) {
-        console.log(`[OR] key ${i+1} status ${resp.status}, ganti key`);
+        console.log(`[OR] key ${i+1} HTTP ${resp.status}, ganti key`);
         lastError = new Error("HTTP " + resp.status);
         continue;
       }
@@ -115,8 +117,7 @@ async function fetchWithKeyRotation(model, messages) {
         let errMsg = "HTTP " + resp.status;
         try { errMsg = JSON.parse(text)?.error?.message || errMsg; } catch {}
         lastError = new Error(errMsg);
-        lastError._status = resp.status;
-        break; // 404 / 500 → jangan rotate key, langsung keluar
+        break; // error lain (404, 500) → keluar, coba model berikut
       }
 
       let data;
@@ -136,45 +137,42 @@ async function fetchWithKeyRotation(model, messages) {
     } catch (err) {
       clearTimeout(timer);
       if (err.name === "AbortError") {
-        // Timeout → jangan coba key lain (model ini memang lambat), langsung fallback model berikut
-        lastError = new Error("Timeout " + KEY_TIMEOUT + "ms dari " + model);
+        lastError = new Error("Timeout dari " + model);
         console.log(`[OR] timeout model=${model}`);
-        break;
+        break; // timeout → langsung coba model berikut
       }
       lastError = new Error(err.message);
-      console.log(`[OR] err: ${err.message}`);
     }
   }
 
   throw lastError || new Error("Semua key gagal untuk " + model);
 }
 
-// Coba model satu per satu, dengan key rotation di tiap model
+// Coba model satu per satu sampai ada yang berhasil
 async function callWithModelFallback(models, messages) {
   let lastError = null;
 
   for (const model of models) {
     try {
-      console.log(`[FB] mencoba model: ${model}`);
+      console.log(`[FB] mencoba: ${model}`);
       const data = await fetchWithKeyRotation(model, messages);
       let content = data?.choices?.[0]?.message?.content;
       if (!content) {
         lastError = new Error("Respons kosong dari " + model);
-        console.log(`[FB] kosong dari ${model}, coba model berikut`);
         continue;
       }
-      // Strip <think>...</think> dari reasoning model (Qwen3, Nemotron, dll)
+      // Strip <think>...</think> dari reasoning model
       content = content.replace(/<think>[\s\S]*?<\/think>/gi, "").trim();
       if (!content) {
-        lastError = new Error("Kosong setelah strip thinking dari " + model);
+        lastError = new Error("Kosong setelah strip dari " + model);
         continue;
       }
       console.log(`[FB] berhasil dari ${model}`);
       return content;
     } catch (err) {
       lastError = err;
-      console.log(`[FB] model ${model} gagal: ${err.message}, coba model berikut`);
-      continue; // selalu lanjut ke model berikut
+      console.log(`[FB] ${model} gagal: ${err.message}`);
+      continue;
     }
   }
 
@@ -190,7 +188,6 @@ async function callAPI(api, message, history = []) {
     { role: "user", content: message },
   ];
 
-  // Groq — endpoint sendiri, bukan OpenRouter
   if (api === "groq") {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), KEY_TIMEOUT);
@@ -210,10 +207,7 @@ async function callAPI(api, message, history = []) {
         signal: controller.signal,
       });
       clearTimeout(timer);
-      if (!resp.ok) {
-        const errText = await resp.text();
-        throw new Error("Groq HTTP " + resp.status + ": " + errText);
-      }
+      if (!resp.ok) throw new Error("Groq HTTP " + resp.status + ": " + await resp.text());
       const d = await resp.json();
       return d.choices?.[0]?.message?.content || "Respons kosong dari Groq";
     } catch (err) {
