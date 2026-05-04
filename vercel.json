@@ -1,9 +1,16 @@
 {
   "version": 2,
+  "buildCommand": "",
+  "outputDirectory": ".",
+  "functions": {
+    "api/*.js": {
+      "maxDuration": 60
+    }
+  },
   "rewrites": [
-    { "source": "/chat", "destination": "/api/chat" },
-    { "source": "/multi-chat", "destination": "/api/multi-chat" },
-    { "source": "/status", "destination": "/api/status" },
+    { "source": "/api/chat", "destination": "/api/chat" },
+    { "source": "/api/multi-chat", "destination": "/api/multi-chat" },
+    { "source": "/api/status", "destination": "/api/status" },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
