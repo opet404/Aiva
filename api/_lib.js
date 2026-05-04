@@ -59,7 +59,7 @@ const ROTATE_ON_STATUS = new Set([401, 402, 403, 429]);
 
 // Timeout per-key: 8 detik (aman untuk Vercel Hobby 10 detik limit)
 // Kalau pakai Vercel Pro, bisa naikkan ke 55000
-const KEY_TIMEOUT = parseInt(process.env.KEY_TIMEOUT || "8000");
+const KEY_TIMEOUT = parseInt(process.env.KEY_TIMEOUT || "7000");
 
 async function fetchOpenRouter(body) {
   const keys = shuffle(OPENROUTER_KEYS);
@@ -128,22 +128,34 @@ async function fetchOpenRouter(body) {
 }
 
 async function callWithModelFallback(models, messages) {
-  let lastError = null;
-  for (const model of models) {
-    try {
-      console.log(`[FB] trying: ${model}`);
-      const data = await fetchOpenRouter({ model, temperature: 0.7, max_tokens: 2048, messages });
-      let content = data?.choices?.[0]?.message?.content;
-      if (!content) { lastError = new Error("Kosong dari " + model); continue; }
-      content = content.replace(/<think>[\s\S]*?<\/think>/gi, "").trim();
-      if (!content) { lastError = new Error("Kosong setelah strip " + model); continue; }
-      return content;
-    } catch (err) {
-      lastError = err;
-      if (err._modelNotFound) continue;
+  // Di Vercel Hobby (limit 10 detik), JANGAN loop banyak model — langsung pakai 1 model saja
+  // Pilih random dari 2 model pertama supaya ada variasi tapi tetap cepat
+  const fastModels = models.slice(0, 2);
+  const model = fastModels[Math.floor(Math.random() * fastModels.length)];
+  
+  try {
+    console.log(`[FB] using: ${model}`);
+    const data = await fetchOpenRouter({ model, temperature: 0.7, max_tokens: 1500, messages });
+    let content = data?.choices?.[0]?.message?.content;
+    if (!content) throw new Error("Kosong dari " + model);
+    content = content.replace(/<think>[\s\S]*?<\/think>/gi, "").trim();
+    if (!content) throw new Error("Kosong setelah strip " + model);
+    return content;
+  } catch (err) {
+    // Fallback ke model ke-3 kalau ada
+    if (models[2] && !err._modelNotFound) {
+      try {
+        console.log(`[FB] fallback: ${models[2]}`);
+        const data2 = await fetchOpenRouter({ model: models[2], temperature: 0.7, max_tokens: 1500, messages });
+        let content = data2?.choices?.[0]?.message?.content;
+        if (content) {
+          content = content.replace(/<think>[\s\S]*?<\/think>/gi, "").trim();
+          if (content) return content;
+        }
+      } catch (_) {}
     }
+    throw err;
   }
-  throw lastError || new Error("Semua model gagal");
 }
 
 async function callAPI(api, message, history = []) {
@@ -168,7 +180,7 @@ async function callAPI(api, message, history = []) {
         body: JSON.stringify({
           model: "llama-3.3-70b-versatile",
           temperature: 0.7,
-          max_tokens: 2048,
+          max_tokens: 1500,
           messages,
         }),
         signal: controller.signal,
