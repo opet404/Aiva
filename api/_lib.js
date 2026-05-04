@@ -1,8 +1,5 @@
-// api/_lib.js — shared across all Vercel serverless functions
+// api/_lib.js
 
-// ============================================================
-// 🔑 API KEYS — hardcoded server-side (aman, tidak terekspose ke browser)
-// ============================================================
 const GROQ_API_KEY =
   process.env.GROQ_API_KEY ||
   "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";
@@ -17,29 +14,28 @@ const OPENROUTER_KEYS = [
   process.env.OR_KEY_7 || "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",
 ].filter(Boolean);
 
-// ============================================================
-// 🤖 MODEL LISTS
-// ============================================================
+// Model diurutkan dari yang paling ringan/cepat dulu
+// supaya dalam timeout 10 detik Vercel Hobby masih bisa dapet response
 const QWEN_MODELS = [
+  "meta-llama/llama-3.3-70b-instruct:free",   // paling cepat
+  "qwen/qwen3-coder:free",
   "google/gemma-4-31b-it:free",
   "google/gemma-4-26b-a4b-it:free",
   "nvidia/nemotron-3-super-120b-a12b:free",
   "qwen/qwen3-next-80b-a3b-instruct:free",
-  "qwen/qwen3-coder:free",
-  "meta-llama/llama-3.3-70b-instruct:free",
   "minimax/minimax-m2.5:free",
   "tencent/hy3-preview:free",
 ];
 
 const GPT_OSS_MODELS = [
+  "openai/gpt-oss-20b:free",    // lebih kecil = lebih cepat
   "openai/gpt-oss-120b:free",
-  "openai/gpt-oss-20b:free",
 ];
 
 const GLM_MODELS = [
+  "meta-llama/llama-3.3-70b-instruct:free",   // paling cepat sebagai fallback pertama
   "z-ai/glm-4.5-air:free",
   "minimax/minimax-m2.5:free",
-  "meta-llama/llama-3.3-70b-instruct:free",
 ];
 
 const SYSTEM_CODING = `Kamu adalah AIVA, asisten AI yang cerdas dan helpful.
@@ -50,9 +46,6 @@ PENTING: Jika user meminta kode/coding/program, WAJIB berikan:
 4. Contoh penggunaan / output jika relevan
 Jangan pernah memotong kode di tengah. Selalu berikan jawaban yang tuntas dan informatif.`;
 
-// ============================================================
-// 🔀 Shuffle array
-// ============================================================
 function shuffle(arr) {
   const a = [...arr];
   for (let i = a.length - 1; i > 0; i--) {
@@ -64,10 +57,11 @@ function shuffle(arr) {
 
 const ROTATE_ON_STATUS = new Set([401, 402, 403, 429]);
 
-// ============================================================
-// 🚀 fetchOpenRouter — pakai native fetch (Node 18+ built-in)
-// ============================================================
-async function fetchOpenRouter(body, timeout = 25000) {
+// Timeout per-key: 8 detik (aman untuk Vercel Hobby 10 detik limit)
+// Kalau pakai Vercel Pro, bisa naikkan ke 55000
+const KEY_TIMEOUT = parseInt(process.env.KEY_TIMEOUT || "8000");
+
+async function fetchOpenRouter(body) {
   const keys = shuffle(OPENROUTER_KEYS);
   if (!keys.length) throw new Error("Tidak ada OpenRouter key tersedia");
 
@@ -76,10 +70,10 @@ async function fetchOpenRouter(body, timeout = 25000) {
   for (let i = 0; i < keys.length; i++) {
     const key = keys[i];
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), timeout);
+    const timer = setTimeout(() => controller.abort(), KEY_TIMEOUT);
 
     try {
-      console.log(`[OR] ${i+1}/${keys.length} model=${body.model} key=...${key.slice(-8)}`);
+      console.log(`[OR] ${i+1}/${keys.length} model=${body.model} key=...${key.slice(-6)}`);
 
       const resp = await fetch("https://openrouter.ai/api/v1/chat/completions", {
         method: "POST",
@@ -97,7 +91,6 @@ async function fetchOpenRouter(body, timeout = 25000) {
       const text = await resp.text();
 
       if (ROTATE_ON_STATUS.has(resp.status)) {
-        console.log(`[OR] HTTP ${resp.status} rotate`);
         lastError = new Error("HTTP " + resp.status);
         continue;
       }
@@ -121,33 +114,29 @@ async function fetchOpenRouter(body, timeout = 25000) {
         continue;
       }
 
-      console.log(`[OR] sukses key ...${key.slice(-8)}`);
+      console.log(`[OR] sukses`);
       return data;
 
     } catch (err) {
       clearTimeout(timer);
-      lastError = new Error(err.name === "AbortError" ? "Timeout" : err.message);
-      console.log(`[OR] error: ${lastError.message}`);
+      lastError = new Error(err.name === "AbortError" ? "Timeout " + KEY_TIMEOUT + "ms" : err.message);
+      console.log(`[OR] err: ${lastError.message}`);
     }
   }
 
   throw lastError || new Error("Semua key gagal");
 }
 
-// ============================================================
-// 🔁 callWithModelFallback
-// ============================================================
 async function callWithModelFallback(models, messages) {
   let lastError = null;
   for (const model of models) {
     try {
       console.log(`[FB] trying: ${model}`);
-      const data = await fetchOpenRouter({ model, temperature: 0.7, max_tokens: 4096, messages });
+      const data = await fetchOpenRouter({ model, temperature: 0.7, max_tokens: 2048, messages });
       let content = data?.choices?.[0]?.message?.content;
       if (!content) { lastError = new Error("Kosong dari " + model); continue; }
       content = content.replace(/<think>[\s\S]*?<\/think>/gi, "").trim();
       if (!content) { lastError = new Error("Kosong setelah strip " + model); continue; }
-      console.log(`[FB] sukses: ${model}`);
       return content;
     } catch (err) {
       lastError = err;
@@ -157,9 +146,6 @@ async function callWithModelFallback(models, messages) {
   throw lastError || new Error("Semua model gagal");
 }
 
-// ============================================================
-// 🚀 callAPI
-// ============================================================
 async function callAPI(api, message, history = []) {
   if (api === "gemma") api = "qwen";
 
@@ -171,7 +157,7 @@ async function callAPI(api, message, history = []) {
 
   if (api === "groq") {
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 25000);
+    const timer = setTimeout(() => controller.abort(), KEY_TIMEOUT);
     try {
       const resp = await fetch("https://api.groq.com/openai/v1/chat/completions", {
         method: "POST",
@@ -179,7 +165,12 @@ async function callAPI(api, message, history = []) {
           "Authorization": "Bearer " + GROQ_API_KEY,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ model: "llama-3.3-70b-versatile", temperature: 0.7, max_tokens: 4096, messages }),
+        body: JSON.stringify({
+          model: "llama-3.3-70b-versatile",
+          temperature: 0.7,
+          max_tokens: 2048,
+          messages,
+        }),
         signal: controller.signal,
       });
       clearTimeout(timer);
