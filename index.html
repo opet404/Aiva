@@ -367,7 +367,7 @@ body.light #canvasSpace::before{
   position:absolute;
   border-radius:18px;
   overflow:hidden;
-  width:310px;
+  width:360px;
   box-shadow:0 6px 36px rgba(0,0,0,0.35);
   animation:cnNodeIn 0.42s var(--ease) both;
   transition:box-shadow 0.22s, transform 0.18s var(--ease);
@@ -377,6 +377,7 @@ body.light #canvasSpace::before{
 .cn-node:active{cursor:grabbing}
 .cn-node:hover{transform:translateY(-2px);}
 @keyframes cnNodeIn{from{opacity:0;transform:scale(0.88) translateY(20px)}to{opacity:1;transform:none}}
+
 
 .cn-node.groq{
   background:rgba(8,13,35,0.92);
@@ -461,7 +462,7 @@ body.light .cn-node.qwen .cn-node-hdr{background:linear-gradient(90deg,rgba(168,
   font-size:13px;line-height:1.72;
   color:var(--text);
   word-break:break-word;
-  max-height:340px;
+  max-height:520px;
   min-height:70px;
   overflow-y:auto;
   overflow-x:hidden;
@@ -470,10 +471,26 @@ body.light .cn-node.qwen .cn-node-hdr{background:linear-gradient(90deg,rgba(168,
   -webkit-overflow-scrolling:touch;
   overscroll-behavior:contain;
   touch-action:pan-y;
+  border-radius:0 0 18px 18px;
 }
 .cn-node-body::-webkit-scrollbar{width:4px}
 .cn-node-body::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.22);border-radius:4px}
 .cn-node-body::-webkit-scrollbar-track{background:transparent}
+/* code-box di dalam canvas node — full width, tampil penuh */
+.cn-node-body .code-box{
+  width:calc(100% + 30px);
+  margin-left:-15px;
+  margin-right:-15px;
+  border-radius:0;
+  overflow:visible;
+  margin-top:10px;
+  flex-shrink:0;
+}
+.cn-node-body .code-box:first-child{margin-top:0}
+.cn-node-body .code-box .code-lang-bar,
+.cn-node-body .code-box .code-hdr{border-radius:0;}
+.cn-node-body .code-box pre{overflow-x:auto;white-space:pre;max-width:100%;}
+.cn-node-body .code-pre-wrap{overflow-x:auto;}
 
 .cn-node-time{
   font-size:9px;color:var(--muted);
@@ -811,7 +828,7 @@ body.light .ctb-input-wrap{background:rgba(0,0,0,0.04);border-color:rgba(0,0,0,0
 
 /* Canvas mobile adjustments */
 @media(max-width:480px){
-  .cn-node{width:270px}
+  .cn-node{width:320px}
   .cn-prompt{max-width:260px}
 }
 
@@ -1110,9 +1127,6 @@ body.light .ctb-input-wrap{background:rgba(0,0,0,0.04);border-color:rgba(0,0,0,0
 
 <script>
 /* ======================== CONFIG ======================== */
-// ⚠️ GANTI KEDUA KEY INI DENGAN KEY BARU KAMU:
-const GROQ_API_KEY       = "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";
-const OPENROUTER_API_KEY = "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"
 const DARK_LOGO      = "https://i.ibb.co.com/SD7LZgmv/Picsart-26-04-29-23-27-26-445.jpg";
 const LIGHT_LOGO     = "https://i.ibb.co.com/XrH4nnQy/file-0000000005a87208a1ebd9aff2438f5f.png";
 const MODEL_LABELS   = { groq:"Groq (Llama)", qwen:"Aiva", glm:"GLM (z.ai)", gpt:"GPT-OSS 20B" };
@@ -1120,18 +1134,12 @@ const MODEL_LABELS   = { groq:"Groq (Llama)", qwen:"Aiva", glm:"GLM (z.ai)", gpt
 // Active models for multi-chat (min 2 selected)
 let activeMultiModels = ["groq","qwen","glm","gpt"];
 
-// Model fallback lists
-const QWEN_MODELS = [
-  "qwen/qwen3-235b-a22b:free"
-];
-
-/* ======================== API CALLS (via server proxy) ======================== */
-// Semua call lewat server Node.js untuk hindari CORS block dari browser
+/* ======================== API CALLS (via Vercel API routes) ======================== */
 async function callGroq(message, history) {
-  const resp = await fetch("/chat", {
+  const resp = await fetch("/api/chat", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ message, api: "groq", sessionId: activeId || "default", history })
+    body: JSON.stringify({ message, api: "groq", history })
   });
   if (!resp.ok) throw new Error("Server HTTP " + resp.status);
   const d = await resp.json();
@@ -1140,10 +1148,10 @@ async function callGroq(message, history) {
 }
 
 async function callQwen(message, history) {
-  const resp = await fetch("/chat", {
+  const resp = await fetch("/api/chat", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ message, api: "qwen", sessionId: activeId || "default", history })
+    body: JSON.stringify({ message, api: "qwen", history })
   });
   if (!resp.ok) throw new Error("Server HTTP " + resp.status);
   const d = await resp.json();
@@ -1152,10 +1160,10 @@ async function callQwen(message, history) {
 }
 
 async function callGlm(message, history) {
-  const resp = await fetch("/chat", {
+  const resp = await fetch("/api/chat", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ message, api: "glm", sessionId: activeId || "default", history })
+    body: JSON.stringify({ message, api: "glm", history })
   });
   if (!resp.ok) throw new Error("Server HTTP " + resp.status);
   const d = await resp.json();
@@ -1164,10 +1172,10 @@ async function callGlm(message, history) {
 }
 
 async function callGpt(message, history) {
-  const resp = await fetch("/chat", {
+  const resp = await fetch("/api/chat", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ message, api: "gpt", sessionId: activeId || "default", history })
+    body: JSON.stringify({ message, api: "gpt", history })
   });
   if (!resp.ok) throw new Error("Server HTTP " + resp.status);
   const d = await resp.json();
@@ -1184,15 +1192,17 @@ async function callAPI(api, message, history) {
 }
 
 async function callMultiAPI(message, models) {
-  const resp = await fetch("/multi-chat", {
+  // Bangun history dari sesi aktif untuk dikirim ke server (Vercel stateless)
+  const multiHistory = buildMultiHistory();
+  const resp = await fetch("/api/multi-chat", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ message, models: models || activeMultiModels })
+    body: JSON.stringify({ message, models: models || activeMultiModels, history: multiHistory })
   });
   if (!resp.ok) throw new Error("Server HTTP " + resp.status);
   const d = await resp.json();
   if (d.error) throw new Error(d.error);
-  return d.replies; // { groq: "...", qwen: "...", glm: "...", gpt: "..." }
+  return d.replies;
 }
 
 /* ======================== STATE ======================== */
@@ -1860,6 +1870,25 @@ function buildHistory(){
     .map(m => ({ role: m.role === "ai" ? "assistant" : "user", content: m.text }));
 }
 
+// History untuk multi-chat — ambil dari pesan multi-user & multi-answer sesi aktif
+// Pakai jawaban model pertama yang ada sebagai "assistant" untuk context
+function buildMultiHistory(){
+  const sess = sessions.find(s => s.id === activeId);
+  if(!sess) return [];
+  const hist = [];
+  sess.messages.forEach(m => {
+    if(m.role === "multi-user"){
+      hist.push({ role: "user", content: m.text });
+    } else if(m.role === "multi-answer"){
+      // Ambil jawaban pertama yang tersedia sebagai context
+      const models = m.models || ["groq","qwen","glm"];
+      const firstReply = models.map(api => m[api]).find(r => r && !r.startsWith("Gagal:"));
+      if(firstReply) hist.push({ role: "assistant", content: firstReply });
+    }
+  });
+  return hist.slice(-12);
+}
+
 function sendSingle(msg){
   const { time:ut } = addMsg(msg, "user");
   addMsgToSession({ role:"user", text:msg, time:ut });
@@ -2239,7 +2268,7 @@ function cvSend(){
 
   // Dynamic columns based on selected models count
   const numModels = activeMultiModels.length;
-  const maxNodeW = Math.min(310, Math.max(200, (vw - 20 - (numModels-1)*10) / numModels));
+  const maxNodeW = Math.min(360, Math.max(240, (vw - 20 - (numModels-1)*10) / numModels));
   const nodeSpacing = 10;
   const totalNodesW = maxNodeW * numModels + nodeSpacing * (numModels - 1);
   const canvasCenterX = vw / 2;
@@ -2439,7 +2468,7 @@ function cvRestoreSession(sess){
       // Support both old format (groq/qwen/glm keys) and new format (models array)
       const sessionModels = m.models || ["groq","qwen","glm"];
       const numModels = sessionModels.length;
-      const nodeW2 = Math.min(310, Math.max(200, (vw - 20 - (numModels-1)*10) / numModels));
+      const nodeW2 = Math.min(360, Math.max(240, (vw - 20 - (numModels-1)*10) / numModels));
       const nodeSpacing2 = 10;
       const totalNodesW2 = nodeW2 * numModels + nodeSpacing2 * (numModels - 1);
 
