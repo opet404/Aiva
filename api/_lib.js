@@ -2,7 +2,7 @@
 
 const GROQ_API_KEY =
   process.env.GROQ_API_KEY ||
-  "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";
+  "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";
 
 const OPENROUTER_KEYS = [
   process.env.OR_KEY_1 || "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",
