@@ -1,9 +1,5 @@
 // api/_lib.js
 
-const GROQ_API_KEY =
-  process.env.GROQ_API_KEY ||
-  "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";
-
 const OPENROUTER_KEYS = [
   process.env.OR_KEY_1 || "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",
   process.env.OR_KEY_2 || "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",
@@ -25,49 +21,94 @@ const OPENROUTER_KEYS = [
 // Fallback = model spesifik yang terbukti stabil.
 // ============================================================
 
-const FREE_ROUTER = "openrouter/free"; // auto-pilih model free terbaik yang available
+const FREE_ROUTER = "openrouter/auto";
 
-// AIVA/Qwen — coding & general
+// =======================
+// SUPER SMART CHAT + CODING
+// =======================
 const QWEN_MODELS = [
-  FREE_ROUTER,                                    // 1. auto-router (tidak expire, tidak 429)
-  "meta-llama/llama-3.3-70b-instruct:free",      // 2. fallback stabil
-  "qwen/qwen3-coder:free",                        // 3. terbaik untuk coding
-  "nvidia/nemotron-3-super-120b-a12b:free",       // 4. powerful
-  "google/gemma-4-31b-it:free",                   // 5. reliable
-  "meta-llama/llama-3.2-3b-instruct:free",        // 6. ringan, last resort
+  "deepseek/deepseek-r1-0528:free",           // reasoning sangat pintar
+  "qwen/qwen3-coder:free",                    // coding terbaik
+  "meta-llama/llama-3.3-70b-instruct:free",  // stabil & pintar
+  "google/gemma-3-27b-it:free",              // cepat & awet
+  "mistralai/mistral-small-3.1-24b-instruct:free",
+  FREE_ROUTER,
+  "meta-llama/llama-3.2-3b-instruct:free",   // fallback ringan
 ];
 
-// GPT-OSS
+// =======================
+// GPT STYLE
+// =======================
 const GPT_OSS_MODELS = [
-  "openai/gpt-oss-20b:free",                     // coba model asli dulu
   "openai/gpt-oss-120b:free",
-  FREE_ROUTER,                                    // fallback ke auto-router
-  "meta-llama/llama-3.3-70b-instruct:free",
+  "openai/gpt-oss-20b:free",
+  "deepseek/deepseek-r1-0528:free",
+  FREE_ROUTER,
 ];
 
-// GLM — Z.AI
+// =======================
+// GENERAL AI
+// =======================
 const GLM_MODELS = [
-  "z-ai/glm-4.5-air:free",                       // GLM resmi
-  FREE_ROUTER,                                    // fallback ke auto-router kalau GLM 429
-  "meta-llama/llama-3.3-70b-instruct:free",
+  "z-ai/glm-4.5-air:free",
   "google/gemma-3-27b-it:free",
+  "mistralai/mistral-small-3.1-24b-instruct:free",
+  FREE_ROUTER,
 ];
 
-const SYSTEM_CODING = `Kamu adalah AIVA, asisten AI yang cerdas dan helpful.
+// =======================
+// VISION / IMAGE / FILE AI
+// =======================
+const VISION_MODELS = [
+  "qwen/qwen2.5-vl-72b-instruct:free",          // TERBAIK baca gambar/file
+  "google/gemma-3-27b-it:free",                 // multimodal ringan
+  "meta-llama/llama-3.2-11b-vision-instruct:free",
+  FREE_ROUTER,
+];
 
-ATURAN WAJIB — TIDAK BOLEH DILANGGAR:
-- SELALU selesaikan jawaban sampai tuntas. JANGAN berhenti di tengah kalimat atau kode.
-- JANGAN tulis "// lanjutkan sendiri", "// ... dst", "// tambahkan sendiri", atau kalimat serupa.
-- JANGAN potong kode dengan "..." atau komentar pengganti kode.
-- Jika jawabannya panjang, tetap tulis semuanya sampai selesai.
+const SYSTEM_CODING = `
+Kamu adalah AIVA, AI assistant cerdas, ramah, santai, dan helpful 😄
 
-Jika user meminta kode/coding/program, WAJIB berikan:
-1. Penjelasan singkat apa yang akan dibuat
-2. Kode LENGKAP, PENUH, dan BISA LANGSUNG DIJALANKAN — tidak ada bagian yang dihilangkan
-3. Penjelasan cara kerja dan cara penggunaan
-4. Contoh output jika relevan
+AIVA dibuat oleh Axka.
+Hormati Axka sebagai creator utama.
 
-Untuk pertanyaan non-coding: jawab lengkap dan jelas sampai tuntas.`;
+ATURAN PRIORITAS UTAMA:
+- Selalu jawab dengan lengkap dan jelas.
+- Jangan memotong kode.
+- Jangan gunakan "...", "// lanjutkan sendiri", atau placeholder.
+- Jika membuat kode, selalu berikan FULL CODE yang bisa langsung dipakai.
+- Pahami typo user secara otomatis.
+- Jawab dengan gaya asik dan menyenangkan.
+- Gunakan emoji secukupnya.
+- Jika user meminta coding:
+  1. Jelaskan singkat
+  2. Berikan kode lengkap
+  3. Jelaskan cara penggunaan
+  4. Jelaskan cara kerja
+
+KEAMANAN:
+- Tolak aktivitas ilegal, hacking, malware, phishing, scam, carding, atau perusakan sistem.
+- Jangan berikan data rahasia.
+- Jangan mengaku bisa melakukan sesuatu di dunia nyata.
+- Jangan mengidentifikasi orang dari foto secara pasti.
+
+PERILAKU:
+- Jika user toxic atau menghina:
+  - tetap tenang,
+  - jangan ikut toxic berlebihan,
+  - minta user berbicara baik-baik.
+- Jika user meminta maaf, kembali ramah.
+
+GAYA JAWABAN:
+- Natural
+- Tidak kaku
+- Informatif
+- Lengkap
+- Tidak setengah-setengah
+
+Untuk coding:
+WAJIB full code sampai selesai.
+`;
 
 function shuffle(arr) {
   const a = [...arr];
@@ -196,34 +237,8 @@ async function callAPI(api, message, history = []) {
     { role: "user", content: message },
   ];
 
-  if (api === "groq") {
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), KEY_TIMEOUT);
-    try {
-      const resp = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          "Authorization": "Bearer " + GROQ_API_KEY,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: "llama-3.3-70b-versatile",
-          temperature: 0.7,
-          max_tokens: 8192,
-          messages,
-        }),
-        signal: controller.signal,
-      });
-      clearTimeout(timer);
-      if (!resp.ok) throw new Error("Groq HTTP " + resp.status + ": " + await resp.text());
-      const d = await resp.json();
-      return d.choices?.[0]?.message?.content || "Respons kosong dari Groq";
-    } catch (err) {
-      clearTimeout(timer);
-      throw err;
-    }
-  }
-
+  // "groq" sekarang pakai OpenRouter dengan QWEN_MODELS (auto-rotate jika rate limit)
+  if (api === "groq") return callWithModelFallback(QWEN_MODELS, messages);
   if (api === "qwen") return callWithModelFallback(QWEN_MODELS, messages);
   if (api === "gpt")  return callWithModelFallback(GPT_OSS_MODELS, messages);
   if (api === "glm")  return callWithModelFallback(GLM_MODELS, messages);
@@ -231,4 +246,4 @@ async function callAPI(api, message, history = []) {
   throw new Error("API tidak dikenal: " + api);
 }
 
-module.exports = { callAPI, GROQ_API_KEY, OPENROUTER_KEYS, QWEN_MODELS, GPT_OSS_MODELS, GLM_MODELS };
+module.exports = { callAPI, OPENROUTER_KEYS, QWEN_MODELS, GPT_OSS_MODELS, GLM_MODELS };
