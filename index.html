@@ -6,6 +6,9 @@
 <title>AIVA — Beta</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <style>
 /* ================================================================ TOKENS */
 :root {
@@ -1051,6 +1054,159 @@ body.light #uploadPreviewPanel{background:rgba(240,244,255,0.96)}
   background:rgba(6,9,18,0.72);backdrop-filter:blur(4px);border-radius:20px;z-index:10;
   pointer-events:none;
 }
+/* ================= MAINTENANCE ================= */
+
+.maintenance-screen{
+position:fixed;
+inset:0;
+background:#060912;
+display:flex;
+justify-content:center;
+align-items:center;
+z-index:999999999;
+overflow:hidden;
+}
+
+.maintenance-screen::before{
+content:'';
+position:absolute;
+inset:0;
+background:
+radial-gradient(circle at top left,#3d72f655,transparent 40%),
+radial-gradient(circle at bottom right,#7248f555,transparent 40%);
+}
+
+.maintenance-box{
+position:relative;
+width:90%;
+max-width:420px;
+padding:40px 30px;
+border-radius:28px;
+background:rgba(255,255,255,0.04);
+backdrop-filter:blur(18px);
+border:1px solid rgba(255,255,255,0.08);
+text-align:center;
+color:white;
+box-shadow:0 0 40px rgba(61,114,246,0.2);
+animation:maintenanceFade .5s ease;
+}
+
+.maintenance-logo{
+width:100px;
+height:100px;
+margin:auto;
+border-radius:50%;
+display:flex;
+align-items:center;
+justify-content:center;
+font-size:42px;
+font-weight:900;
+background:linear-gradient(135deg,#ff3b3b,#ff0000);
+box-shadow:0 0 35px rgba(255,0,0,.5);
+margin-bottom:25px;
+}
+
+.maintenance-box h1{
+font-size:28px;
+letter-spacing:3px;
+margin-bottom:20px;
+}
+
+.maintenance-box p{
+font-size:14px;
+line-height:1.8;
+opacity:.8;
+margin-bottom:25px;
+}
+
+.timer{
+padding:15px;
+border-radius:16px;
+background:rgba(61,114,246,.12);
+border:1px solid rgba(61,114,246,.4);
+font-size:24px;
+font-weight:800;
+margin-bottom:20px;
+color:#7aa8f7;
+}
+
+.maintenance-box span{
+font-size:13px;
+opacity:.6;
+letter-spacing:2px;
+}
+
+@keyframes maintenanceFade{
+from{
+opacity:0;
+transform:translateY(30px) scale(.9);
+}
+to{
+opacity:1;
+transform:none;
+}
+}
+.ban-screen{
+position:fixed;
+inset:0;
+background:#060912;
+display:flex;
+justify-content:center;
+align-items:center;
+z-index:999999999;
+overflow:hidden;
+}
+
+.ban-screen::before{
+content:'';
+position:absolute;
+inset:0;
+background:
+radial-gradient(circle at top left,#ff000055,transparent 40%),
+radial-gradient(circle at bottom right,#ff3b3b55,transparent 40%);
+}
+
+.ban-box{
+position:relative;
+width:90%;
+max-width:400px;
+padding:40px 30px;
+border-radius:28px;
+background:rgba(255,255,255,0.04);
+backdrop-filter:blur(18px);
+border:1px solid rgba(255,255,255,0.08);
+text-align:center;
+color:white;
+box-shadow:0 0 40px rgba(255,0,0,.25);
+font-family:Arial;
+}
+
+.ban-logo{
+width:100px;
+height:100px;
+margin:auto;
+border-radius:50%;
+display:flex;
+justify-content:center;
+align-items:center;
+font-size:42px;
+font-weight:900;
+background:linear-gradient(135deg,#ff3b3b,#ff0000);
+box-shadow:0 0 35px rgba(255,0,0,.5);
+margin-bottom:25px;
+}
+
+.ban-box h1{
+font-size:30px;
+margin-bottom:20px;
+letter-spacing:2px;
+}
+
+.ban-box p{
+font-size:14px;
+opacity:.8;
+line-height:1.8;
+}
 </style>
 </head>
 <body>
@@ -1101,7 +1257,7 @@ body.light #uploadPreviewPanel{background:rgba(240,244,255,0.96)}
 
   <div class="sb-div"></div>
   <div class="sb-nav">
-    <a href="https://whatsapp.com/channel/0029Vb84dv905MUaH6utNE1i" target="_blank" rel="noopener" class="sb-nav-item" style="text-decoration:none;color:#25d366;background:rgba(37,211,102,0.07);border:1px solid rgba(37,211,102,0.18);">
+    <a href="https://whatsapp.com/channel/0029VbCRVNN0G0XkJ7oPH43P" target="_blank" rel="noopener" class="sb-nav-item" style="text-decoration:none;color:#25d366;background:rgba(37,211,102,0.07);border:1px solid rgba(37,211,102,0.18);">
       <svg viewBox="0 0 24 24" fill="#25d366" style="width:15px;height:15px;flex-shrink:0;opacity:1;stroke:none;filter:drop-shadow(0 0 5px rgba(37,211,102,0.6));"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/></svg>
       <span style="font-weight:600;letter-spacing:0.3px;">Saluran WA</span>
     </a>
@@ -1116,7 +1272,7 @@ body.light #uploadPreviewPanel{background:rgba(240,244,255,0.96)}
   </div>
   <div class="sb-footer">
     <div class="sb-beta">BETA</div><br>
-    <div class="sb-version">AIVA 3.5 — In Development</div>
+    <div class="sb-version">AIVA 3.5 — Powered by Qwen</div>
   </div>
 </div>
 
@@ -1148,7 +1304,7 @@ body.light #uploadPreviewPanel{background:rgba(240,244,255,0.96)}
   </button>
   <div class="panel-label" style="margin-top:6px">API (Single Mode)</div>
   <button onclick="setAPI('groq')">
-    <img src="https://avatars.githubusercontent.com/u/139895814?s=200&v=4" style="width:15px;height:15px;border-radius:4px"> Groq
+    <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/qwen.svg" style="width:15px;height:15px;border-radius:4px"> Qwen
   </button>
   <button onclick="setAPI('qwen')">
     <img src="https://i.ibb.co.com/dw9zhBFG/Picsart-26-05-03-07-15-14-213.png" style="width:15px;height:15px;border-radius:4px"> Aiva-4o-mini
@@ -1169,9 +1325,10 @@ body.light #uploadPreviewPanel{background:rgba(240,244,255,0.96)}
     <div class="fp-h1">AIVA</div>
     <p class="fp-lead">Artificial Intelligence Virtual Assistant — sistem AI modern yang dirancang untuk memberikan pengalaman interaksi yang cepat, ringan, dan futuristik di berbagai perangkat.</p>
     <div class="fp-card"><div class="fp-card-title">Function</div><p>AIVA berfungsi sebagai asisten digital yang dapat membantu menjawab pertanyaan, memberikan ide, membantu coding, serta mendukung aktivitas kreatif pengguna secara real-time.</p></div>
-    <div class="fp-card"><div class="fp-card-title">Multi Chat</div><p>Fitur Multi Chat memungkinkan kamu membandingkan jawaban dari 3 model AI sekaligus: Groq (Llama), Aiva, dan GLM (z.ai) — dalam satu pertanyaan di infinite canvas.</p></div>
+    <div class="fp-card"><div class="fp-card-title">Multi Chat</div><p>Fitur Multi Chat memungkinkan kamu membandingkan jawaban dari 3 model AI sekaligus: Qwen, Aiva, dan GLM (z.ai) — dalam satu pertanyaan di infinite canvas.</p></div>
     <div class="fp-card"><div class="fp-card-title">Status</div><p>Sistem ini masih dalam tahap pengembangan (beta), sehingga beberapa fitur mungkin belum sepenuhnya stabil dan akan terus diperbarui secara berkala.</p></div>
-    <div class="fp-footer">Created by opetxdy — AIVA is still in development</div>
+    <div class="fp-card"><div class="fp-card-title">Admin</div><p>Jika anda tertarik dengan script AIVA -BETA Chat WhatsApp Admin 082320884089 atau via email azkamaulanafathoni12@gmail.com.</p></div>
+    <div class="fp-footer">Created by Axka — AIVA is still in development</div>
   </div>
 </div>
 
@@ -1186,7 +1343,7 @@ body.light #uploadPreviewPanel{background:rgba(240,244,255,0.96)}
       <div class="supp-badge">Payment via Indonesia E-Wallet</div><br><br>
       <div class="payment-row">DANA — GoPay — OVO — LinkAja — BCA — BRI — Mandiri</div>
     </div>
-    <div class="fp-footer">opetxdy — Thank you for your support</div>
+    <div class="fp-footer">Axka — Thank you for your support</div>
   </div>
 </div>
 
@@ -1239,9 +1396,9 @@ body.light #uploadPreviewPanel{background:rgba(240,244,255,0.96)}
     <div class="cv-sub">Bandingkan AI sekaligus dalam satu pertanyaan</div>
     <div class="cv-model-row" style="max-width:420px">
       <div class="cv-model-card groq">
-        <div class="cv-model-icon"><img src="https://avatars.githubusercontent.com/u/139895814?s=200&v=4" alt="Groq" onerror="this.style.display='none'"></div>
-        <div class="cv-model-name">Groq</div>
-        <div class="cv-model-sub">Llama · Fast</div>
+        <div class="cv-model-icon"><img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/qwen.svg" alt="Qwen" onerror="this.style.display='none'"></div>
+        <div class="cv-model-name">Qwen</div>
+        <div class="cv-model-sub">Qwen · Smart</div>
       </div>
       <div class="cv-model-card qwen">
         <div class="cv-model-icon"><img src="https://i.ibb.co.com/dw9zhBFG/Picsart-26-05-03-07-15-14-213.png" alt="Qwen" onerror="this.style.display='none'"></div>
@@ -1284,7 +1441,7 @@ body.light #uploadPreviewPanel{background:rgba(240,244,255,0.96)}
 <div id="canvasInputBar">
   <div class="cib-wrap" id="cibWrap">
     <div class="cib-model-tags">
-      <span class="cib-tag groq active-tag" data-model="groq" onclick="toggleMultiModel('groq')" title="Klik untuk toggle">GROQ</span>
+      <span class="cib-tag groq active-tag" data-model="groq" onclick="toggleMultiModel('groq')" title="Klik untuk toggle">QWEN</span>
       <span class="cib-tag qwen active-tag" data-model="qwen" onclick="toggleMultiModel('qwen')" title="Klik untuk toggle">Aiva-4o-mini</span>
       <span class="cib-tag glm active-tag" data-model="glm" onclick="toggleMultiModel('glm')" title="Klik untuk toggle">GLM</span>
       <span class="cib-tag gpt active-tag" data-model="gpt" onclick="toggleMultiModel('gpt')" title="Klik untuk toggle">GPT-OSS</span>
@@ -1299,7 +1456,7 @@ body.light #uploadPreviewPanel{background:rgba(240,244,255,0.96)}
   </div>
   <div id="canvasModeHint">
     <div class="cib-info-row">
-      <span class="cib-chip groq" id="chip-groq"><img class="cib-logo" src="https://avatars.githubusercontent.com/u/139895814?s=200&v=4" alt="Groq">Groq · Llama</span>
+      <span class="cib-chip groq" id="chip-groq"><img class="cib-logo" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/qwen.svg" alt="Qwen">Qwen · Smart</span>
       <span class="cib-divider" id="cdiv1"></span>
       <span class="cib-chip qwen" id="chip-qwen"><img class="cib-logo" src="https://i.ibb.co.com/dw9zhBFG/Picsart-26-05-03-07-15-14-213.png" alt="Aiva">Aiva · 4o-mini</span>
       <span class="cib-divider" id="cdiv2"></span>
@@ -1315,21 +1472,8 @@ body.light #uploadPreviewPanel{background:rgba(240,244,255,0.96)}
 
 <!-- INPUT (single chat mode) -->
 <div id="inputBox">
-  <!-- Upload Preview Panel (shown above input when files attached) -->
-  <div id="uploadPreviewPanel">
-    <div class="upl-panel-header">
-      <div class="upl-panel-title">Files Attached</div>
-      <button class="upl-clear-btn" onclick="clearAllFiles()">Clear all</button>
-    </div>
-    <div class="upl-files-grid" id="uplFilesGrid"></div>
-  </div>
-
   <div class="input-wrap" id="inputWrap">
-    <!-- Hidden file input -->
-    <input type="file" id="fileInput" multiple accept="image/*,.pdf,.zip,.tar,.gz,.txt,.md,.csv,.json,.jsonl,.js,.ts,.py,.html,.css,.xml,.yaml,.yml,.docx,.xlsx,.pptx,.log,.env,.sh,.bat" style="display:none" onchange="handleFileSelect(this.files)">
-    <button class="attach-btn" id="attachBtn" onclick="document.getElementById('fileInput').click()" title="Attach file">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/></svg>
-    </button>
+
     <textarea id="text" placeholder="Message AIVA..." rows="1"></textarea>
     <button class="stop-btn" id="stopBtn" onclick="stopAI()">
       <svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>
@@ -1342,10 +1486,236 @@ body.light #uploadPreviewPanel{background:rgba(240,244,255,0.96)}
 </div>
 
 <script>
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDdHYX-MLZCwxawSCZ18y-2oaJ-wdwW0SM",
+  authDomain: "maintenance-106b8.firebaseapp.com",
+  databaseURL: "https://maintenance-106b8-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "maintenance-106b8",
+  storageBucket: "maintenance-106b8.firebasestorage.app",
+  messagingSenderId: "1002243540013",
+  appId: "1:1002243540013:web:423038cdd515c0a3c764a4",
+  measurementId: "G-CJSS50H1CS"
+};
+
+firebase.initializeApp(firebaseConfig);
+
+const db = firebase.database();
+
+let maintenanceVisible = false;
+
+function createMaintenance(){
+
+if(document.getElementById("maintenanceScreen"))
+return;
+
+const div = document.createElement("div");
+
+div.id = "maintenanceScreen";
+
+div.className = "maintenance-screen";
+
+div.innerHTML = `
+
+<div class="maintenance-box">
+
+<div class="maintenance-logo">
+✖
+</div>
+
+<h1>MAINTENANCE SERVER</h1>
+
+<p>
+SERVER SEDANG PEMELIHARAAN RUTIN
+AGAR TIDAK TERJADI KESALAHAN
+SISTEM OPERASI MOHON TUNGGU
+</p>
+
+<div class="timer" id="maintenanceTimer">
+
+0 MENIT
+
+</div>
+
+<span>TERIMAKASIH</span>
+
+</div>
+
+`;
+
+document.body.appendChild(div);
+
+}
+
+function showMaintenance(data){
+
+createMaintenance();
+
+maintenanceVisible = true;
+
+const screen =
+document.getElementById("maintenanceScreen");
+
+screen.style.display = "flex";
+
+updateCountdown(data.endTime);
+
+}
+
+function hideMaintenance(){
+
+const screen =
+document.getElementById("maintenanceScreen");
+
+if(screen){
+
+screen.style.display = "none";
+
+}
+
+maintenanceVisible = false;
+
+}
+
+function updateCountdown(endTime){
+
+const timer =
+document.getElementById("maintenanceTimer");
+
+const interval = setInterval(()=>{
+
+const now = Date.now();
+
+const diff = endTime - now;
+
+if(diff <= 0){
+
+clearInterval(interval);
+
+hideMaintenance();
+
+return;
+
+}
+
+const minutes =
+Math.floor(diff / 60000);
+
+const seconds =
+Math.floor((diff % 60000)/1000);
+
+timer.innerHTML =
+`${minutes} MENIT ${seconds} DETIK`;
+
+},1000);
+
+}
+
+function checkMaintenance(){
+
+db.ref("maintenance").on("value",(snap)=>{
+
+const data = snap.val();
+
+if(!data) return;
+
+const now = Date.now();
+
+if(data.enabled && now < data.endTime){
+
+showMaintenance(data);
+
+}else{
+
+hideMaintenance();
+
+}
+
+});
+
+}
+
+window.addEventListener("load",()=>{
+
+setTimeout(()=>{
+
+checkMaintenance();
+
+},1500);
+
+});
+
+let deviceId =
+localStorage.getItem("deviceId");
+
+if(!deviceId){
+
+deviceId =
+"DEVICE_" +
+Math.random()
+.toString(36)
+.substring(2,12);
+
+localStorage.setItem(
+"deviceId",
+deviceId
+);
+
+}
+
+console.log(deviceId);
+
+db.ref("onlineUsers/" + deviceId)
+.set({
+
+online:true,
+lastSeen:Date.now()
+
+});
+
+window.addEventListener("beforeunload",()=>{
+
+db.ref("onlineUsers/" + deviceId)
+.remove();
+
+});
+
+db.ref("bannedUsers/" + deviceId)
+.on("value",(snap)=>{
+
+if(snap.exists()){
+
+document.body.innerHTML = `
+
+<div class="ban-screen">
+
+<div class="ban-box">
+
+<div class="ban-logo">
+✖
+</div>
+
+<h1>AKUN DI BANNED</h1>
+
+<p>
+ANDA TIDAK DAPAT
+MENGAKSES WEBSITE INI
+</p>
+
+</div>
+
+</div>
+
+`;
+
+}
+
+});
+
 /* ======================== CONFIG ======================== */
 const DARK_LOGO      = "https://i.ibb.co.com/SD7LZgmv/Picsart-26-04-29-23-27-26-445.jpg";
 const LIGHT_LOGO     = "https://i.ibb.co.com/XrH4nnQy/file-0000000005a87208a1ebd9aff2438f5f.png";
-const MODEL_LABELS   = { groq:"Groq (Llama)", qwen:"Aiva", glm:"GLM (z.ai)", gpt:"GPT-OSS 20B" };
+const MODEL_LABELS   = { groq:"Qwen", qwen:"Aiva", glm:"GLM (z.ai)", gpt:"GPT-OSS 20B" };
 
 // Active models for multi-chat (min 2 selected)
 let activeMultiModels = ["groq","qwen","glm","gpt"];
@@ -3012,7 +3382,7 @@ function cvSend(){
 
   // Model config map
   const MODEL_CONFIG = {
-    groq: { label:"GROQ", badge:"Llama" },
+    groq: { label:"QWEN", badge:"Smart" },
     qwen: { label:"AIVA", badge:"4o-mini" },
     glm:  { label:"GLM",  badge:"GLM-4.5" },
     gpt:  { label:"GPT-OSS", badge:"20B" },
@@ -3190,7 +3560,7 @@ function cvRestoreSession(sess){
       const totalNodesW2 = nodeW2 * numModels + nodeSpacing2 * (numModels - 1);
 
       const MODEL_CONFIG2 = {
-        groq: { label:"GROQ",    badge:"Llama" },
+        groq: { label:"QWEN",    badge:"Smart" },
         qwen: { label:"AIVA",    badge:"4o-mini" },
         glm:  { label:"GLM",     badge:"GLM-4.5" },
         gpt:  { label:"GPT-OSS", badge:"20B" },
