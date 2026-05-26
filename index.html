@@ -1272,7 +1272,7 @@ line-height:1.8;
   </div>
   <div class="sb-footer">
     <div class="sb-beta">BETA</div><br>
-    <div class="sb-version">AIVA 3.5 — Powered by Qwen</div>
+    <div class="sb-version">AIVA 3.5 — In Development</div>
   </div>
 </div>
 
@@ -1325,7 +1325,7 @@ line-height:1.8;
     <div class="fp-h1">AIVA</div>
     <p class="fp-lead">Artificial Intelligence Virtual Assistant — sistem AI modern yang dirancang untuk memberikan pengalaman interaksi yang cepat, ringan, dan futuristik di berbagai perangkat.</p>
     <div class="fp-card"><div class="fp-card-title">Function</div><p>AIVA berfungsi sebagai asisten digital yang dapat membantu menjawab pertanyaan, memberikan ide, membantu coding, serta mendukung aktivitas kreatif pengguna secara real-time.</p></div>
-    <div class="fp-card"><div class="fp-card-title">Multi Chat</div><p>Fitur Multi Chat memungkinkan kamu membandingkan jawaban dari 3 model AI sekaligus: Qwen, Aiva, dan GLM (z.ai) — dalam satu pertanyaan di infinite canvas.</p></div>
+    <div class="fp-card"><div class="fp-card-title">Multi Chat</div><p>Fitur Multi Chat memungkinkan kamu membandingkan jawaban dari 3 model AI sekaligus: Qwen (Smart), Aiva, dan GLM (z.ai) — dalam satu pertanyaan di infinite canvas.</p></div>
     <div class="fp-card"><div class="fp-card-title">Status</div><p>Sistem ini masih dalam tahap pengembangan (beta), sehingga beberapa fitur mungkin belum sepenuhnya stabil dan akan terus diperbarui secara berkala.</p></div>
     <div class="fp-card"><div class="fp-card-title">Admin</div><p>Jika anda tertarik dengan script AIVA -BETA Chat WhatsApp Admin 082320884089 atau via email azkamaulanafathoni12@gmail.com.</p></div>
     <div class="fp-footer">Created by Axka — AIVA is still in development</div>
@@ -1398,7 +1398,7 @@ line-height:1.8;
       <div class="cv-model-card groq">
         <div class="cv-model-icon"><img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/qwen.svg" alt="Qwen" onerror="this.style.display='none'"></div>
         <div class="cv-model-name">Qwen</div>
-        <div class="cv-model-sub">Qwen · Smart</div>
+        <div class="cv-model-sub">Smart · Fast</div>
       </div>
       <div class="cv-model-card qwen">
         <div class="cv-model-icon"><img src="https://i.ibb.co.com/dw9zhBFG/Picsart-26-05-03-07-15-14-213.png" alt="Qwen" onerror="this.style.display='none'"></div>
@@ -1472,8 +1472,16 @@ line-height:1.8;
 
 <!-- INPUT (single chat mode) -->
 <div id="inputBox">
-  <div class="input-wrap" id="inputWrap">
+  <!-- Upload Preview Panel (shown above input when files attached) -->
+  <div id="uploadPreviewPanel">
+    <div class="upl-panel-header">
+      <div class="upl-panel-title">Files Attached</div>
+      <button class="upl-clear-btn" onclick="clearAllFiles()">Clear all</button>
+    </div>
+    <div class="upl-files-grid" id="uplFilesGrid"></div>
+  </div>
 
+  <div class="input-wrap" id="inputWrap">
     <textarea id="text" placeholder="Message AIVA..." rows="1"></textarea>
     <button class="stop-btn" id="stopBtn" onclick="stopAI()">
       <svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>
@@ -1715,7 +1723,7 @@ MENGAKSES WEBSITE INI
 /* ======================== CONFIG ======================== */
 const DARK_LOGO      = "https://i.ibb.co.com/SD7LZgmv/Picsart-26-04-29-23-27-26-445.jpg";
 const LIGHT_LOGO     = "https://i.ibb.co.com/XrH4nnQy/file-0000000005a87208a1ebd9aff2438f5f.png";
-const MODEL_LABELS   = { groq:"Qwen", qwen:"Aiva", glm:"GLM (z.ai)", gpt:"GPT-OSS 20B" };
+const MODEL_LABELS   = { groq:"Qwen (Smart)", qwen:"Aiva", glm:"GLM (z.ai)", gpt:"GPT-OSS 20B" };
 
 // Active models for multi-chat (min 2 selected)
 let activeMultiModels = ["groq","qwen","glm","gpt"];
@@ -2524,7 +2532,7 @@ function buildFileContext() {
 }
 
 /* ======================== INPUT ======================== */
-function updateSend(){ sendBtn.disabled = (inputEl.value.trim() === "" && attachedFiles.length === 0) || isGenerating; }
+function updateSend(){ sendBtn.disabled = inputEl.value.trim() === "" || isGenerating; }
 inputEl.addEventListener("input", () => {
   inputEl.style.height = "auto";
   inputEl.style.height = Math.min(inputEl.scrollHeight, 130) + "px";
@@ -2872,23 +2880,17 @@ function send(){
   if(chatMode === "multi"){ cvSend(); return; }
   if(isGenerating) return;
   const rawMsg = inputEl.value.trim();
-  const fileCtx = buildFileContext();
-  if(!rawMsg && !fileCtx) return;
-
-  const displayMsg = rawMsg || "(File dilampirkan — tolong baca dan analisis)";
-  const fullMsg = rawMsg + fileCtx;
+  if(!rawMsg) return;
 
   if(!activeId) newSession(chatMode);
   removeWelcome();
 
   inputEl.value = ""; inputEl.style.height = "auto";
-  const filesForDisplay = [...attachedFiles]; // snapshot
-  clearFiles();
   isGenerating = true; stopTyping = false;
   stopBtn.style.display = "flex"; sendBtn.disabled = true;
   controller = new AbortController();
 
-  sendSingle(fullMsg, displayMsg, filesForDisplay);
+  sendSingle(rawMsg, rawMsg, []);
 }
 
 /* ======================== SINGLE CHAT ======================== */
