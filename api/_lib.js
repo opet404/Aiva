@@ -10,61 +10,69 @@ const OPENROUTER_KEYS = [
   process.env.OR_KEY_7 || "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",
 ].filter(Boolean);
 
-// ============================================================
-// STRATEGI MODEL — per Mei 2026
-//
-// Setiap grup punya chain fallback yang panjang.
-// Jika satu model kena 429 / rate limit → otomatis coba model berikutnya.
-// Key juga di-rotate per model, jadi coverage sangat luas.
-// ============================================================
-
 const FREE_ROUTER = "openrouter/auto";
 
 // =======================
-// GROQ → QWEN_MODELS (Llama / Deepseek)
+// GROQ GROUP — Llama / Deepseek primary
 // =======================
-const QWEN_MODELS = [
-  "meta-llama/llama-3.3-70b-instruct:free",        // sangat stabil, sering available
-  "deepseek/deepseek-r1-0528:free",                 // reasoning top
-  "meta-llama/llama-3.1-8b-instruct:free",          // ringan & cepat
-  "qwen/qwen3-coder:free",                          // coding
-  "google/gemma-3-27b-it:free",                     // stabil
-  "mistralai/mistral-small-3.1-24b-instruct:free",  // fallback
-  FREE_ROUTER,                                       // auto-router resmi
-  "meta-llama/llama-3.2-3b-instruct:free",          // fallback ringan
+const GROQ_MODELS = [
+  "meta-llama/llama-3.3-70b-instruct:free",
+  "deepseek/deepseek-r1-0528:free",
+  "meta-llama/llama-3.1-8b-instruct:free",
+  "google/gemma-3-27b-it:free",
+  "mistralai/mistral-small-3.1-24b-instruct:free",
+  "meta-llama/llama-3.2-3b-instruct:free",
+  FREE_ROUTER,
 ];
 
 // =======================
-// GPT OSS
+// QWEN GROUP — bukan model Qwen, pakai Deepseek / Mistral
+// =======================
+const QWEN_MODELS = [
+  "deepseek/deepseek-r1-0528:free",
+  "deepseek/deepseek-v3-base:free",
+  "mistralai/mistral-small-3.1-24b-instruct:free",
+  "mistralai/devstral-small:free",
+  "google/gemma-3-27b-it:free",
+  "meta-llama/llama-3.3-70b-instruct:free",
+  FREE_ROUTER,
+];
+
+// =======================
+// GPT GROUP — GPT-OSS primary
 // =======================
 const GPT_OSS_MODELS = [
   "openai/gpt-oss-120b:free",
   "openai/gpt-oss-20b:free",
-  "meta-llama/llama-3.3-70b-instruct:free",         // fallback jika GPT-OSS kena limit
+  "meta-llama/llama-3.3-70b-instruct:free",
   "deepseek/deepseek-r1-0528:free",
+  "mistralai/mistral-small-3.1-24b-instruct:free",
   FREE_ROUTER,
-  "meta-llama/llama-3.1-8b-instruct:free",
 ];
 
 // =======================
-// GLM MODELS
+// GLM GROUP — GLM primary
 // =======================
 const GLM_MODELS = [
   "z-ai/glm-4.5-air:free",
+  "z-ai/glm-4.5:free",
   "google/gemma-3-27b-it:free",
   "mistralai/mistral-small-3.1-24b-instruct:free",
-  "meta-llama/llama-3.3-70b-instruct:free",         // fallback populer
+  "meta-llama/llama-3.3-70b-instruct:free",
   FREE_ROUTER,
-  "meta-llama/llama-3.1-8b-instruct:free",
 ];
 
 // =======================
-// VISION / IMAGE / FILE AI
+// CROSS-GROUP FALLBACK — urutan prioritas kalau semua grup utama gagal
 // =======================
-const VISION_MODELS = [
-  "qwen/qwen2.5-vl-72b-instruct:free",
+const EMERGENCY_FALLBACK = [
+  "meta-llama/llama-3.3-70b-instruct:free",
+  "deepseek/deepseek-r1-0528:free",
   "google/gemma-3-27b-it:free",
-  "meta-llama/llama-3.2-11b-vision-instruct:free",
+  "mistralai/mistral-small-3.1-24b-instruct:free",
+  "openai/gpt-oss-20b:free",
+  "z-ai/glm-4.5-air:free",
+  "meta-llama/llama-3.1-8b-instruct:free",
   FREE_ROUTER,
 ];
 
@@ -122,8 +130,6 @@ function shuffle(arr) {
 }
 
 const ROTATE_KEY_ON_STATUS = new Set([401, 402, 403, 429]);
-
-// Timeout — biarkan model reasoning selesai berpikir
 const KEY_TIMEOUT = parseInt(process.env.KEY_TIMEOUT || "25000");
 
 // Coba satu model dengan semua key (rotate jika 429/rate limit)
@@ -156,7 +162,6 @@ async function fetchWithKeyRotation(model, messages) {
       clearTimeout(timer);
       const text = await resp.text();
 
-      // 429 / 401 / 403 → ganti key, coba lagi
       if (ROTATE_KEY_ON_STATUS.has(resp.status)) {
         console.log(`[OR] key ${i+1} HTTP ${resp.status}, ganti key`);
         lastError = new Error("HTTP " + resp.status);
@@ -167,7 +172,7 @@ async function fetchWithKeyRotation(model, messages) {
         let errMsg = "HTTP " + resp.status;
         try { errMsg = JSON.parse(text)?.error?.message || errMsg; } catch {}
         lastError = new Error(errMsg);
-        break; // error lain (404, 500) → keluar, coba model berikut
+        break;
       }
 
       let data;
@@ -176,7 +181,6 @@ async function fetchWithKeyRotation(model, messages) {
         continue;
       }
 
-      // Cek rate limit dari body response (beberapa model return 200 tapi isi error)
       if (data.error) {
         const errMsg = data.error.message || JSON.stringify(data.error);
         const isRateLimit = errMsg.toLowerCase().includes("rate") ||
@@ -184,9 +188,8 @@ async function fetchWithKeyRotation(model, messages) {
                             errMsg.toLowerCase().includes("429") ||
                             errMsg.toLowerCase().includes("quota");
         lastError = new Error(errMsg);
-        // Jika rate limit di body, coba key berikut
         if (isRateLimit) continue;
-        break; // error lain → coba model berikut
+        break;
       }
 
       console.log(`[OR] sukses model=${model}`);
@@ -197,7 +200,7 @@ async function fetchWithKeyRotation(model, messages) {
       if (err.name === "AbortError") {
         lastError = new Error("Timeout dari " + model);
         console.log(`[OR] timeout model=${model}`);
-        break; // timeout → langsung coba model berikut
+        break;
       }
       lastError = new Error(err.message);
     }
@@ -206,7 +209,7 @@ async function fetchWithKeyRotation(model, messages) {
   throw lastError || new Error("Semua key gagal untuk " + model);
 }
 
-// Coba model satu per satu sampai ada yang berhasil (auto-fallback jika rate limit)
+// Coba model satu per satu sampai berhasil
 async function callWithModelFallback(models, messages) {
   let lastError = null;
 
@@ -219,7 +222,6 @@ async function callWithModelFallback(models, messages) {
         lastError = new Error("Respons kosong dari " + model);
         continue;
       }
-      // Strip <think>...</think> dari reasoning model
       content = content.replace(/<think>[\s\S]*?<\/think>/gi, "").trim();
       if (!content) {
         lastError = new Error("Kosong setelah strip dari " + model);
@@ -238,7 +240,7 @@ async function callWithModelFallback(models, messages) {
 }
 
 async function callAPI(api, message, history = []) {
-  if (api === "gemma") api = "qwen";
+  if (api === "gemma") api = "groq";
 
   const messages = [
     { role: "system", content: SYSTEM_CODING },
@@ -246,13 +248,30 @@ async function callAPI(api, message, history = []) {
     { role: "user", content: message },
   ];
 
-  // Setiap API punya chain fallback panjang → auto-switch jika rate limit
-  if (api === "groq") return callWithModelFallback(QWEN_MODELS, messages);
-  if (api === "qwen") return callWithModelFallback(QWEN_MODELS, messages);
-  if (api === "gpt")  return callWithModelFallback(GPT_OSS_MODELS, messages);
-  if (api === "glm")  return callWithModelFallback(GLM_MODELS, messages);
+  // Tentukan chain utama berdasarkan api yang dipilih
+  let primaryChain;
+  if (api === "groq")      primaryChain = GROQ_MODELS;
+  else if (api === "qwen") primaryChain = QWEN_MODELS;
+  else if (api === "gpt")  primaryChain = GPT_OSS_MODELS;
+  else if (api === "glm")  primaryChain = GLM_MODELS;
+  else throw new Error("API tidak dikenal: " + api);
 
-  throw new Error("API tidak dikenal: " + api);
+  // Coba chain utama dulu
+  try {
+    return await callWithModelFallback(primaryChain, messages);
+  } catch (primaryErr) {
+    console.log(`[FALLBACK] chain utama ${api} gagal semua, coba emergency fallback`);
+  }
+
+  // Kalau chain utama gagal semua → coba emergency fallback (semua model, kecuali yg sudah dicoba)
+  const alreadyTried = new Set(primaryChain);
+  const emergencyChain = EMERGENCY_FALLBACK.filter(m => !alreadyTried.has(m));
+
+  try {
+    return await callWithModelFallback(emergencyChain, messages);
+  } catch (emergencyErr) {
+    throw new Error("Semua model dari semua grup gagal. Rate limit global.");
+  }
 }
 
-module.exports = { callAPI, OPENROUTER_KEYS, QWEN_MODELS, GPT_OSS_MODELS, GLM_MODELS };
+module.exports = { callAPI, OPENROUTER_KEYS, GROQ_MODELS, QWEN_MODELS, GPT_OSS_MODELS, GLM_MODELS };
