@@ -13,55 +13,57 @@ const OPENROUTER_KEYS = [
 // ============================================================
 // STRATEGI MODEL — per Mei 2026
 //
-// "openrouter/free" = auto-router resmi OpenRouter.
-// Dia pilih sendiri model free yang available saat itu.
-// Tidak akan kena 429 satu model terus karena dia spread otomatis.
-// Ini jadi model UTAMA untuk semua API.
-//
-// Fallback = model spesifik yang terbukti stabil.
+// Setiap grup punya chain fallback yang panjang.
+// Jika satu model kena 429 / rate limit → otomatis coba model berikutnya.
+// Key juga di-rotate per model, jadi coverage sangat luas.
 // ============================================================
 
 const FREE_ROUTER = "openrouter/auto";
 
 // =======================
-// SUPER SMART CHAT + CODING
+// GROQ → QWEN_MODELS (Llama / Deepseek)
 // =======================
 const QWEN_MODELS = [
-  "deepseek/deepseek-r1-0528:free",           // reasoning sangat pintar
-  "qwen/qwen3-coder:free",                    // coding terbaik
-  "meta-llama/llama-3.3-70b-instruct:free",  // stabil & pintar
-  "google/gemma-3-27b-it:free",              // cepat & awet
-  "mistralai/mistral-small-3.1-24b-instruct:free",
-  FREE_ROUTER,
-  "meta-llama/llama-3.2-3b-instruct:free",   // fallback ringan
+  "meta-llama/llama-3.3-70b-instruct:free",        // sangat stabil, sering available
+  "deepseek/deepseek-r1-0528:free",                 // reasoning top
+  "meta-llama/llama-3.1-8b-instruct:free",          // ringan & cepat
+  "qwen/qwen3-coder:free",                          // coding
+  "google/gemma-3-27b-it:free",                     // stabil
+  "mistralai/mistral-small-3.1-24b-instruct:free",  // fallback
+  FREE_ROUTER,                                       // auto-router resmi
+  "meta-llama/llama-3.2-3b-instruct:free",          // fallback ringan
 ];
 
 // =======================
-// GPT STYLE
+// GPT OSS
 // =======================
 const GPT_OSS_MODELS = [
   "openai/gpt-oss-120b:free",
   "openai/gpt-oss-20b:free",
+  "meta-llama/llama-3.3-70b-instruct:free",         // fallback jika GPT-OSS kena limit
   "deepseek/deepseek-r1-0528:free",
   FREE_ROUTER,
+  "meta-llama/llama-3.1-8b-instruct:free",
 ];
 
 // =======================
-// GENERAL AI
+// GLM MODELS
 // =======================
 const GLM_MODELS = [
   "z-ai/glm-4.5-air:free",
   "google/gemma-3-27b-it:free",
   "mistralai/mistral-small-3.1-24b-instruct:free",
+  "meta-llama/llama-3.3-70b-instruct:free",         // fallback populer
   FREE_ROUTER,
+  "meta-llama/llama-3.1-8b-instruct:free",
 ];
 
 // =======================
 // VISION / IMAGE / FILE AI
 // =======================
 const VISION_MODELS = [
-  "qwen/qwen2.5-vl-72b-instruct:free",          // TERBAIK baca gambar/file
-  "google/gemma-3-27b-it:free",                 // multimodal ringan
+  "qwen/qwen2.5-vl-72b-instruct:free",
+  "google/gemma-3-27b-it:free",
   "meta-llama/llama-3.2-11b-vision-instruct:free",
   FREE_ROUTER,
 ];
@@ -121,11 +123,10 @@ function shuffle(arr) {
 
 const ROTATE_KEY_ON_STATUS = new Set([401, 402, 403, 429]);
 
-// Timeout cukup lama — biarkan model reasoning selesai berpikir
-// Vercel Hobby cut di 10 detik, kita tidak paksa cut lebih awal
+// Timeout — biarkan model reasoning selesai berpikir
 const KEY_TIMEOUT = parseInt(process.env.KEY_TIMEOUT || "25000");
 
-// Coba satu model dengan semua key (rotate jika 429)
+// Coba satu model dengan semua key (rotate jika 429/rate limit)
 async function fetchWithKeyRotation(model, messages) {
   const keys = shuffle(OPENROUTER_KEYS);
   if (!keys.length) throw new Error("Tidak ada OpenRouter key tersedia");
@@ -175,9 +176,17 @@ async function fetchWithKeyRotation(model, messages) {
         continue;
       }
 
+      // Cek rate limit dari body response (beberapa model return 200 tapi isi error)
       if (data.error) {
-        lastError = new Error(data.error.message || JSON.stringify(data.error));
-        continue;
+        const errMsg = data.error.message || JSON.stringify(data.error);
+        const isRateLimit = errMsg.toLowerCase().includes("rate") ||
+                            errMsg.toLowerCase().includes("limit") ||
+                            errMsg.toLowerCase().includes("429") ||
+                            errMsg.toLowerCase().includes("quota");
+        lastError = new Error(errMsg);
+        // Jika rate limit di body, coba key berikut
+        if (isRateLimit) continue;
+        break; // error lain → coba model berikut
       }
 
       console.log(`[OR] sukses model=${model}`);
@@ -197,7 +206,7 @@ async function fetchWithKeyRotation(model, messages) {
   throw lastError || new Error("Semua key gagal untuk " + model);
 }
 
-// Coba model satu per satu sampai ada yang berhasil
+// Coba model satu per satu sampai ada yang berhasil (auto-fallback jika rate limit)
 async function callWithModelFallback(models, messages) {
   let lastError = null;
 
@@ -237,7 +246,7 @@ async function callAPI(api, message, history = []) {
     { role: "user", content: message },
   ];
 
-  // "groq" sekarang pakai OpenRouter dengan QWEN_MODELS (auto-rotate jika rate limit)
+  // Setiap API punya chain fallback panjang → auto-switch jika rate limit
   if (api === "groq") return callWithModelFallback(QWEN_MODELS, messages);
   if (api === "qwen") return callWithModelFallback(QWEN_MODELS, messages);
   if (api === "gpt")  return callWithModelFallback(GPT_OSS_MODELS, messages);
