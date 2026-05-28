@@ -3073,14 +3073,26 @@ function finishAI(){
 
 /* ======================== STOP ======================== */
 function stopAI(){
-  // Jika MultiMind sedang berjalan — hapus DOM langsung, abort semua fetch
+  // Jika MultiMind sedang berjalan — abort fetch, JANGAN hapus konten yg sudah tampil
   if(mmIsGenerating){
     mmIsGenerating = false;
     mmStopRequested = true;
     if(mmController){ mmController.abort(); mmController = null; }
-    // Hapus bubble AI dari DOM seketika tanpa tunggu async
-    document.querySelectorAll(".mm-debate-wrap").forEach(function(el){ el.remove(); });
+    // Hapus HANYA typing indicator — bubble & konten selesai tetap ada
     document.querySelectorAll(".mm-typing-entry").forEach(function(el){ el.remove(); });
+    // Tandai semua wrap yg masih dalam proses
+    document.querySelectorAll(".mm-debate-wrap").forEach(function(el){
+      if(!el.querySelector(".mm-stopped-label")){
+        const lbl = document.createElement("div");
+        lbl.className = "mm-stopped-label";
+        lbl.style.cssText = "padding:8px 14px;font-size:11px;color:rgba(240,68,68,0.7);border-top:1px solid rgba(240,68,68,0.15);margin-top:6px;";
+        lbl.textContent = "⏹ Dihentikan oleh pengguna";
+        el.appendChild(lbl);
+        // Update header spinner jika ada
+        const hdrEl = el.querySelector(".mm-debate-header");
+        if(hdrEl) hdrEl.innerHTML = "⏹ MULTIMIND — Dihentikan";
+      }
+    });
     stopBtn.style.display = "none";
     sendBtn.disabled = false;
     updateSend();
@@ -4000,10 +4012,18 @@ async function sendMultiMind(){
     mmStopRequested = false;
     // Abort semua fetch yang masih jalan
     if(mmController){ mmController.abort(); mmController = null; }
-    // Hapus bubble AI dari DOM seketika
-    if(wrap && wrap.parentNode) wrap.parentNode.removeChild(wrap);
-    // Bersihkan typing indicator
+    // Hapus HANYA typing indicator — konten yg sudah selesai tetap tampil
     document.querySelectorAll(".mm-typing-entry").forEach(e => e.remove());
+    // Tambah label dihentikan di dalam wrap (kalau belum ada)
+    if(wrap && wrap.parentNode && !wrap.querySelector(".mm-stopped-label")){
+      const stoppedLbl = document.createElement("div");
+      stoppedLbl.className = "mm-stopped-label";
+      stoppedLbl.style.cssText = "padding:8px 14px;font-size:11px;color:rgba(240,68,68,0.7);border-top:1px solid rgba(240,68,68,0.15);margin-top:6px;";
+      stoppedLbl.textContent = "⏹ Dihentikan oleh pengguna";
+      wrap.appendChild(stoppedLbl);
+    }
+    // Update header kalau masih ada spinner
+    if(hdr) hdr.innerHTML = "⏹ MULTIMIND — Dihentikan";
     // Aktifkan kembali input
     stopBtn.style.display = "none";
     sendBtn.disabled = false;
@@ -4054,40 +4074,40 @@ async function sendMultiMind(){
   // ════════════════════════════════════════════
   // PHASE 1 — JAWABAN AWAL
   // Semua model fetch PARALEL bersamaan.
-  // Tiap kartu LANGSUNG muncul begitu model-nya selesai — tidak nunggu semua.
-  // Debat baru dimulai setelah SEMUA kartu selesai dirender.
+  // Semua card muncul SEKALIGUS saat semua sudah selesai — tidak satu-satu.
   // ════════════════════════════════════════════
   const answers = {};
 
-  // Fetch paralel — tiap model update kartunya sendiri segera setelah selesai
-  await Promise.all(MM_MODELS.map(async api => {
-    try {
-      const r = await callAPISignal(api, rawMsg, [], sig);
-      if(sig.aborted) return;
-      const text = (r || "").trim();
-      answers[api] = text;
-      const body = document.getElementById("mmcard-" + api);
-      if(body){
-        if(text){
-          body.innerHTML = renderMessage(text);
-        } else {
-          body.innerHTML = `<div class="text" style="color:rgba(240,68,68,0.75)">Tidak ada respons</div>`;
-        }
-        autoScroll();
+  // Fetch semua paralel, kumpulkan hasil tanpa update DOM dulu
+  let rawResults = {};
+  try {
+    await Promise.all(MM_MODELS.map(async api => {
+      try {
+        const r = await callAPISignal(api, rawMsg, [], sig);
+        rawResults[api] = { ok: true, text: (r || "").trim() };
+      } catch(e) {
+        rawResults[api] = { ok: false, err: e.message || "error" };
       }
-    } catch(e) {
-      if(sig.aborted) return;
-      answers[api] = "";
-      const body = document.getElementById("mmcard-" + api);
-      if(body){
-        body.innerHTML = `<div class="text" style="color:rgba(240,68,68,0.75)">Gagal: ${escHtml(e.message || "error")}</div>`;
-        autoScroll();
-      }
-    }
-  }));
+    }));
+  } catch(e){ /* ignored */ }
 
   // Cek abort setelah semua fetch selesai
   if(sig.aborted){ mmDoStop(); return; }
+
+  // Render SEMUA kartu sekaligus bersamaan
+  MM_MODELS.forEach(api => {
+    const res = rawResults[api];
+    const body = document.getElementById("mmcard-" + api);
+    if(!body) return;
+    if(res && res.ok && res.text){
+      answers[api] = res.text;
+      body.innerHTML = renderMessage(res.text);
+    } else {
+      answers[api] = "";
+      body.innerHTML = `<div class="text" style="color:rgba(240,68,68,0.75)">Gagal: ${escHtml((res && res.err) || "no response")}</div>`;
+    }
+  });
+  autoScroll();
 
   // Minimal 2 model harus berhasil sebelum lanjut
   const okCount = MM_MODELS.filter(a => answers[a] && answers[a].length > 0).length;
@@ -4121,13 +4141,13 @@ async function sendMultiMind(){
     const typingEl = mmShowTyping(debateLog, api);
 
     const otherAnswers = MM_MODELS.filter(a => a !== api)
-      .map(a => `- ${MM_LABELS[a]}: "${(answers[a]||"").substring(0,800)}"`)
+      .map(a => `- ${MM_LABELS[a]}: "${(answers[a]||"").substring(0,300)}"`)
       .join("\n");
 
     const debatePrompt =
       `Kamu adalah ${MM_LABELS[api]}, peserta debat AI.` +
       `\nPertanyaan user: "${rawMsg}"` +
-      `\nJawabanmu: "${(answers[api]||"").substring(0,800)}"` +
+      `\nJawabanmu: "${(answers[api]||"").substring(0,300)}"` +
       `\nJawaban model lain:\n${otherAnswers}` +
       `\n\nBerikan argumen mengapa jawabanmu lebih baik dari model lain. Kritik spesifik, sebut nama model. Maks 3 kalimat, langsung ke poin.`;
 
@@ -4135,7 +4155,7 @@ async function sendMultiMind(){
       const reply = await callAPISignal(api, debatePrompt, [], sig);
       if(sig.aborted){ typingEl.remove(); mmDoStop(); return; }
       typingEl.remove();
-      const text = (reply||"").substring(0,600);
+      const text = (reply||"").substring(0,350);
       mmAppendDebateEntry(debateLog, api, text, "");
       allDebates.push({ model:api, comment:text });
     } catch(e){
@@ -4173,7 +4193,7 @@ async function sendMultiMind(){
     const votePrompt =
       `Kamu adalah ${MM_LABELS[api]}. Pilih jawaban terbaik.` +
       `\nPertanyaan: "${rawMsg}"` +
-      `\nJawaban:\n${MM_MODELS.map(a => `- ${MM_LABELS[a]}: "${(answers[a]||"").substring(0,500)}"`).join("\n")}` +
+      `\nJawaban:\n${MM_MODELS.map(a => `- ${MM_LABELS[a]}: "${(answers[a]||"").substring(0,200)}"`).join("\n")}` +
       `\nDebat:\n${debateSummary}` +
       `\n\nFormat WAJIB:\nVOTE: [NAMA MODEL]\nALASAN: [1 kalimat]\n\nPilihan: VOTE: QWEN / VOTE: AIVA / VOTE: GLM / VOTE: GPT-OSS`;
 
