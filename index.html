@@ -4052,32 +4052,42 @@ async function sendMultiMind(){
   autoScroll();
 
   // ════════════════════════════════════════════
-  // PHASE 1 — JAWABAN AWAL (paralel, semua model)
-  // Tunggu SEMUA selesai dulu — debat baru dimulai setelah semua card terisi lengkap
+  // PHASE 1 — JAWABAN AWAL
+  // Semua model fetch PARALEL bersamaan.
+  // Semua card muncul SEKALIGUS saat semua sudah selesai — tidak satu-satu.
   // ════════════════════════════════════════════
   const answers = {};
 
+  // Fetch semua paralel, kumpulkan hasil tanpa update DOM dulu
+  let rawResults = {};
   try {
-    await Promise.all(MM_MODELS.map(api =>
-      callAPISignal(api, rawMsg, [], sig)
-        .then(r => {
-          if(sig.aborted) return;
-          answers[api] = (r || "").trim();
-          const body = document.getElementById("mmcard-" + api);
-          if(body) body.innerHTML = renderMessage(answers[api]);
-          autoScroll();
-        })
-        .catch(e => {
-          if(sig.aborted) return; // abort bukan error biasa
-          answers[api] = "";
-          const body = document.getElementById("mmcard-" + api);
-          if(body) body.innerHTML = `<div class="text" style="color:rgba(240,68,68,0.75)">Gagal: ${escHtml(e.message||"error")}</div>`;
-        })
-    ));
+    await Promise.all(MM_MODELS.map(async api => {
+      try {
+        const r = await callAPISignal(api, rawMsg, [], sig);
+        rawResults[api] = { ok: true, text: (r || "").trim() };
+      } catch(e) {
+        rawResults[api] = { ok: false, err: e.message || "error" };
+      }
+    }));
   } catch(e){ /* ignored */ }
 
-  // Jika di-abort saat fetch jawaban awal berlangsung
+  // Cek abort setelah semua fetch selesai
   if(sig.aborted){ mmDoStop(); return; }
+
+  // Render SEMUA kartu sekaligus bersamaan
+  MM_MODELS.forEach(api => {
+    const res = rawResults[api];
+    const body = document.getElementById("mmcard-" + api);
+    if(!body) return;
+    if(res && res.ok && res.text){
+      answers[api] = res.text;
+      body.innerHTML = renderMessage(res.text);
+    } else {
+      answers[api] = "";
+      body.innerHTML = `<div class="text" style="color:rgba(240,68,68,0.75)">Gagal: ${escHtml((res && res.err) || "no response")}</div>`;
+    }
+  });
+  autoScroll();
 
   // Minimal 2 model harus berhasil sebelum lanjut
   const okCount = MM_MODELS.filter(a => answers[a] && answers[a].length > 0).length;
