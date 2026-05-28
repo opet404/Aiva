@@ -1947,6 +1947,7 @@ let autoScrollEnabled = true;
 let currentAPI = "groq";
 let chatMode = "single"; // "single" | "multi" | "multimind"
 let mmIsGenerating = false; // MultiMind generating flag
+let mmStopRequested = false; // MultiMind stop flag
 let sessions = [];
 let activeId  = null;
 
@@ -3045,6 +3046,15 @@ function finishAI(){
 
 /* ======================== STOP ======================== */
 function stopAI(){
+  // Jika MultiMind sedang berjalan
+  if(mmIsGenerating){
+    mmStopRequested = true;
+    mmIsGenerating = false;
+    stopBtn.style.display = "none";
+    sendBtn.disabled = false;
+    updateSend();
+    return;
+  }
   if(!isGenerating) return;
   stopTyping = true; isGenerating = false;
   clearTimeout(typingTimer); typingTimer = null;
@@ -3851,7 +3861,7 @@ function buildMultiMindResultEl(saved){
     <div class="mm-debate-entry ${d.model}">
       <div class="mm-de-meta">
         <span class="mm-de-label">${MM_LABELS[d.model]||d.model}</span>
-        ${d.round?`<span class="mm-de-round">Ronde ${d.round}</span>`:""}
+        
       </div>
       <div class="mm-de-text">${escHtml(d.comment)}</div>
     </div>`).join("");
@@ -3896,7 +3906,6 @@ function mmAppendDebateEntry(debateLog, api, text, roundLabel){
   entry.innerHTML = `
     <div class="mm-de-meta">
       <span class="mm-de-label">${MM_LABELS[api]}</span>
-      ${roundLabel ? `<span class="mm-de-round">${roundLabel}</span>` : ""}
     </div>
     <div class="mm-de-text">${escHtml(text)}</div>`;
   debateLog.appendChild(entry);
@@ -3929,6 +3938,7 @@ async function sendMultiMind(){
 
   inputEl.value = ""; inputEl.style.height = "auto";
   mmIsGenerating = true;
+  mmStopRequested = false;
   sendBtn.disabled = true;
   stopBtn.style.display = "flex";
 
@@ -3954,11 +3964,11 @@ async function sendMultiMind(){
   const phasesEl = document.createElement("div");
   phasesEl.className = "mm-phases";
   phasesEl.innerHTML = `
-    <span class="mm-phase-chip active" id="mmph0">① Jawaban Awal</span>
-    <span class="mm-phase-chip pending" id="mmph1">② Debat Ronde 1</span>
-    <span class="mm-phase-chip pending" id="mmph2">③ Debat Ronde 2</span>
-    <span class="mm-phase-chip pending" id="mmph3">④ Voting</span>
-    <span class="mm-phase-chip pending" id="mmph4">⑤ Hasil Final</span>`;
+    <span class="mm-phase-chip active" id="mmph0">Jawaban Awal</span>
+    <span class="mm-phase-chip pending" id="mmph1">Debat</span>
+    <span class="mm-phase-chip pending" id="mmph2">Debat Lanjut</span>
+    <span class="mm-phase-chip pending" id="mmph3">Voting</span>
+    <span class="mm-phase-chip pending" id="mmph4">Hasil Final</span>`;
   wrap.appendChild(phasesEl);
 
   // Answer cards
@@ -4000,17 +4010,19 @@ async function sendMultiMind(){
     if(body) body.innerHTML = escHtml((answers[api]||"").substring(0,200)) + ((answers[api]||"").length>200?"…":"");
   });
 
+  if(mmStopRequested){ mmIsGenerating=false; stopBtn.style.display="none"; sendBtn.disabled=false; updateSend(); return; }
+
   // ════════════════════════════════════════════
   // PHASE 2 — DEBAT RONDE 1: tiap model serang & kritik model lain
   // ════════════════════════════════════════════
   document.getElementById("mmph0").className = "mm-phase-chip done";
   document.getElementById("mmph1").className = "mm-phase-chip active";
-  hdr.innerHTML = `<div class="mm-spinner"></div> MULTIMIND — Ronde 1: Saling Serang Argumen...`;
+  hdr.innerHTML = `<div class="mm-spinner"></div> MULTIMIND — Sesi Debat...`;
 
   // Divider label
   const div1 = document.createElement("div");
   div1.className = "mm-round-divider";
-  div1.innerHTML = `<span>⚔️ RONDE 1 — Kritik & Argumen Awal</span>`;
+  div1.innerHTML = `<span>Babak Pertama</span>`;
   wrap.appendChild(div1);
 
   const debateLog = document.createElement("div");
@@ -4032,34 +4044,38 @@ async function sendMultiMind(){
       `\nJawabanmu sendiri: "${(answers[api]||"").substring(0,250)}"` +
       `\nJawaban model AI lain:\n${otherAnswers}` +
       `\n\nTugasmu: Kritik kelemahan atau ketidakakuratan dari jawaban model lain secara spesifik (sebutkan nama modelnya), dan jelaskan mengapa jawabanmu lebih baik. Gunakan argumen yang kuat dan faktual. Singkat tapi tajam, maksimal 3 kalimat. JANGAN setuju dengan model lain di ronde ini.`;
+    if(mmStopRequested){ typingEl.remove(); break; }
     try {
       const reply = await callAPI(api, prompt, []);
+      if(mmStopRequested){ typingEl.remove(); break; }
       const text = (reply||"").substring(0, 350);
       typingEl.remove();
-      mmAppendDebateEntry(debateLog, api, text, "Ronde 1");
-      allDebates.push({ model:api, round:1, comment:text });
+      mmAppendDebateEntry(debateLog, api, text, "");
+      allDebates.push({ model:api, round:0, comment:text });
     } catch(e){
       typingEl.remove();
     }
   }
+
+  if(mmStopRequested){ mmIsGenerating=false; stopBtn.style.display="none"; sendBtn.disabled=false; updateSend(); return; }
 
   // ════════════════════════════════════════════
   // PHASE 3 — DEBAT RONDE 2: tiap model balas argumen yang ditujukan ke mereka
   // ════════════════════════════════════════════
   document.getElementById("mmph1").className = "mm-phase-chip done";
   document.getElementById("mmph2").className = "mm-phase-chip active";
-  hdr.innerHTML = `<div class="mm-spinner"></div> MULTIMIND — Ronde 2: Balas & Pertahankan Posisi...`;
+  hdr.innerHTML = `<div class="mm-spinner"></div> MULTIMIND — Debat Berlanjut...`;
 
   const div2 = document.createElement("div");
   div2.className = "mm-round-divider";
-  div2.innerHTML = `<span>🔁 RONDE 2 — Balas & Pertahankan</span>`;
+  div2.innerHTML = `<span>Babak Kedua</span>`;
   wrap.appendChild(div2);
 
   // Ronde 2: tiap model baca semua kritik ronde 1 yang ditujukan ke mereka, lalu balas
   for(const api of MM_MODELS){
     // Kritik dari model lain yang menyerang model ini di ronde 1
     const attacksAgainstMe = allDebates
-      .filter(d => d.round===1 && d.model!==api && d.comment.toUpperCase().includes(MM_LABELS[api].toUpperCase()))
+      .filter(d => d.model!==api && d.comment.toUpperCase().includes(MM_LABELS[api].toUpperCase()))
       .map(d=>`- ${MM_LABELS[d.model]} berkata: "${d.comment}"`)
       .join("\n");
 
@@ -4077,33 +4093,37 @@ async function sendMultiMind(){
       `\nArgumen dari semua model di ronde 1:\n${round1Summary}` +
       (attacksAgainstMe ? `\n\nSerangan spesifik terhadap jawabanmu:\n${attacksAgainstMe}` : "") +
       `\n\nTugasmu: Balas kritik yang ditujukan padamu, perkuat posisi dan jawabanmu dengan argumen baru. Boleh akui 1 kelemahan kecil tapi tetap pertahankan bahwa jawabanmu paling baik. Maksimal 3 kalimat, langsung dan tajam.`;
+    if(mmStopRequested){ typingEl.remove(); break; }
     try {
       const reply = await callAPI(api, prompt, []);
+      if(mmStopRequested){ typingEl.remove(); break; }
       const text = (reply||"").substring(0,350);
       typingEl.remove();
-      mmAppendDebateEntry(debateLog, api, text, "Ronde 2");
-      allDebates.push({ model:api, round:2, comment:text });
+      mmAppendDebateEntry(debateLog, api, text, "");
+      allDebates.push({ model:api, round:0, comment:text });
     } catch(e){
       typingEl.remove();
     }
   }
+
+  if(mmStopRequested){ mmIsGenerating=false; stopBtn.style.display="none"; sendBtn.disabled=false; updateSend(); return; }
 
   // ════════════════════════════════════════════
   // PHASE 4 — VOTING: setelah debat, tiap model vote & beri alasan
   // ════════════════════════════════════════════
   document.getElementById("mmph2").className = "mm-phase-chip done";
   document.getElementById("mmph3").className = "mm-phase-chip active";
-  hdr.innerHTML = `<div class="mm-spinner"></div> MULTIMIND — Sesi Voting...`;
+  hdr.innerHTML = `<div class="mm-spinner"></div> MULTIMIND — Voting...`;
 
   const div3 = document.createElement("div");
   div3.className = "mm-round-divider";
-  div3.innerHTML = `<span>🗳️ VOTING — Siapa Pemenang Debat?</span>`;
+  div3.innerHTML = `<span>Voting</span>`;
   wrap.appendChild(div3);
 
   const votingSection = document.createElement("div");
   votingSection.className = "mm-voting-section";
   votingSection.innerHTML = `
-    <div class="mm-voting-title">🗳️ Voting Berlangsung...</div>
+    <div class="mm-voting-title">Voting Berlangsung...</div>
     <div class="mm-voting-bars" id="mmVoteBars"></div>
     <div class="mm-vote-log" id="mmVoteLog" style="margin-top:10px;display:flex;flex-direction:column;gap:5px"></div>`;
   wrap.appendChild(votingSection);
@@ -4113,7 +4133,7 @@ async function sendMultiMind(){
   const voteLog = document.getElementById("mmVoteLog");
 
   // Voting satu per satu supaya live terlihat
-  const debateSummary = allDebates.map(d=>`[Ronde ${d.round}] ${MM_LABELS[d.model]}: "${d.comment.substring(0,180)}"`).join("\n");
+  const debateSummary = allDebates.map(d=>`${MM_LABELS[d.model]}: "${d.comment.substring(0,180)}"`).join("\n");
   for(const api of MM_MODELS){
     const vp =
       `Kamu adalah ${MM_LABELS[api]}. Ini adalah sesi voting setelah debat.` +
@@ -4173,9 +4193,11 @@ async function sendMultiMind(){
         }).join("");
       }
       autoScroll();
+    if(mmStopRequested) break;
     } catch(e){}
   }
-  votingSection.querySelector(".mm-voting-title").textContent = "🗳️ Hasil Voting";
+  if(mmStopRequested){ mmIsGenerating=false; stopBtn.style.display="none"; sendBtn.disabled=false; updateSend(); return; }
+  votingSection.querySelector(".mm-voting-title").textContent = "Hasil Voting";
 
   // ════════════════════════════════════════════
   // PHASE 5 — HASIL FINAL
@@ -4184,7 +4206,7 @@ async function sendMultiMind(){
   document.getElementById("mmph4").className = "mm-phase-chip active";
 
   const winner = MM_MODELS.reduce((a,b) => votes[a]>=votes[b]?a:b);
-  hdr.innerHTML = `<svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:#f59e0b;flex-shrink:0"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg> MULTIMIND — Selesai! Pemenang: ${MM_LABELS[winner]}`;
+  hdr.innerHTML = `MULTIMIND — Selesai! Pemenang: ${MM_LABELS[winner]}`;
   document.getElementById("mmph4").className = "mm-phase-chip done";
 
   // Mark winner card & update vote count
