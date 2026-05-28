@@ -3080,19 +3080,18 @@ function stopAI(){
     if(mmController){ mmController.abort(); mmController = null; }
     // Hapus HANYA typing indicator — bubble & konten selesai tetap ada
     document.querySelectorAll(".mm-typing-entry").forEach(function(el){ el.remove(); });
-    // Tandai semua wrap yg masih dalam proses
-    document.querySelectorAll(".mm-debate-wrap").forEach(function(el){
-      if(!el.querySelector(".mm-stopped-label")){
-        const lbl = document.createElement("div");
-        lbl.className = "mm-stopped-label";
-        lbl.style.cssText = "padding:8px 14px;font-size:11px;color:rgba(240,68,68,0.7);border-top:1px solid rgba(240,68,68,0.15);margin-top:6px;";
-        lbl.textContent = "⏹ Dihentikan oleh pengguna";
-        el.appendChild(lbl);
-        // Update header spinner jika ada
-        const hdrEl = el.querySelector(".mm-debate-header");
-        if(hdrEl) hdrEl.innerHTML = "⏹ MULTIMIND — Dihentikan";
-      }
-    });
+    // Tandai HANYA wrap yg sedang aktif (bukan bubble lama)
+    const activeWrap = document.querySelector(".mm-debate-wrap[data-active='true']");
+    if(activeWrap && !activeWrap.querySelector(".mm-stopped-label")){
+      const lbl = document.createElement("div");
+      lbl.className = "mm-stopped-label";
+      lbl.style.cssText = "padding:8px 14px;font-size:11px;color:rgba(240,68,68,0.7);border-top:1px solid rgba(240,68,68,0.15);margin-top:6px;";
+      lbl.textContent = "⏹ Dihentikan oleh pengguna";
+      activeWrap.appendChild(lbl);
+      const hdrEl = activeWrap.querySelector(".mm-debate-header");
+      if(hdrEl) hdrEl.innerHTML = "⏹ MULTIMIND — Dihentikan";
+      activeWrap.dataset.active = "false";
+    }
     stopBtn.style.display = "none";
     sendBtn.disabled = false;
     updateSend();
@@ -4003,6 +4002,7 @@ async function sendMultiMind(){
   // Wrapper bubble AI — langsung masuk DOM
   const wrap = document.createElement("div");
   wrap.className = "mm-debate-wrap";
+  wrap.dataset.active = "true";  // tandai sebagai wrap yg sedang berjalan
   chatEl.appendChild(wrap);
   autoScroll();
 
@@ -4014,7 +4014,7 @@ async function sendMultiMind(){
     if(mmController){ mmController.abort(); mmController = null; }
     // Hapus HANYA typing indicator — konten yg sudah selesai tetap tampil
     document.querySelectorAll(".mm-typing-entry").forEach(e => e.remove());
-    // Tambah label dihentikan di dalam wrap (kalau belum ada)
+    // Tambah label dihentikan di wrap yg sedang berjalan (via closure, bukan querySelectorAll)
     if(wrap && wrap.parentNode && !wrap.querySelector(".mm-stopped-label")){
       const stoppedLbl = document.createElement("div");
       stoppedLbl.className = "mm-stopped-label";
@@ -4022,6 +4022,7 @@ async function sendMultiMind(){
       stoppedLbl.textContent = "⏹ Dihentikan oleh pengguna";
       wrap.appendChild(stoppedLbl);
     }
+    wrap.dataset.active = "false";
     // Update header kalau masih ada spinner
     if(hdr) hdr.innerHTML = "⏹ MULTIMIND — Dihentikan";
     // Aktifkan kembali input
@@ -4078,35 +4079,34 @@ async function sendMultiMind(){
   // ════════════════════════════════════════════
   const answers = {};
 
-  // Fetch semua paralel, kumpulkan hasil tanpa update DOM dulu
-  let rawResults = {};
-  try {
-    await Promise.all(MM_MODELS.map(async api => {
-      try {
-        const r = await callAPISignal(api, rawMsg, [], sig);
-        rawResults[api] = { ok: true, text: (r || "").trim() };
-      } catch(e) {
-        rawResults[api] = { ok: false, err: e.message || "error" };
+  // Fetch semua paralel — tiap card dirender LANGSUNG saat masing-masing selesai
+  // (tidak nunggu semua selesai, supaya jawaban yg ada langsung tampil penuh)
+  await Promise.allSettled(MM_MODELS.map(async api => {
+    try {
+      const r = await callAPISignal(api, rawMsg, [], sig);
+      if(sig.aborted) return;
+      const text = (r || "").trim();
+      answers[api] = text;
+      const body = document.getElementById("mmcard-" + api);
+      if(body){
+        body.innerHTML = text
+          ? renderMessage(text)
+          : `<div class="text" style="color:rgba(240,68,68,0.75)">Respons kosong</div>`;
       }
-    }));
-  } catch(e){ /* ignored */ }
+      autoScroll();
+    } catch(e) {
+      if(sig.aborted) return;
+      answers[api] = "";
+      const body = document.getElementById("mmcard-" + api);
+      if(body){
+        body.innerHTML = `<div class="text" style="color:rgba(240,68,68,0.75)">Gagal: ${escHtml(e.message || "error")}</div>`;
+      }
+    }
+  }));
 
   // Cek abort setelah semua fetch selesai
   if(sig.aborted){ mmDoStop(); return; }
 
-  // Render SEMUA kartu sekaligus bersamaan
-  MM_MODELS.forEach(api => {
-    const res = rawResults[api];
-    const body = document.getElementById("mmcard-" + api);
-    if(!body) return;
-    if(res && res.ok && res.text){
-      answers[api] = res.text;
-      body.innerHTML = renderMessage(res.text);
-    } else {
-      answers[api] = "";
-      body.innerHTML = `<div class="text" style="color:rgba(240,68,68,0.75)">Gagal: ${escHtml((res && res.err) || "no response")}</div>`;
-    }
-  });
   autoScroll();
 
   // Minimal 2 model harus berhasil sebelum lanjut
@@ -4300,6 +4300,7 @@ async function sendMultiMind(){
 
   addMsgToSession({ role:"multimind-result", models:MM_MODELS, answers, votes, winner, debates:allDebates, time:getTime() });
 
+  wrap.dataset.active = "false";  // selesai, bukan lagi aktif
   mmIsGenerating = false;
   mmController = null;
   stopBtn.style.display = "none";
