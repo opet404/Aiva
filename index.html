@@ -1947,7 +1947,6 @@ let autoScrollEnabled = true;
 let currentAPI = "groq";
 let chatMode = "single"; // "single" | "multi" | "multimind"
 let mmIsGenerating = false; // MultiMind generating flag
-let mmStopRequested = false; // MultiMind stop flag
 let sessions = [];
 let activeId  = null;
 
@@ -3046,11 +3045,6 @@ function finishAI(){
 
 /* ======================== STOP ======================== */
 function stopAI(){
-  // Jika MultiMind sedang berjalan — set flag, mmDoStop() dalam sendMultiMind() yang handle
-  if(mmIsGenerating){
-    mmStopRequested = true;
-    return;
-  }
   if(!isGenerating) return;
   stopTyping = true; isGenerating = false;
   clearTimeout(typingTimer); typingTimer = null;
@@ -3848,7 +3842,7 @@ function buildMultiMindResultEl(saved){
     const isWinner = api === winner;
     return `<div class="mm-model-card ${api}${isWinner?" winner":""}">
       <div class="mm-card-hdr"><div class="mm-cdot"></div>${MM_LABELS[api]}${isWinner?'<span class="mm-winner-badge">🏆 WINNER</span>':''}</div>
-      <div class="mm-card-body">${renderMessage(answers[api]||"")}</div>
+      <div class="mm-card-body">${escHtml((answers[api]||"").substring(0,200))}${(answers[api]||"").length>200?"...":""}</div>
       <div class="mm-card-vote"><span class="mm-vote-stars">${stars}</span> ${v}/3 votes</div>
     </div>`;
   }).join("");
@@ -3857,7 +3851,7 @@ function buildMultiMindResultEl(saved){
     <div class="mm-debate-entry ${d.model}">
       <div class="mm-de-meta">
         <span class="mm-de-label">${MM_LABELS[d.model]||d.model}</span>
-        
+        ${d.round?`<span class="mm-de-round">Ronde ${d.round}</span>`:""}
       </div>
       <div class="mm-de-text">${escHtml(d.comment)}</div>
     </div>`).join("");
@@ -3902,6 +3896,7 @@ function mmAppendDebateEntry(debateLog, api, text, roundLabel){
   entry.innerHTML = `
     <div class="mm-de-meta">
       <span class="mm-de-label">${MM_LABELS[api]}</span>
+      ${roundLabel ? `<span class="mm-de-round">${roundLabel}</span>` : ""}
     </div>
     <div class="mm-de-text">${escHtml(text)}</div>`;
   debateLog.appendChild(entry);
@@ -3934,13 +3929,12 @@ async function sendMultiMind(){
 
   inputEl.value = ""; inputEl.style.height = "auto";
   mmIsGenerating = true;
-  mmStopRequested = false;
   sendBtn.disabled = true;
   stopBtn.style.display = "flex";
 
   const t = getTime();
 
-  // User bubble
+  // Add user bubble
   const userEl = document.createElement("div");
   userEl.className = "msg user";
   userEl.innerHTML = escHtml(rawMsg) + `<span class="msg-time">${t}</span>`;
@@ -3948,7 +3942,7 @@ async function sendMultiMind(){
   addMsgToSession({ role:"user", text:rawMsg, time:t });
   autoScroll();
 
-  // ── Wrapper bubble AI ──
+  // ── Wrapper ──
   const wrap = document.createElement("div");
   wrap.className = "mm-debate-wrap";
 
@@ -3960,13 +3954,14 @@ async function sendMultiMind(){
   const phasesEl = document.createElement("div");
   phasesEl.className = "mm-phases";
   phasesEl.innerHTML = `
-    <span class="mm-phase-chip active"  id="mmph0">Jawaban Awal</span>
-    <span class="mm-phase-chip pending" id="mmph1">Debat</span>
-    <span class="mm-phase-chip pending" id="mmph2">Voting</span>
-    <span class="mm-phase-chip pending" id="mmph3">Hasil</span>`;
+    <span class="mm-phase-chip active" id="mmph0">① Jawaban Awal</span>
+    <span class="mm-phase-chip pending" id="mmph1">② Debat Ronde 1</span>
+    <span class="mm-phase-chip pending" id="mmph2">③ Debat Ronde 2</span>
+    <span class="mm-phase-chip pending" id="mmph3">④ Voting</span>
+    <span class="mm-phase-chip pending" id="mmph4">⑤ Hasil Final</span>`;
   wrap.appendChild(phasesEl);
 
-  // Answer cards — loading dulu
+  // Answer cards
   const cardsRow = document.createElement("div");
   cardsRow.className = "mm-cards-row";
   const cardEls = {};
@@ -3990,152 +3985,156 @@ async function sendMultiMind(){
   chatEl.appendChild(wrap);
   autoScroll();
 
-  // ── Helper stop: HAPUS bubble wrap, reset input ──
-  function mmDoStop(){
-    mmIsGenerating = false;
-    mmStopRequested = false;
-    stopBtn.style.display = "none";
-    sendBtn.disabled = false;
-    updateSend();
-    // Hapus bubble AI yang sedang berjalan
-    if(wrap && wrap.parentNode) wrap.parentNode.removeChild(wrap);
-    // Hapus pesan user yang baru saja dikirim juga? Tidak — biarkan user bubble tetap
-    // Hapus semua typing indicator sisa
-    document.querySelectorAll(".mm-typing-entry").forEach(e => e.remove());
-  }
-
   // ════════════════════════════════════════════
-  // PHASE 1 — Jawaban awal: semua model paralel, card muncul live
+  // PHASE 1 — Semua model jawab sekaligus
   // ════════════════════════════════════════════
   const answers = {};
-
-  // Jalankan paralel, tiap model update cardnya sendiri saat selesai
   await Promise.all(MM_MODELS.map(api =>
     callAPI(api, rawMsg, [])
-      .then(r => {
-        if(mmStopRequested) return;
-        answers[api] = r;
-        const body = document.getElementById("mmcard-" + api);
-        if(body) body.innerHTML = renderMessage(r || "");
-        autoScroll();
-      })
-      .catch(e => {
-        answers[api] = "(Error: " + e.message + ")";
-        const body = document.getElementById("mmcard-" + api);
-        if(body) body.innerHTML = escHtml(answers[api]);
-      })
+      .then(r => { answers[api] = r; })
+      .catch(e => { answers[api] = "(Error: " + e.message + ")"; })
   ));
 
-  // Cek stop setelah jawaban awal terkumpul
-  if(mmStopRequested){ mmDoStop(); return; }
+  MM_MODELS.forEach(api => {
+    const body = document.getElementById("mmcard-" + api);
+    if(body) body.innerHTML = escHtml((answers[api]||"").substring(0,200)) + ((answers[api]||"").length>200?"…":"");
+  });
 
   // ════════════════════════════════════════════
-  // PHASE 2 — DEBAT
+  // PHASE 2 — DEBAT RONDE 1: tiap model serang & kritik model lain
   // ════════════════════════════════════════════
   document.getElementById("mmph0").className = "mm-phase-chip done";
   document.getElementById("mmph1").className = "mm-phase-chip active";
-  hdr.innerHTML = `<div class="mm-spinner"></div> MULTIMIND — Debat...`;
+  hdr.innerHTML = `<div class="mm-spinner"></div> MULTIMIND — Ronde 1: Saling Serang Argumen...`;
+
+  // Divider label
+  const div1 = document.createElement("div");
+  div1.className = "mm-round-divider";
+  div1.innerHTML = `<span>⚔️ RONDE 1 — Kritik & Argumen Awal</span>`;
+  wrap.appendChild(div1);
 
   const debateLog = document.createElement("div");
   debateLog.className = "mm-debate-log";
   wrap.appendChild(debateLog);
-  autoScroll();
 
-  const allDebates = [];
+  const allDebates = []; // simpan semua untuk session
 
-  // Debat babak 1: tiap model kritik jawaban model lain
+  // Ronde 1: tiap model baca semua jawaban, kritik kelemahan jawaban lain & pertahankan miliknya
+  // Sequential biar terasa live debat satu per satu
   for(const api of MM_MODELS){
-    if(mmStopRequested){ mmDoStop(); return; }
     const typingEl = mmShowTyping(debateLog, api);
-    const otherAnswers = MM_MODELS.filter(a => a !== api)
-      .map(a => `- ${MM_LABELS[a]}: "${(answers[a]||"").substring(0,250)}"`)
+    const otherAnswers = MM_MODELS.filter(a=>a!==api)
+      .map(a=>`- ${MM_LABELS[a]}: "${(answers[a]||"").substring(0,250)}"`)
       .join("\n");
     const prompt =
-      `Kamu adalah ${MM_LABELS[api]}, sedang dalam sesi debat AI.` +
+      `Kamu adalah ${MM_LABELS[api]}, sebuah model AI yang sedang dalam sesi debat.` +
       `\nUser bertanya: "${rawMsg}"` +
-      `\nJawabanmu: "${(answers[api]||"").substring(0,250)}"` +
-      `\nJawaban model lain:\n${otherAnswers}` +
-      `\n\nKritik kelemahan jawaban model lain secara spesifik (sebut namanya), jelaskan mengapa jawabanmu lebih baik. Singkat, tajam, maks 3 kalimat. Jangan setuju dengan model lain.`;
+      `\nJawabanmu sendiri: "${(answers[api]||"").substring(0,250)}"` +
+      `\nJawaban model AI lain:\n${otherAnswers}` +
+      `\n\nTugasmu: Kritik kelemahan atau ketidakakuratan dari jawaban model lain secara spesifik (sebutkan nama modelnya), dan jelaskan mengapa jawabanmu lebih baik. Gunakan argumen yang kuat dan faktual. Singkat tapi tajam, maksimal 3 kalimat. JANGAN setuju dengan model lain di ronde ini.`;
     try {
       const reply = await callAPI(api, prompt, []);
-      if(mmStopRequested){ typingEl.remove(); mmDoStop(); return; }
-      const text = (reply||"").substring(0, 300);
+      const text = (reply||"").substring(0, 350);
       typingEl.remove();
-      mmAppendDebateEntry(debateLog, api, text, "");
-      allDebates.push({ model:api, comment:text });
-    } catch(e){ typingEl.remove(); }
-  }
-
-  if(mmStopRequested){ mmDoStop(); return; }
-
-  // Debat babak 2: tiap model balas kritik
-  for(const api of MM_MODELS){
-    if(mmStopRequested){ mmDoStop(); return; }
-    const debateSoFar = allDebates.map(d => `${MM_LABELS[d.model]}: "${d.comment.substring(0,180)}"`).join("\n");
-    const attacksOnMe = allDebates
-      .filter(d => d.model !== api && d.comment.toUpperCase().includes(MM_LABELS[api].toUpperCase()))
-      .map(d => `- ${MM_LABELS[d.model]}: "${d.comment}"`)
-      .join("\n");
-    const typingEl = mmShowTyping(debateLog, api);
-    const prompt =
-      `Kamu adalah ${MM_LABELS[api]}, sesi debat lanjutan.` +
-      `\nUser bertanya: "${rawMsg}"` +
-      `\nJawabanmu awal: "${(answers[api]||"").substring(0,200)}"` +
-      `\nDebat sejauh ini:\n${debateSoFar}` +
-      (attacksOnMe ? `\n\nSerangan terhadap jawabanmu:\n${attacksOnMe}` : "") +
-      `\n\nBalas kritik, perkuat argumenmu. Boleh akui 1 kelemahan kecil tapi tetap pertahankan jawabanmu paling baik. Maks 3 kalimat.`;
-    try {
-      const reply = await callAPI(api, prompt, []);
-      if(mmStopRequested){ typingEl.remove(); mmDoStop(); return; }
-      const text = (reply||"").substring(0, 300);
+      mmAppendDebateEntry(debateLog, api, text, "Ronde 1");
+      allDebates.push({ model:api, round:1, comment:text });
+    } catch(e){
       typingEl.remove();
-      mmAppendDebateEntry(debateLog, api, text, "");
-      allDebates.push({ model:api, comment:text });
-    } catch(e){ typingEl.remove(); }
+    }
   }
-
-  if(mmStopRequested){ mmDoStop(); return; }
 
   // ════════════════════════════════════════════
-  // PHASE 3 — VOTING
+  // PHASE 3 — DEBAT RONDE 2: tiap model balas argumen yang ditujukan ke mereka
   // ════════════════════════════════════════════
   document.getElementById("mmph1").className = "mm-phase-chip done";
   document.getElementById("mmph2").className = "mm-phase-chip active";
-  hdr.innerHTML = `<div class="mm-spinner"></div> MULTIMIND — Voting...`;
+  hdr.innerHTML = `<div class="mm-spinner"></div> MULTIMIND — Ronde 2: Balas & Pertahankan Posisi...`;
+
+  const div2 = document.createElement("div");
+  div2.className = "mm-round-divider";
+  div2.innerHTML = `<span>🔁 RONDE 2 — Balas & Pertahankan</span>`;
+  wrap.appendChild(div2);
+
+  // Ronde 2: tiap model baca semua kritik ronde 1 yang ditujukan ke mereka, lalu balas
+  for(const api of MM_MODELS){
+    // Kritik dari model lain yang menyerang model ini di ronde 1
+    const attacksAgainstMe = allDebates
+      .filter(d => d.round===1 && d.model!==api && d.comment.toUpperCase().includes(MM_LABELS[api].toUpperCase()))
+      .map(d=>`- ${MM_LABELS[d.model]} berkata: "${d.comment}"`)
+      .join("\n");
+
+    // Semua komentar ronde 1 (untuk context)
+    const round1Summary = allDebates
+      .filter(d=>d.round===1)
+      .map(d=>`- ${MM_LABELS[d.model]}: "${d.comment.substring(0,200)}"`)
+      .join("\n");
+
+    const typingEl = mmShowTyping(debateLog, api);
+    const prompt =
+      `Kamu adalah ${MM_LABELS[api]}, dalam sesi debat ronde 2.` +
+      `\nUser bertanya: "${rawMsg}"` +
+      `\nJawabanmu awal: "${(answers[api]||"").substring(0,200)}"` +
+      `\nArgumen dari semua model di ronde 1:\n${round1Summary}` +
+      (attacksAgainstMe ? `\n\nSerangan spesifik terhadap jawabanmu:\n${attacksAgainstMe}` : "") +
+      `\n\nTugasmu: Balas kritik yang ditujukan padamu, perkuat posisi dan jawabanmu dengan argumen baru. Boleh akui 1 kelemahan kecil tapi tetap pertahankan bahwa jawabanmu paling baik. Maksimal 3 kalimat, langsung dan tajam.`;
+    try {
+      const reply = await callAPI(api, prompt, []);
+      const text = (reply||"").substring(0,350);
+      typingEl.remove();
+      mmAppendDebateEntry(debateLog, api, text, "Ronde 2");
+      allDebates.push({ model:api, round:2, comment:text });
+    } catch(e){
+      typingEl.remove();
+    }
+  }
+
+  // ════════════════════════════════════════════
+  // PHASE 4 — VOTING: setelah debat, tiap model vote & beri alasan
+  // ════════════════════════════════════════════
+  document.getElementById("mmph2").className = "mm-phase-chip done";
+  document.getElementById("mmph3").className = "mm-phase-chip active";
+  hdr.innerHTML = `<div class="mm-spinner"></div> MULTIMIND — Sesi Voting...`;
+
+  const div3 = document.createElement("div");
+  div3.className = "mm-round-divider";
+  div3.innerHTML = `<span>🗳️ VOTING — Siapa Pemenang Debat?</span>`;
+  wrap.appendChild(div3);
 
   const votingSection = document.createElement("div");
   votingSection.className = "mm-voting-section";
   votingSection.innerHTML = `
-    <div class="mm-voting-title">Voting...</div>
+    <div class="mm-voting-title">🗳️ Voting Berlangsung...</div>
     <div class="mm-voting-bars" id="mmVoteBars"></div>
-    <div id="mmVoteLog" style="margin-top:10px;display:flex;flex-direction:column;gap:5px"></div>`;
+    <div class="mm-vote-log" id="mmVoteLog" style="margin-top:10px;display:flex;flex-direction:column;gap:5px"></div>`;
   wrap.appendChild(votingSection);
   autoScroll();
 
   const votes = { groq:0, qwen:0, glm:0, gpt:0 };
   const voteLog = document.getElementById("mmVoteLog");
-  const debateSummary = allDebates.map(d => `${MM_LABELS[d.model]}: "${d.comment.substring(0,150)}"`).join("\n");
 
+  // Voting satu per satu supaya live terlihat
+  const debateSummary = allDebates.map(d=>`[Ronde ${d.round}] ${MM_LABELS[d.model]}: "${d.comment.substring(0,180)}"`).join("\n");
   for(const api of MM_MODELS){
-    if(mmStopRequested){ mmDoStop(); return; }
     const vp =
-      `Kamu adalah ${MM_LABELS[api]}. Sesi voting setelah debat.` +
-      `\nPertanyaan: "${rawMsg}"` +
-      `\nJawaban awal:\n${MM_MODELS.map(a => `- ${MM_LABELS[a]}: "${(answers[a]||"").substring(0,180)}"`).join("\n")}` +
+      `Kamu adalah ${MM_LABELS[api]}. Ini adalah sesi voting setelah debat.` +
+      `\nPertanyaan user: "${rawMsg}"` +
+      `\nJawaban awal semua model:\n${MM_MODELS.map(a=>`- ${MM_LABELS[a]}: "${(answers[a]||"").substring(0,200)}"`).join("\n")}` +
       `\nRingkasan debat:\n${debateSummary}` +
-      `\n\nPilih model paling layak menang. Format WAJIB:\nVOTE: [NAMA]\nALASAN: [1 kalimat]\n\nPilih: VOTE: QWEN / VOTE: AIVA / VOTE: GLM / VOTE: GPT-OSS`;
+      `\n\nBerdasarkan kualitas jawaban DAN performa dalam debat, pilih model mana yang paling layak menang. Format jawaban WAJIB:\nVOTE: [NAMA_MODEL]\nALASAN: [1 kalimat alasan singkat]\n\nGunakan salah satu: VOTE: QWEN / VOTE: AIVA / VOTE: GLM / VOTE: GPT-OSS`;
     try {
       const voteReply = await callAPI(api, vp, []);
-      if(mmStopRequested){ mmDoStop(); return; }
       const vUpper = (voteReply||"").toUpperCase();
+      // Parse vote
       let picked = null;
-      const vm = vUpper.match(/VOTE:\s*(QWEN|AIVA|GLM|GPT-OSS|GPT)/);
-      if(vm){
-        if(vm[1]==="QWEN") picked="groq";
-        else if(vm[1]==="AIVA") picked="qwen";
-        else if(vm[1]==="GLM") picked="glm";
-        else if(vm[1]==="GPT-OSS"||vm[1]==="GPT") picked="gpt";
+      const voteMatch = vUpper.match(/VOTE:\s*(QWEN|AIVA|GLM|GPT-OSS|GPT)/);
+      if(voteMatch){
+        const vName = voteMatch[1];
+        if(vName==="QWEN") picked="groq";
+        else if(vName==="AIVA") picked="qwen";
+        else if(vName==="GLM") picked="glm";
+        else if(vName==="GPT-OSS"||vName==="GPT") picked="gpt";
       }
+      // fallback: scan text
       if(!picked){
         if(vUpper.includes("QWEN")) picked="groq";
         else if(vUpper.includes("AIVA")) picked="qwen";
@@ -4144,28 +4143,31 @@ async function sendMultiMind(){
       }
       if(picked) votes[picked]++;
 
+      // Parse alasan
       const alasanMatch = (voteReply||"").match(/ALASAN:\s*(.+)/i);
-      const alasan = alasanMatch ? alasanMatch[1].substring(0,120) : (voteReply||"").substring(0,100);
+      const alasan = alasanMatch ? alasanMatch[1].substring(0,120) : "";
 
+      // Tampilkan vote live
       const vEntry = document.createElement("div");
       vEntry.className = `mm-debate-entry ${api}`;
       vEntry.style.animation = "msgIn 0.25s var(--ease)";
       vEntry.innerHTML = `
         <div class="mm-de-meta">
           <span class="mm-de-label">${MM_LABELS[api]}</span>
-          <span class="mm-de-round" style="background:rgba(245,158,11,0.15);color:#f59e0b;border-color:rgba(245,158,11,0.3)">${picked ? "→ " + MM_LABELS[picked] : "?"}</span>
+          <span class="mm-de-round" style="background:rgba(245,158,11,0.15);color:#f59e0b;border-color:rgba(245,158,11,0.3)">vote → ${picked ? MM_LABELS[picked] : "?"}</span>
         </div>
-        <div class="mm-de-text">${escHtml(alasan)}</div>`;
+        <div class="mm-de-text">${escHtml(alasan||voteReply||"")}</div>`;
       voteLog.appendChild(vEntry);
 
-      const totalNow = Object.values(votes).reduce((a,b) => a+b, 0) || 1;
+      // Update bar live setelah tiap vote masuk
+      const totalNow = Object.values(votes).reduce((a,b)=>a+b,0)||1;
       const vbars = document.getElementById("mmVoteBars");
       if(vbars){
-        vbars.innerHTML = MM_MODELS.map(a => {
-          const v = votes[a]; const pct = Math.round(v/totalNow*100);
+        vbars.innerHTML = MM_MODELS.map(a=>{
+          const v=votes[a]; const pct=Math.round(v/totalNow*100);
           return `<div class="mm-vote-bar-row ${a}">
             <div class="mm-vote-bar-label">${MM_LABELS[a]}</div>
-            <div class="mm-vote-bar-track"><div class="mm-vote-bar-fill" style="width:${pct}%"></div></div>
+            <div class="mm-vote-bar-track"><div class="mm-vote-bar-fill" style="width:${pct}%" id="mmbar-${a}"></div></div>
             <div class="mm-vote-score">${v}</div>
           </div>`;
         }).join("");
@@ -4173,31 +4175,29 @@ async function sendMultiMind(){
       autoScroll();
     } catch(e){}
   }
-
-  if(mmStopRequested){ mmDoStop(); return; }
-  votingSection.querySelector(".mm-voting-title").textContent = "Hasil Voting";
+  votingSection.querySelector(".mm-voting-title").textContent = "🗳️ Hasil Voting";
 
   // ════════════════════════════════════════════
-  // PHASE 4 — HASIL FINAL
+  // PHASE 5 — HASIL FINAL
   // ════════════════════════════════════════════
-  document.getElementById("mmph2").className = "mm-phase-chip done";
-  document.getElementById("mmph3").className = "mm-phase-chip active";
-
-  const winner = MM_MODELS.reduce((a,b) => votes[a] >= votes[b] ? a : b);
-  hdr.innerHTML = `MULTIMIND — Selesai! Pemenang: ${MM_LABELS[winner]}`;
   document.getElementById("mmph3").className = "mm-phase-chip done";
+  document.getElementById("mmph4").className = "mm-phase-chip active";
 
-  MM_MODELS.forEach(api => {
+  const winner = MM_MODELS.reduce((a,b) => votes[a]>=votes[b]?a:b);
+  hdr.innerHTML = `<svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:#f59e0b;flex-shrink:0"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg> MULTIMIND — Selesai! Pemenang: ${MM_LABELS[winner]}`;
+  document.getElementById("mmph4").className = "mm-phase-chip done";
+
+  // Mark winner card & update vote count
+  MM_MODELS.forEach(api=>{
     const card = cardEls[api];
     if(!card) return;
-    const voteEl = document.getElementById("mmvote-" + api);
-    const stars = "★".repeat(votes[api]) + "☆".repeat(Math.max(0, 4 - votes[api]));
+    const voteEl = document.getElementById("mmvote-"+api);
+    const stars = "★".repeat(votes[api]) + "☆".repeat(Math.max(0,4-votes[api]));
     if(voteEl){ voteEl.style.opacity="1"; voteEl.innerHTML=`<span class="mm-vote-stars">${stars}</span> ${votes[api]} vote`; }
-    if(api === winner){
+    if(api===winner){
       card.classList.add("winner");
       const cardHdr = card.querySelector(".mm-card-hdr");
-      if(cardHdr && !cardHdr.querySelector(".mm-winner-badge"))
-        cardHdr.innerHTML += `<span class="mm-winner-badge">WINNER</span>`;
+      if(cardHdr && !cardHdr.querySelector(".mm-winner-badge")) cardHdr.innerHTML += `<span class="mm-winner-badge">🏆</span>`;
     }
   });
 
@@ -4208,7 +4208,7 @@ async function sendMultiMind(){
       <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
       Jawaban Terpilih
     </div>
-    <div class="mm-final-content">${renderMessage(answers[winner] || "")}</div>
+    <div class="mm-final-content">${renderMessage(answers[winner]||"")}</div>
     <div class="mm-final-meta">
       <span class="mm-winner-tag ${winner}">${MM_LABELS[winner]} — ${votes[winner]} votes</span>
       <span style="color:var(--muted)">${getTime()}</span>
@@ -4224,7 +4224,6 @@ async function sendMultiMind(){
   sendBtn.disabled = false;
   updateSend();
 }
-
 
 /* ======================== BOOT ======================== */
 document.addEventListener("DOMContentLoaded", ()=>{
