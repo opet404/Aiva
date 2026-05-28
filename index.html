@@ -109,7 +109,115 @@ header{position:relative;z-index:1000;height:var(--hdr);display:flex;align-items
 .mode-badge-inner{display:flex;align-items:center;gap:5px;padding:5px 10px;border-radius:10px;background:var(--glass);border:1px solid var(--gb);font-family:var(--F);font-size:11px;font-weight:600;color:var(--text);letter-spacing:0.5px}
 .mode-dot{width:7px;height:7px;border-radius:50%;background:var(--accent)}
 .mode-badge-inner.multi .mode-dot{background:linear-gradient(135deg,var(--groq),var(--qwen));animation:rotateDot 2s linear infinite}
+.mode-badge-inner.multimind .mode-dot{background:linear-gradient(135deg,#f59e0b,#ef4444);animation:rotateDot 1.5s linear infinite}
 @keyframes rotateDot{from{filter:hue-rotate(0deg)}to{filter:hue-rotate(360deg)}}
+
+/* ====== MULTIMIND STYLES ====== */
+/* Debate bubble */
+.mm-debate-wrap{align-self:flex-start;width:100%;max-width:98%;display:flex;flex-direction:column;gap:8px;animation:msgIn 0.28s var(--ease)}
+.mm-debate-header{display:flex;align-items:center;gap:8px;padding:8px 14px;background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.2);border-radius:12px 12px 0 0;font-size:11px;font-weight:700;letter-spacing:1.5px;color:#f59e0b;text-transform:uppercase}
+.mm-debate-header svg{width:14px;height:14px;stroke:#f59e0b;stroke-width:2;fill:none;flex-shrink:0}
+.mm-debate-header .mm-spinner{width:12px;height:12px;border:2px solid rgba(245,158,11,0.3);border-top-color:#f59e0b;border-radius:50%;animation:mmSpin 0.8s linear infinite;flex-shrink:0}
+@keyframes mmSpin{to{transform:rotate(360deg)}}
+
+/* Phase indicators */
+.mm-phases{display:flex;gap:6px;padding:8px 14px;background:rgba(13,18,40,0.6);border-left:1px solid rgba(245,158,11,0.15);border-right:1px solid rgba(245,158,11,0.15);flex-wrap:wrap}
+.mm-phase-chip{padding:3px 10px;border-radius:20px;font-size:10px;font-weight:600;letter-spacing:0.5px;border:1px solid;transition:all 0.3s var(--ease)}
+.mm-phase-chip.pending{background:transparent;border-color:rgba(255,255,255,0.1);color:rgba(255,255,255,0.25)}
+.mm-phase-chip.active{background:rgba(245,158,11,0.15);border-color:rgba(245,158,11,0.4);color:#f59e0b;animation:phaseGlow 1s ease-in-out infinite}
+.mm-phase-chip.done{background:rgba(16,185,129,0.12);border-color:rgba(16,185,129,0.3);color:#10b981}
+@keyframes phaseGlow{0%,100%{box-shadow:0 0 0 0 rgba(245,158,11,0)}50%{box-shadow:0 0 8px rgba(245,158,11,0.3)}}
+
+/* Individual model answer cards during debate */
+.mm-cards-row{display:flex;gap:8px;padding:10px 14px;background:rgba(13,18,40,0.5);border-left:1px solid rgba(245,158,11,0.15);border-right:1px solid rgba(245,158,11,0.15);overflow-x:auto;flex-wrap:nowrap}
+.mm-cards-row::-webkit-scrollbar{height:3px}
+.mm-cards-row::-webkit-scrollbar-thumb{background:rgba(245,158,11,0.3);border-radius:3px}
+.mm-model-card{flex:0 0 auto;width:200px;border-radius:12px;overflow:hidden;border:1.5px solid;transition:all 0.3s var(--ease)}
+.mm-model-card.groq{background:rgba(8,13,35,0.92);border-color:rgba(61,114,246,0.3)}
+.mm-model-card.qwen{background:rgba(12,8,35,0.92);border-color:rgba(168,85,247,0.3)}
+.mm-model-card.glm{background:rgba(4,20,16,0.92);border-color:rgba(16,185,129,0.3)}
+.mm-model-card.gpt{background:rgba(4,20,18,0.92);border-color:rgba(16,163,127,0.3)}
+.mm-model-card.winner{transform:scale(1.03);box-shadow:0 0 20px rgba(245,158,11,0.4)!important}
+.mm-model-card.groq.winner{border-color:rgba(245,158,11,0.8);box-shadow:0 0 20px rgba(61,114,246,0.4)!important}
+.mm-model-card.qwen.winner{border-color:rgba(245,158,11,0.8);box-shadow:0 0 20px rgba(168,85,247,0.4)!important}
+.mm-model-card.glm.winner{border-color:rgba(245,158,11,0.8);box-shadow:0 0 20px rgba(16,185,129,0.4)!important}
+.mm-model-card.gpt.winner{border-color:rgba(245,158,11,0.8);box-shadow:0 0 20px rgba(16,163,127,0.4)!important}
+.mm-card-hdr{display:flex;align-items:center;gap:6px;padding:8px 10px;font-size:10px;font-weight:700;letter-spacing:1.5px}
+.mm-card-hdr .mm-cdot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.mm-model-card.groq .mm-card-hdr{background:rgba(61,114,246,0.12);color:#7aa8f7}
+.mm-model-card.groq .mm-cdot{background:#3d72f6}
+.mm-model-card.qwen .mm-card-hdr{background:rgba(168,85,247,0.12);color:#c4a8ff}
+.mm-model-card.qwen .mm-cdot{background:#a855f7}
+.mm-model-card.glm .mm-card-hdr{background:rgba(16,185,129,0.12);color:#6ee7b7}
+.mm-model-card.glm .mm-cdot{background:#10b981}
+.mm-model-card.gpt .mm-card-hdr{background:rgba(16,163,127,0.12);color:#5eead4}
+.mm-model-card.gpt .mm-cdot{background:#10a37f}
+.mm-card-body{padding:8px 10px;font-size:12px;line-height:1.6;color:var(--text);max-height:120px;overflow-y:auto;word-break:break-word}
+.mm-card-body::-webkit-scrollbar{width:2px}
+.mm-card-body::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.15)}
+.mm-card-vote{padding:6px 10px;border-top:1px solid rgba(255,255,255,0.07);display:flex;align-items:center;gap:5px;font-size:10px;font-weight:600}
+.mm-model-card.groq .mm-card-vote{color:#7aa8f7}
+.mm-model-card.qwen .mm-card-vote{color:#c4a8ff}
+.mm-model-card.glm .mm-card-vote{color:#6ee7b7}
+.mm-model-card.gpt .mm-card-vote{color:#5eead4}
+.mm-vote-stars{letter-spacing:1px}
+.mm-winner-badge{display:inline-flex;align-items:center;gap:3px;padding:1px 6px;border-radius:10px;background:rgba(245,158,11,0.2);border:1px solid rgba(245,158,11,0.4);color:#f59e0b;font-size:9px;font-weight:700;letter-spacing:0.5px;margin-left:4px}
+
+/* Debate log */
+.mm-debate-log{padding:10px 14px;background:rgba(13,18,40,0.4);border-left:1px solid rgba(245,158,11,0.15);border-right:1px solid rgba(245,158,11,0.15);display:flex;flex-direction:column;gap:6px;max-height:200px;overflow-y:auto}
+.mm-debate-log::-webkit-scrollbar{width:2px}
+.mm-debate-log::-webkit-scrollbar-thumb{background:rgba(245,158,11,0.3);border-radius:2px}
+.mm-debate-entry{display:flex;gap:8px;align-items:flex-start;font-size:12px;line-height:1.55;padding:5px 8px;border-radius:8px;animation:msgIn 0.22s var(--ease)}
+.mm-debate-entry.groq{background:rgba(61,114,246,0.06);border-left:2px solid rgba(61,114,246,0.4)}
+.mm-debate-entry.qwen{background:rgba(168,85,247,0.06);border-left:2px solid rgba(168,85,247,0.4)}
+.mm-debate-entry.glm{background:rgba(16,185,129,0.06);border-left:2px solid rgba(16,185,129,0.4)}
+.mm-debate-entry.gpt{background:rgba(16,163,127,0.06);border-left:2px solid rgba(16,163,127,0.4)}
+.mm-de-label{font-size:9px;font-weight:700;letter-spacing:1px;flex-shrink:0;padding-top:2px;min-width:42px}
+.mm-debate-entry.groq .mm-de-label{color:#7aa8f7}
+.mm-debate-entry.qwen .mm-de-label{color:#c4a8ff}
+.mm-debate-entry.glm .mm-de-label{color:#6ee7b7}
+.mm-debate-entry.gpt .mm-de-label{color:#5eead4}
+.mm-de-text{color:var(--text);opacity:0.82}
+
+/* Voting section */
+.mm-voting-section{padding:10px 14px;background:rgba(13,18,40,0.5);border-left:1px solid rgba(245,158,11,0.15);border-right:1px solid rgba(245,158,11,0.15)}
+.mm-voting-title{font-size:10px;font-weight:700;letter-spacing:2px;color:rgba(245,158,11,0.7);text-transform:uppercase;margin-bottom:8px}
+.mm-voting-bars{display:flex;flex-direction:column;gap:5px}
+.mm-vote-bar-row{display:flex;align-items:center;gap:8px;font-size:11px}
+.mm-vote-bar-label{width:52px;font-size:10px;font-weight:600}
+.mm-vote-bar-track{flex:1;height:6px;background:rgba(255,255,255,0.07);border-radius:3px;overflow:hidden}
+.mm-vote-bar-fill{height:100%;border-radius:3px;transition:width 0.6s var(--ease)}
+.mm-vote-bar-row.groq .mm-vote-bar-label{color:#7aa8f7}
+.mm-vote-bar-row.groq .mm-vote-bar-fill{background:linear-gradient(90deg,#3d72f6,#7aa8f7)}
+.mm-vote-bar-row.qwen .mm-vote-bar-label{color:#c4a8ff}
+.mm-vote-bar-row.qwen .mm-vote-bar-fill{background:linear-gradient(90deg,#a855f7,#c4a8ff)}
+.mm-vote-bar-row.glm .mm-vote-bar-label{color:#6ee7b7}
+.mm-vote-bar-row.glm .mm-vote-bar-fill{background:linear-gradient(90deg,#10b981,#6ee7b7)}
+.mm-vote-bar-row.gpt .mm-vote-bar-label{color:#5eead4}
+.mm-vote-bar-row.gpt .mm-vote-bar-fill{background:linear-gradient(90deg,#10a37f,#5eead4)}
+.mm-vote-score{font-size:10px;color:var(--muted);min-width:16px;text-align:right}
+
+/* Final answer */
+.mm-final-wrap{padding:12px 14px;background:rgba(245,158,11,0.06);border:1px solid rgba(245,158,11,0.25);border-radius:0 0 12px 12px;border-top:none}
+.mm-final-label{font-size:10px;font-weight:700;letter-spacing:2px;color:#f59e0b;text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.mm-final-label svg{width:13px;height:13px;fill:#f59e0b;stroke:none}
+.mm-final-content{font-size:14px;line-height:1.7;color:var(--text)}
+.mm-final-meta{margin-top:10px;font-size:11px;color:var(--muted);display:flex;align-items:center;gap:6px;padding-top:8px;border-top:1px solid rgba(255,255,255,0.06)}
+.mm-winner-tag{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:8px;font-size:10px;font-weight:700;letter-spacing:0.5px}
+.mm-winner-tag.groq{background:rgba(61,114,246,0.15);color:#7aa8f7;border:1px solid rgba(61,114,246,0.3)}
+.mm-winner-tag.qwen{background:rgba(168,85,247,0.15);color:#c4a8ff;border:1px solid rgba(168,85,247,0.3)}
+.mm-winner-tag.glm{background:rgba(16,185,129,0.15);color:#6ee7b7;border:1px solid rgba(16,185,129,0.3)}
+.mm-winner-tag.gpt{background:rgba(16,163,127,0.15);color:#5eead4;border:1px solid rgba(16,163,127,0.3)}
+
+/* Welcome MultiMind */
+#welcomeMultiMind{display:flex;flex-direction:column;align-items:center;padding:40px 20px;text-align:center;gap:10px;flex-shrink:0;animation:slideUp 0.5s var(--ease) both}
+.wmm-icon{width:68px;height:68px;border-radius:18px;background:linear-gradient(135deg,rgba(245,158,11,0.2),rgba(239,68,68,0.2));border:1px solid rgba(245,158,11,0.3);display:flex;align-items:center;justify-content:center;box-shadow:0 0 28px rgba(245,158,11,0.25)}
+.wmm-icon svg{width:32px;height:32px;stroke:#f59e0b;fill:none;stroke-width:1.8}
+.wmm-title{font-size:22px;font-weight:800;letter-spacing:4px;background:linear-gradient(90deg,#f59e0b,#ef4444);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.wmm-sub{font-size:13px;color:var(--muted);letter-spacing:0.5px;max-width:280px;line-height:1.6}
+.wmm-chips{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:6px}
+.wmm-chip{padding:5px 12px;border-radius:20px;background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.2);font-size:11px;color:rgba(245,158,11,0.7);cursor:pointer;transition:all 0.2s}
+.wmm-chip:hover{background:rgba(245,158,11,0.15);color:#f59e0b;transform:translateY(-2px)}
 
 /* OVERLAY */
 #overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.52);backdrop-filter:blur(3px);z-index:9998;animation:fadeIn 0.22s ease}
@@ -1248,6 +1356,13 @@ line-height:1.8;
         Multi Chat
       </button>
     </div>
+    <div style="margin-top:6px">
+      <button class="sb-mode-btn" id="btnModeMultiMind" onclick="setMode('multimind')" style="width:100%;justify-content:center;gap:7px;background:rgba(245,158,11,0.06);border:1px solid rgba(245,158,11,0.18);border-radius:9px;padding:9px 10px;color:rgba(245,158,11,0.55)">
+        <svg viewBox="0 0 24 24" style="width:13px;height:13px;stroke:currentColor;stroke-width:2;fill:none;flex-shrink:0"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96-.46 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.44-4.14z"/><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96-.46 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.44-4.14z"/></svg>
+        <span style="font-size:11px;font-weight:700;letter-spacing:1px">MultiMind</span>
+        <span style="font-size:9px;padding:1px 5px;border-radius:5px;background:rgba(245,158,11,0.15);border:1px solid rgba(245,158,11,0.3);color:#f59e0b;letter-spacing:0.5px;font-weight:600">NEW</span>
+      </button>
+    </div>
   </div>
 
   <div class="sb-section-label">Riwayat Chat</div>
@@ -1804,7 +1919,8 @@ let isGenerating = false, stopTyping = false;
 let typingTimer = null, controller = null;
 let autoScrollEnabled = true;
 let currentAPI = "groq";
-let chatMode = "single"; // "single" | "multi"
+let chatMode = "single"; // "single" | "multi" | "multimind"
+let mmIsGenerating = false; // MultiMind generating flag
 let sessions = [];
 let activeId  = null;
 
@@ -1832,7 +1948,8 @@ window.addEventListener("load", () => {
   applyModeUI();
   loadSessions();
   renderHistory();
-  buildWelcome();
+  if(chatMode === "multimind") buildMultiMindWelcome();
+  else buildWelcome();
   setTimeout(() => {
     const s = document.getElementById("splash");
     if(!s) return;
@@ -1956,31 +2073,51 @@ function setMode(m){
 
 function applyModeUI(){
   const isSingle = chatMode === "single";
+  const isMulti = chatMode === "multi";
+  const isMultiMind = chatMode === "multimind";
   document.getElementById("btnModeSingle").classList.toggle("active", isSingle);
-  document.getElementById("btnModeMulti").classList.toggle("active", !isSingle);
+  document.getElementById("btnModeMulti").classList.toggle("active", isMulti);
+  document.getElementById("btnModeMulti").classList.toggle("multi", true);
+  // MultiMind button active state
+  const mmBtn = document.getElementById("btnModeMultiMind");
+  if(mmBtn){
+    mmBtn.style.background = isMultiMind ? "rgba(245,158,11,0.18)" : "rgba(245,158,11,0.06)";
+    mmBtn.style.color = isMultiMind ? "#f59e0b" : "rgba(245,158,11,0.55)";
+    mmBtn.style.borderColor = isMultiMind ? "rgba(245,158,11,0.45)" : "rgba(245,158,11,0.18)";
+  }
   const badge = document.getElementById("modeBadgeInner");
   const badgeText = document.getElementById("modeBadgeText");
 
   if(isSingle){
-    badge.classList.remove("multi");
+    badge.classList.remove("multi","multimind");
     badgeText.textContent = "Single";
     modeHint.textContent = "Chat biasa — 1 model";
     inputEl.placeholder = "Message AIVA...";
-    // Show normal chat UI
     document.getElementById("inputBox").style.display = "";
     document.getElementById("canvasInputBar").style.display = "none";
     document.getElementById("canvasSpace").classList.remove("active");
     document.getElementById("canvasZoomBar").style.display = "none";
     document.getElementById("chat").style.display = "";
-  } else {
+  } else if(isMulti){
+    badge.classList.remove("multimind");
     badge.classList.add("multi");
     badgeText.textContent = "Multi";
-    // Show canvas UI
     document.getElementById("inputBox").style.display = "none";
     document.getElementById("canvasInputBar").style.display = "block";
     document.getElementById("canvasSpace").classList.add("active");
     document.getElementById("canvasZoomBar").style.display = "flex";
     document.getElementById("chat").style.display = "none";
+  } else { // multimind
+    badge.classList.remove("multi");
+    badge.classList.add("multimind");
+    badgeText.textContent = "MultiMind";
+    document.getElementById("inputBox").style.display = "";
+    document.getElementById("canvasInputBar").style.display = "none";
+    document.getElementById("canvasSpace").classList.remove("active");
+    document.getElementById("canvasZoomBar").style.display = "none";
+    document.getElementById("chat").style.display = "";
+    inputEl.placeholder = "Tanya MultiMind — 4 AI debat & voting...";
+    modeHint.textContent = "4 AI debat & voting jawaban terbaik";
   }
 }
 
@@ -2004,11 +2141,14 @@ function renderHistory(){
   [...sessions].reverse().forEach(s => {
     const el = document.createElement("div");
     const isMulti = s.type === "multi";
-    el.className = "sb-item " + (isMulti ? "multi-session" : "single-session") + (s.id === activeId ? " active" : "");
+    const isMultiMind = s.type === "multimind";
+    el.className = "sb-item " + (isMulti ? "multi-session" : isMultiMind ? "multimind-session" : "single-session") + (s.id === activeId ? " active" : "");
     el.innerHTML = `
       <div class="sb-item-icon">
         ${isMulti
           ? '<svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="8" cy="12" r="2" fill="currentColor"/><circle cx="16" cy="12" r="2" fill="currentColor"/><circle cx="12" cy="8" r="2" fill="currentColor"/></svg>'
+          : isMultiMind
+          ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96-.46 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.44-4.14z"/><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96-.46 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.44-4.14z"/></svg>'
           : '<svg viewBox="0 0 24 24" fill="none"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" stroke="currentColor" stroke-width="1.8"/></svg>'
         }
       </div>
@@ -2074,6 +2214,20 @@ function loadSession(id){
   if(chatMode === "multi"){
     // Canvas restore
     cvRestoreSession(sess);
+  } else if(chatMode === "multimind"){
+    chatEl.innerHTML = "";
+    buildMultiMindWelcome();
+    sess.messages.forEach(m => {
+      if(m.role === "user"){
+        const d = document.createElement("div");
+        d.className = "msg user";
+        d.innerHTML = escHtml(m.text) + `<span class="msg-time">${m.time}</span>`;
+        chatEl.appendChild(d);
+      } else if(m.role === "multimind-result"){
+        const d = buildMultiMindResultEl(m);
+        chatEl.appendChild(d);
+      }
+    });
   } else {
     chatEl.innerHTML = "";
     sess.messages.forEach(m => {
@@ -2142,7 +2296,8 @@ function deleteSession(id){
   if(activeId === id){
     activeId = null;
     chatEl.innerHTML = "";
-    buildWelcome();
+    if(chatMode === "multimind") buildMultiMindWelcome();
+    else buildWelcome();
   }
   renderHistory();
 }
@@ -2878,6 +3033,7 @@ function stopAI(){
 /* ======================== SEND ======================== */
 function send(){
   if(chatMode === "multi"){ cvSend(); return; }
+  if(chatMode === "multimind"){ sendMultiMind(); return; }
   if(isGenerating) return;
   const rawMsg = inputEl.value.trim();
   if(!rawMsg) return;
@@ -3615,6 +3771,290 @@ function fillMultiNode(){} // stub
 function sendMulti(msg){ /* handled by cvSend */ }
 function buildMultiAnswerEl(groqR, qwenR, t){ return document.createElement("div"); }
 
+/* ======================== MULTIMIND ======================== */
+const MM_MODELS = ["groq","qwen","glm","gpt"];
+const MM_LABELS = { groq:"QWEN", qwen:"AIVA", glm:"GLM", gpt:"GPT-OSS" };
+const MM_COLORS = { groq:"#7aa8f7", qwen:"#c4a8ff", glm:"#6ee7b7", gpt:"#5eead4" };
+
+function buildMultiMindWelcome(){
+  if(document.getElementById("welcomeChat") || document.getElementById("welcomeMultiMind")) return;
+  const wc = document.createElement("div");
+  wc.id = "welcomeMultiMind";
+  wc.innerHTML = `
+    <div class="wmm-icon">
+      <svg viewBox="0 0 24 24"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96-.46 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.44-4.14z"/><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96-.46 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.44-4.14z"/></svg>
+    </div>
+    <div class="wmm-title">MULTIMIND</div>
+    <div class="wmm-sub">4 model AI saling debat, voting, dan memilih jawaban terbaik untuk kamu</div>
+    <div class="wmm-chips">
+      <div class="wmm-chip" onclick="suggest('Apa itu kecerdasan buatan?')">Apa itu AI?</div>
+      <div class="wmm-chip" onclick="suggest('Jelaskan cara kerja blockchain')">Blockchain</div>
+      <div class="wmm-chip" onclick="suggest('Apa bahasa pemrograman terbaik 2025?')">Best language?</div>
+      <div class="wmm-chip" onclick="suggest('Bagaimana cara belajar machine learning?')">ML Learning</div>
+    </div>`;
+  chatEl.appendChild(wc);
+}
+
+function removeMultiMindWelcome(){
+  const wc = document.getElementById("welcomeMultiMind");
+  if(wc){ wc.style.transition="opacity 0.4s ease"; wc.style.opacity="0"; setTimeout(()=>wc.remove(),400); }
+}
+
+function buildMultiMindResultEl(saved){
+  // Rebuild from saved session data
+  const wrap = document.createElement("div");
+  wrap.className = "mm-debate-wrap";
+  const models = saved.models || MM_MODELS;
+  const votes = saved.votes || {};
+  const winner = saved.winner || models[0];
+  const answers = saved.answers || {};
+  const debates = saved.debates || [];
+
+  let cardsHtml = models.map(api => {
+    const v = votes[api] || 0;
+    const stars = "★".repeat(Math.max(0,v)) + "☆".repeat(Math.max(0,3-v));
+    const isWinner = api === winner;
+    return `<div class="mm-model-card ${api}${isWinner?" winner":""}">
+      <div class="mm-card-hdr"><div class="mm-cdot"></div>${MM_LABELS[api]}${isWinner?'<span class="mm-winner-badge">🏆 WINNER</span>':''}</div>
+      <div class="mm-card-body">${escHtml((answers[api]||"").substring(0,200))}${(answers[api]||"").length>200?"...":""}</div>
+      <div class="mm-card-vote"><span class="mm-vote-stars">${stars}</span> ${v}/3 votes</div>
+    </div>`;
+  }).join("");
+
+  let debateHtml = debates.slice(0,4).map(d=>`
+    <div class="mm-debate-entry ${d.model}">
+      <div class="mm-de-label">${MM_LABELS[d.model]||d.model}</div>
+      <div class="mm-de-text">${escHtml(d.comment)}</div>
+    </div>`).join("");
+
+  const totalVotes = Object.values(votes).reduce((a,b)=>a+b,0)||1;
+  let voteBarHtml = models.map(api=>{
+    const v = votes[api]||0;
+    const pct = Math.round(v/totalVotes*100);
+    return `<div class="mm-vote-bar-row ${api}">
+      <div class="mm-vote-bar-label">${MM_LABELS[api]}</div>
+      <div class="mm-vote-bar-track"><div class="mm-vote-bar-fill" style="width:${pct}%"></div></div>
+      <div class="mm-vote-score">${v}</div>
+    </div>`;
+  }).join("");
+
+  wrap.innerHTML = `
+    <div class="mm-debate-header">
+      <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      MULTIMIND — SELESAI
+    </div>
+    <div class="mm-cards-row">${cardsHtml}</div>
+    ${debates.length?`<div class="mm-debate-log">${debateHtml}</div>`:""}
+    <div class="mm-voting-section"><div class="mm-voting-title">📊 Hasil Voting</div><div class="mm-voting-bars">${voteBarHtml}</div></div>
+    <div class="mm-final-wrap">
+      <div class="mm-final-label">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+        Jawaban Terpilih
+      </div>
+      <div class="mm-final-content">${renderMessage(answers[winner]||"")}</div>
+      <div class="mm-final-meta">
+        <span class="mm-winner-tag ${winner}">${MM_LABELS[winner]} — ${votes[winner]||0} votes</span>
+        <span style="color:var(--muted)">${saved.time||""}</span>
+      </div>
+    </div>`;
+  return wrap;
+}
+
+async function sendMultiMind(){
+  if(mmIsGenerating) return;
+  const rawMsg = inputEl.value.trim();
+  if(!rawMsg) return;
+  if(!activeId) newSession("multimind");
+  removeMultiMindWelcome();
+
+  inputEl.value = ""; inputEl.style.height = "auto";
+  mmIsGenerating = true;
+  sendBtn.disabled = true;
+  stopBtn.style.display = "flex";
+
+  const t = getTime();
+
+  // Add user msg
+  const userEl = document.createElement("div");
+  userEl.className = "msg user";
+  userEl.innerHTML = escHtml(rawMsg) + `<span class="msg-time">${t}</span>`;
+  chatEl.appendChild(userEl);
+  addMsgToSession({ role:"user", text:rawMsg, time:t });
+  autoScroll();
+
+  // Create debate wrapper element
+  const wrap = document.createElement("div");
+  wrap.className = "mm-debate-wrap";
+
+  // Header
+  const hdr = document.createElement("div");
+  hdr.className = "mm-debate-header";
+  hdr.innerHTML = `<div class="mm-spinner"></div> MULTIMIND — Mengumpulkan Jawaban...`;
+  wrap.appendChild(hdr);
+
+  // Phases bar
+  const phasesEl = document.createElement("div");
+  phasesEl.className = "mm-phases";
+  phasesEl.innerHTML = `
+    <span class="mm-phase-chip active" id="mmph0">① Jawaban Awal</span>
+    <span class="mm-phase-chip pending" id="mmph1">② Debat AI</span>
+    <span class="mm-phase-chip pending" id="mmph2">③ Voting</span>
+    <span class="mm-phase-chip pending" id="mmph3">④ Hasil Final</span>`;
+  wrap.appendChild(phasesEl);
+
+  // Cards row (for initial answers)
+  const cardsRow = document.createElement("div");
+  cardsRow.className = "mm-cards-row";
+  const cardEls = {};
+  MM_MODELS.forEach(api => {
+    const card = document.createElement("div");
+    card.className = `mm-model-card ${api}`;
+    card.innerHTML = `
+      <div class="mm-card-hdr"><div class="mm-cdot"></div>${MM_LABELS[api]}</div>
+      <div class="mm-card-body" id="mmcard-${api}"><div style="display:flex;gap:4px;align-items:center;opacity:0.4"><div class="td" style="width:5px;height:5px;border-radius:50%;background:currentColor;animation:tdA 1.3s ease-in-out infinite"></div><div class="td" style="width:5px;height:5px;border-radius:50%;background:currentColor;animation:tdA 1.3s ease-in-out infinite;animation-delay:0.15s"></div><div class="td" style="width:5px;height:5px;border-radius:50%;background:currentColor;animation:tdA 1.3s ease-in-out infinite;animation-delay:0.3s"></div></div></div>
+      <div class="mm-card-vote" id="mmvote-${api}" style="opacity:0"></div>`;
+    cardsRow.appendChild(card);
+    cardEls[api] = card;
+  });
+  wrap.appendChild(cardsRow);
+  chatEl.appendChild(wrap);
+  autoScroll();
+
+  // ── Phase 1: Get answers from all 4 models in parallel ──
+  const answers = {};
+  try {
+    const promises = MM_MODELS.map(api => callAPI(api, rawMsg, []).then(r => { answers[api] = r; }).catch(e => { answers[api] = "Gagal: " + e.message; }));
+    await Promise.all(promises);
+  } catch(e){}
+
+  // Fill cards
+  MM_MODELS.forEach(api => {
+    const bodyEl = document.getElementById("mmcard-" + api);
+    if(bodyEl) bodyEl.innerHTML = escHtml((answers[api]||"").substring(0,180)) + ((answers[api]||"").length>180?"...":"");
+  });
+
+  // ── Phase 2: Debate ──
+  document.getElementById("mmph0").className = "mm-phase-chip done";
+  document.getElementById("mmph1").className = "mm-phase-chip active";
+  hdr.innerHTML = `<div class="mm-spinner"></div> MULTIMIND — AI Berdebat...`;
+
+  const debateLog = document.createElement("div");
+  debateLog.className = "mm-debate-log";
+  wrap.appendChild(debateLog);
+
+  const debates = [];
+  const debatePrompt = `Kamu adalah ${MM_LABELS["groq"]}. User bertanya: "${rawMsg}"\n\nBerikut jawaban dari 4 model AI:\n${MM_MODELS.map(api=>`- ${MM_LABELS[api]}: ${(answers[api]||"").substring(0,200)}`).join("\n")}\n\nBerikan komentar singkat (1-2 kalimat) tentang jawaban mana yang paling akurat dan mengapa. Juga sebutkan kelemahan jawaban model lain. Langsung to the point, jangan panjang.`;
+
+  // Each model debates sequentially for live effect
+  for(let i=0;i<MM_MODELS.length;i++){
+    const api = MM_MODELS[i];
+    const prompt = `Kamu adalah ${MM_LABELS[api]}. User bertanya: "${rawMsg}"\n\nJawaban dari semua model:\n${MM_MODELS.map(a=>`- ${MM_LABELS[a]}: ${(answers[a]||"").substring(0,200)}`).join("\n")}\n\nKomentar singkat (1-2 kalimat): menurut kamu jawaban siapa yang paling baik dan kenapa? Sebutkan juga kelemahan jawaban lain. Langsung singkat.`;
+    try {
+      const comment = await callAPI(api, prompt, []);
+      const shortComment = (comment||"").substring(0,200);
+      debates.push({ model:api, comment:shortComment });
+      const entry = document.createElement("div");
+      entry.className = `mm-debate-entry ${api}`;
+      entry.innerHTML = `<div class="mm-de-label">${MM_LABELS[api]}</div><div class="mm-de-text">${escHtml(shortComment)}</div>`;
+      debateLog.appendChild(entry);
+      autoScroll();
+    } catch(e){}
+  }
+
+  // ── Phase 3: Voting ──
+  document.getElementById("mmph1").className = "mm-phase-chip done";
+  document.getElementById("mmph2").className = "mm-phase-chip active";
+  hdr.innerHTML = `<div class="mm-spinner"></div> MULTIMIND — Voting...`;
+
+  const votes = { groq:0, qwen:0, glm:0, gpt:0 };
+  const votingSection = document.createElement("div");
+  votingSection.className = "mm-voting-section";
+  votingSection.innerHTML = `<div class="mm-voting-title">📊 Voting Berlangsung...</div><div class="mm-voting-bars" id="mmVoteBars"></div>`;
+  wrap.appendChild(votingSection);
+
+  // Each model votes for the best answer
+  const votePromises = MM_MODELS.map(api => {
+    const vp = `Kamu adalah ${MM_LABELS[api]}. User bertanya: "${rawMsg}"\nJawaban dari:\n${MM_MODELS.map(a=>`- ${MM_LABELS[a]}: ${(answers[a]||"").substring(0,300)}`).join("\n")}\n\nPilih SATU model yang memberikan jawaban paling akurat, lengkap, dan bermanfaat. Jawab HANYA dengan nama model: QWEN, AIVA, GLM, atau GPT-OSS. Tidak perlu penjelasan.`;
+    return callAPI(api, vp, []).then(vote => {
+      const v = (vote||"").toUpperCase().trim();
+      if(v.includes("QWEN")) votes.groq++;
+      else if(v.includes("AIVA")) votes.qwen++;
+      else if(v.includes("GLM")) votes.glm++;
+      else if(v.includes("GPT")) votes.gpt++;
+    }).catch(()=>{});
+  });
+  await Promise.all(votePromises);
+
+  // Render vote bars
+  const totalVotes = Object.values(votes).reduce((a,b)=>a+b,0)||1;
+  const vbars = document.getElementById("mmVoteBars");
+  if(vbars){
+    vbars.innerHTML = MM_MODELS.map(api=>{
+      const v = votes[api];
+      const pct = Math.round(v/totalVotes*100);
+      return `<div class="mm-vote-bar-row ${api}">
+        <div class="mm-vote-bar-label">${MM_LABELS[api]}</div>
+        <div class="mm-vote-bar-track"><div class="mm-vote-bar-fill" style="width:0%" id="mmbar-${api}"></div></div>
+        <div class="mm-vote-score">${v}</div>
+      </div>`;
+    }).join("");
+    setTimeout(()=>{
+      MM_MODELS.forEach(api=>{
+        const bar = document.getElementById("mmbar-"+api);
+        if(bar){ const v=votes[api]; const pct=Math.round(v/totalVotes*100); bar.style.width=pct+"%"; }
+      });
+    }, 100);
+  }
+  votingSection.querySelector(".mm-voting-title").textContent = "📊 Hasil Voting";
+
+  // ── Phase 4: Final ──
+  document.getElementById("mmph2").className = "mm-phase-chip done";
+  document.getElementById("mmph3").className = "mm-phase-chip active";
+
+  const winner = MM_MODELS.reduce((a,b) => votes[a]>=votes[b]?a:b);
+  hdr.innerHTML = `<svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:#f59e0b;flex-shrink:0"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg> MULTIMIND — Selesai! Pemenang: ${MM_LABELS[winner]}`;
+  document.getElementById("mmph3").className = "mm-phase-chip done";
+
+  // Mark winner card
+  MM_MODELS.forEach(api=>{
+    const card = cardEls[api];
+    if(!card) return;
+    const voteEl = document.getElementById("mmvote-"+api);
+    const stars = "★".repeat(Math.max(0,votes[api])) + "☆".repeat(Math.max(0,3-votes[api]));
+    if(voteEl){ voteEl.style.opacity="1"; voteEl.innerHTML=`<span class="mm-vote-stars">${stars}</span> ${votes[api]}/3 votes`; }
+    if(api === winner){
+      card.classList.add("winner");
+      const cardHdr = card.querySelector(".mm-card-hdr");
+      if(cardHdr) cardHdr.innerHTML += `<span class="mm-winner-badge">🏆</span>`;
+    }
+  });
+
+  // Final answer box
+  const finalWrap = document.createElement("div");
+  finalWrap.className = "mm-final-wrap";
+  finalWrap.innerHTML = `
+    <div class="mm-final-label">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+      Jawaban Terpilih
+    </div>
+    <div class="mm-final-content">${renderMessage(answers[winner]||"")}</div>
+    <div class="mm-final-meta">
+      <span class="mm-winner-tag ${winner}">${MM_LABELS[winner]} — ${votes[winner]} votes</span>
+      <span style="color:var(--muted)">${getTime()}</span>
+    </div>`;
+  wrap.appendChild(finalWrap);
+  autoScroll();
+
+  // Save to session
+  const finalTime = getTime();
+  addMsgToSession({ role:"multimind-result", models:MM_MODELS, answers, votes, winner, debates, time:finalTime });
+
+  mmIsGenerating = false;
+  stopBtn.style.display = "none";
+  sendBtn.disabled = false;
+  updateSend();
+}
+
 /* ======================== BOOT ======================== */
 document.addEventListener("DOMContentLoaded", ()=>{
   sendBtn.addEventListener("click", send);
@@ -3634,6 +4074,9 @@ function newChat(){
     const wc = document.getElementById("canvasWelcome");
     if(wc){ wc.style.display = ""; wc.classList.remove("hiding"); wc._gone = false; }
     if(canvas.world) cvApplyTransform();
+  } else if(chatMode === "multimind"){
+    chatEl.innerHTML = "";
+    buildMultiMindWelcome();
   } else {
     chatEl.innerHTML = "";
     buildWelcome();
