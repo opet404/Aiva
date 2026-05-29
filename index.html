@@ -244,6 +244,63 @@ header{position:relative;z-index:1000;height:var(--hdr);display:flex;align-items
 .mm-winner-tag.glm{background:rgba(16,185,129,0.15);color:#6ee7b7;border:1px solid rgba(16,185,129,0.3)}
 .mm-winner-tag.gpt{background:rgba(16,163,127,0.15);color:#5eead4;border:1px solid rgba(16,163,127,0.3)}
 
+/* ════════════════════════════════════════════
+   LIGHT MODE — MULTIMIND OVERRIDES
+   ════════════════════════════════════════════ */
+
+/* Section backgrounds — replace dark rgba with near-transparent amber tint */
+body.light .mm-phases         { background: rgba(245,158,11,0.06); }
+body.light .mm-cards-row      { background: rgba(245,158,11,0.04); }
+body.light .mm-debate-log     { background: rgba(245,158,11,0.03); }
+body.light .mm-voting-section { background: rgba(245,158,11,0.04); }
+body.light .mm-round-divider  { background: rgba(245,158,11,0.03); }
+
+/* Model cards — light tinted backgrounds */
+body.light .mm-model-card.groq { background: rgba(235,242,255,0.98); border-color: rgba(61,114,246,0.28); }
+body.light .mm-model-card.qwen { background: rgba(248,242,255,0.98); border-color: rgba(168,85,247,0.28); }
+body.light .mm-model-card.glm  { background: rgba(240,255,249,0.98); border-color: rgba(16,185,129,0.28); }
+body.light .mm-model-card.gpt  { background: rgba(236,255,252,0.98); border-color: rgba(16,163,127,0.28); }
+
+/* Card headers — darker readable text */
+body.light .mm-model-card.groq .mm-card-hdr { background: rgba(61,114,246,0.09);  color: #2a52a8; }
+body.light .mm-model-card.qwen .mm-card-hdr { background: rgba(168,85,247,0.09);  color: #6c35a0; }
+body.light .mm-model-card.glm  .mm-card-hdr { background: rgba(16,185,129,0.09);  color: #0d7a5c; }
+body.light .mm-model-card.gpt  .mm-card-hdr { background: rgba(16,163,127,0.09);  color: #0b6b5a; }
+
+/* Card body — force dark text on light card */
+body.light .mm-card-body { color: #0e1226; }
+body.light .mm-card-body::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.12); }
+body.light .mm-card-vote { border-top-color: rgba(0,0,0,0.07); }
+
+/* Phase chips — dark pending text */
+body.light .mm-phase-chip.pending { border-color: rgba(0,0,0,0.13); color: rgba(14,18,38,0.3); }
+body.light .mm-phase-chip.done    { background: rgba(16,185,129,0.09); border-color: rgba(16,185,129,0.28); color: #0d7a5c; }
+
+/* Debate entries */
+body.light .mm-debate-entry.groq { background: rgba(61,114,246,0.05); }
+body.light .mm-debate-entry.qwen { background: rgba(168,85,247,0.05); }
+body.light .mm-debate-entry.glm  { background: rgba(16,185,129,0.05); }
+body.light .mm-debate-entry.gpt  { background: rgba(16,163,127,0.05); }
+body.light .mm-debate-entry.groq .mm-de-label { color: #2a52a8; }
+body.light .mm-debate-entry.qwen .mm-de-label { color: #6c35a0; }
+body.light .mm-debate-entry.glm  .mm-de-label { color: #0d7a5c; }
+body.light .mm-debate-entry.gpt  .mm-de-label { color: #0b6b5a; }
+body.light .mm-de-text  { color: #0e1226; }
+body.light .mm-de-round { background: rgba(0,0,0,0.05); border-color: rgba(0,0,0,0.1); color: rgba(14,18,38,0.45); }
+
+/* Vote bars */
+body.light .mm-vote-bar-track { background: rgba(0,0,0,0.07); }
+body.light .mm-vote-bar-row.groq .mm-vote-bar-label { color: #2a52a8; }
+body.light .mm-vote-bar-row.qwen .mm-vote-bar-label { color: #6c35a0; }
+body.light .mm-vote-bar-row.glm  .mm-vote-bar-label { color: #0d7a5c; }
+body.light .mm-vote-bar-row.gpt  .mm-vote-bar-label { color: #0b6b5a; }
+body.light .mm-vote-score { color: rgba(14,18,38,0.4); }
+
+/* Final result panel */
+body.light .mm-final-wrap    { background: rgba(245,158,11,0.05); border-color: rgba(245,158,11,0.22); }
+body.light .mm-final-content { color: #0e1226; }
+body.light .mm-final-meta    { border-top-color: rgba(0,0,0,0.07); }
+
 /* Welcome MultiMind */
 #welcomeMultiMind{display:flex;flex-direction:column;align-items:center;padding:40px 20px;text-align:center;gap:10px;flex-shrink:0;animation:slideUp 0.5s var(--ease) both}
 .wmm-icon{width:68px;height:68px;border-radius:18px;background:linear-gradient(135deg,rgba(245,158,11,0.2),rgba(239,68,68,0.2));border:1px solid rgba(245,158,11,0.3);display:flex;align-items:center;justify-content:center;box-shadow:0 0 28px rgba(245,158,11,0.25)}
@@ -4032,7 +4089,7 @@ async function sendMultiMind(){
   phasesEl.className = "mm-phases";
   phasesEl.innerHTML = `
     <span class="mm-phase-chip active"  id="mmph0_${uid}">Jawaban Awal</span>
-    <span class="mm-phase-chip pending" id="mmph1_${uid}">Debat</span>
+    <span class="mm-phase-chip pending" id="mmph1_${uid}">Argumen</span>
     <span class="mm-phase-chip pending" id="mmph2_${uid}">Voting</span>
     <span class="mm-phase-chip pending" id="mmph3_${uid}">Hasil</span>`;
   wrap.appendChild(phasesEl);
@@ -4115,7 +4172,7 @@ async function sendMultiMind(){
   // ════════════════════════════════════════════
   document.getElementById(`mmph0_${uid}`).className = "mm-phase-chip done";
   document.getElementById(`mmph1_${uid}`).className = "mm-phase-chip active";
-  hdr.innerHTML = `<div class="mm-spinner"></div> MULTIMIND — Debat...`;
+  hdr.innerHTML = `<div class="mm-spinner"></div> MULTIMIND — Argumen...`;
 
   const debateLog = document.createElement("div");
   debateLog.className = "mm-debate-log";
