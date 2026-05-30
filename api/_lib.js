@@ -241,11 +241,15 @@ async function callWithModelFallback(models, messages) {
   throw lastError || new Error("Semua model gagal");
 }
 
-async function callAPI(api, message, history = []) {
+async function callAPI(api, message, history = [], userName = "") {
   if (api === "gemma") api = "groq";
 
+  const nameCtx = userName
+    ? `\n\nNama pengguna: "${userName}". Panggil dengan namanya jika relevan!`
+    : "";
+
   const messages = [
-    { role: "system", content: SYSTEM_CODING },
+    { role: "system", content: SYSTEM_CODING + nameCtx },
     ...history,
     { role: "user", content: message },
   ];
