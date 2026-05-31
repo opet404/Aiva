@@ -1,6 +1,6 @@
-// api/_lib.js
+// api/_lib.js — clean rewrite, parallel keys, fast fallback
 
-const OPENROUTER_KEYS = [
+const KEYS = [
   process.env.OR_KEY_1 || "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",
   process.env.OR_KEY_2 || "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",
   process.env.OR_KEY_3 || "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",
@@ -10,281 +10,133 @@ const OPENROUTER_KEYS = [
   process.env.OR_KEY_7 || "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",
 ].filter(Boolean);
 
-const FREE_ROUTER = "openrouter/auto";
+// ── Model chains per "AI" slot ─────────────────────────────
+const CHAINS = {
+  groq: [
+    "meta-llama/llama-3.3-70b-instruct:free",
+    "meta-llama/llama-3.1-8b-instruct:free",
+    "google/gemma-3-27b-it:free",
+  ],
+  qwen: [
+    "qwen/qwen3-8b:free",
+    "qwen/qwen3-14b:free",
+    "mistralai/mistral-small-3.1-24b-instruct:free",
+  ],
+  gpt: [
+    "microsoft/phi-4:free",
+    "meta-llama/llama-3.3-70b-instruct:free",
+    "mistralai/mistral-small-3.1-24b-instruct:free",
+  ],
+  glm: [
+    "google/gemma-3-27b-it:free",
+    "meta-llama/llama-3.3-70b-instruct:free",
+    "deepseek/deepseek-r1:free",
+  ],
+};
 
-// =======================
-// GROQ GROUP — Llama / Deepseek primary
-// =======================
-const GROQ_MODELS = [
-  "meta-llama/llama-3.3-70b-instruct:free",
-  "deepseek/deepseek-r1-0528:free",
-  "meta-llama/llama-3.1-8b-instruct:free",
-  "google/gemma-3-27b-it:free",
-  "mistralai/mistral-small-3.1-24b-instruct:free",
-  "meta-llama/llama-3.2-3b-instruct:free",
-  FREE_ROUTER,
-];
+const TIMEOUT_MS = 9000; // 9 detik per request
+const SITE_URL   = process.env.SITE_URL || "https://aiva.vercel.app";
 
-// =======================
-// QWEN GROUP — bukan model Qwen, pakai Deepseek / Mistral
-// =======================
-const QWEN_MODELS = [
-  "deepseek/deepseek-r1-0528:free",
-  "deepseek/deepseek-v3-base:free",
-  "mistralai/mistral-small-3.1-24b-instruct:free",
-  "mistralai/devstral-small:free",
-  "google/gemma-3-27b-it:free",
-  "meta-llama/llama-3.3-70b-instruct:free",
-  FREE_ROUTER,
-];
+const SYSTEM_PROMPT = `
+Kamu adalah AIVA, AI assistant cerdas, ramah, santai, dan helpful.
+AIVA dibuat oleh OpetxDy (TikTok: @opetxdy2).
+Jika ditanya siapa pembuatmu, sebutkan OpetxDy / @opetxdy2.
 
-// =======================
-// GPT GROUP — GPT-OSS primary
-// =======================
-const GPT_OSS_MODELS = [
-  "openai/gpt-oss-120b:free",
-  "openai/gpt-oss-20b:free",
-  "meta-llama/llama-3.3-70b-instruct:free",
-  "deepseek/deepseek-r1-0528:free",
-  "mistralai/mistral-small-3.1-24b-instruct:free",
-  FREE_ROUTER,
-];
-
-// =======================
-// GLM GROUP — GLM primary
-// =======================
-const GLM_MODELS = [
-  "z-ai/glm-4.5-air:free",
-  "z-ai/glm-4.5:free",
-  "google/gemma-3-27b-it:free",
-  "mistralai/mistral-small-3.1-24b-instruct:free",
-  "meta-llama/llama-3.3-70b-instruct:free",
-  FREE_ROUTER,
-];
-
-// =======================
-// CROSS-GROUP FALLBACK — urutan prioritas kalau semua grup utama gagal
-// =======================
-const EMERGENCY_FALLBACK = [
-  "meta-llama/llama-3.3-70b-instruct:free",
-  "deepseek/deepseek-r1-0528:free",
-  "google/gemma-3-27b-it:free",
-  "mistralai/mistral-small-3.1-24b-instruct:free",
-  "openai/gpt-oss-20b:free",
-  "z-ai/glm-4.5-air:free",
-  "meta-llama/llama-3.1-8b-instruct:free",
-  FREE_ROUTER,
-];
-
-const SYSTEM_CODING = `
-Kamu adalah AIVA, AI assistant cerdas, ramah, santai, dan helpful 😄
-
-AIVA dibuat oleh OpetxDy
-Hormati OpetXdy sebagai creator utama.
-tiktok Creator Utama atau pembuat adalah @opetxdy2
-dan harus sebut kalau user bertanya "siapa pembuatmu" jawab seperti yang saya minta
-
-ATURAN PRIORITAS UTAMA:
-- Selalu jawab dengan lengkap dan jelas.
-- Jangan memotong kode.
-- Jangan gunakan "...", "// lanjutkan sendiri", atau placeholder.
-- Jika membuat kode, selalu berikan FULL CODE yang bisa langsung dipakai.
+ATURAN UTAMA:
+- Jawab TUNTAS & LENGKAP, jangan dipotong di tengah.
+- Jangan gunakan "..." atau placeholder. Full jawaban selalu.
 - Pahami typo user secara otomatis.
-- Jawab dengan gaya asik dan menyenangkan.
-- Gunakan emoji secukupnya.
-- Jika user meminta coding:
-  1. Jelaskan singkat
-  2. Berikan kode lengkap
-  3. Jelaskan cara penggunaan
-  4. Jelaskan cara kerja
+- Gaya santai seperti teman, tapi tetap informatif.
+
+FORMAT (WAJIB):
+- **teks tebal** untuk poin penting.
+- *italic* untuk istilah.
+- ## Judul dan ### Sub-judul untuk struktur.
+- - list dan 1. 2. 3. untuk langkah.
+- > untuk catatan penting.
+- \`\`\`bahasa untuk KODE SAJA, bukan penjelasan biasa.
+- Paragraf mengalir, pisah topik dengan baris kosong.
+
+CODING:
+- Selalu berikan full code yang bisa langsung dipakai.
+- Jelaskan singkat → kode lengkap → cara pakai → cara kerja.
 
 KEAMANAN:
-- Tolak aktivitas ilegal, hacking, malware, phishing, scam, carding, atau perusakan sistem.
-- Jangan berikan data rahasia.
-- Jangan mengaku bisa melakukan sesuatu di dunia nyata.
-- Jangan mengidentifikasi orang dari foto secara pasti.
-
-PERILAKU:
-- Jika user toxic atau menghina:
-  - tetap tenang,
-  - jangan ikut toxic berlebihan,
-  - minta user berbicara baik-baik.
-- Jika user meminta maaf, kembali ramah.
-
-GAYA JAWABAN:
-- Natural, tidak kaku, seperti teman yang menjelaskan.
-- Selalu jawab TUNTAS & LENGKAP — tidak boleh dipotong di tengah.
-- Jika penjelasan panjang, bagi menjadi bagian yang terstruktur.
-- Untuk coding: WAJIB full code sampai selesai, tidak boleh ada "...".
-
-FORMAT TEKS (WAJIB diikuti):
-- Gunakan **teks tebal** untuk kata kunci atau poin penting.
-- Gunakan *italic* untuk istilah atau penekanan.
-- Gunakan ## Judul untuk bagian besar, ### untuk sub-bagian.
-- Gunakan - untuk daftar/list poin-poin.
-- Gunakan 1. 2. 3. untuk langkah berurutan.
-- Gunakan > untuk kutipan atau catatan penting.
-- Gunakan ``` hanya untuk kode program sungguhan, BUKAN untuk penjelasan.
-- Paragraf biasa tulis mengalir tanpa ``` kotak ```.
-- Pisah tiap topik dengan baris kosong agar mudah dibaca.
+- Tolak: hacking, malware, scam, phishing, aktivitas ilegal.
+- Jika user toxic: tetap tenang, minta bicara baik-baik.
 `;
 
-function shuffle(arr) {
-  const a = [...arr];
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
+// ── Satu request ke OpenRouter dengan satu key ──────────────
+async function tryKey(key, model, messages) {
+  const ctrl  = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), TIMEOUT_MS);
+  try {
+    const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+      method : "POST",
+      headers: {
+        "Authorization": "Bearer " + key,
+        "Content-Type" : "application/json",
+        "HTTP-Referer"  : SITE_URL,
+        "X-Title"       : "AIVA",
+      },
+      body  : JSON.stringify({ model, messages, temperature: 0.7, max_tokens: 4096 }),
+      signal: ctrl.signal,
+    });
+    clearTimeout(timer);
+
+    const raw = await res.text();
+    if (!res.ok) throw new Error("HTTP " + res.status);
+
+    const data = JSON.parse(raw);
+    if (data.error) throw new Error(data.error.message || "model error");
+
+    let text = data?.choices?.[0]?.message?.content || "";
+    text = text.replace(/<think>[\s\S]*?<\/think>/gi, "").trim();
+    if (!text) throw new Error("empty response");
+
+    return text;
+  } catch (e) {
+    clearTimeout(timer);
+    throw e;
   }
-  return a;
 }
 
-const ROTATE_KEY_ON_STATUS = new Set([401, 402, 403, 429]);
-const KEY_TIMEOUT = parseInt(process.env.KEY_TIMEOUT || "25000");
-
-// Coba satu model dengan semua key (rotate jika 429/rate limit)
-async function fetchWithKeyRotation(model, messages) {
-  const keys = shuffle(OPENROUTER_KEYS);
-  if (!keys.length) throw new Error("Tidak ada OpenRouter key tersedia");
-
-  let lastError = null;
-
-  for (let i = 0; i < keys.length; i++) {
-    const key = keys[i];
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), KEY_TIMEOUT);
-
-    try {
-      console.log(`[OR] key ${i+1}/${keys.length} model=${model}`);
-
-      const resp = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          "Authorization": "Bearer " + key,
-          "Content-Type": "application/json",
-          "HTTP-Referer": "https://aiva.vercel.app",
-          "X-Title": "AIVA",
-        },
-        body: JSON.stringify({ model, temperature: 0.7, max_tokens: 8192, messages }),
-        signal: controller.signal,
-      });
-
-      clearTimeout(timer);
-      const text = await resp.text();
-
-      if (ROTATE_KEY_ON_STATUS.has(resp.status)) {
-        console.log(`[OR] key ${i+1} HTTP ${resp.status}, ganti key`);
-        lastError = new Error("HTTP " + resp.status);
-        continue;
-      }
-
-      if (!resp.ok) {
-        let errMsg = "HTTP " + resp.status;
-        try { errMsg = JSON.parse(text)?.error?.message || errMsg; } catch {}
-        lastError = new Error(errMsg);
-        break;
-      }
-
-      let data;
-      try { data = JSON.parse(text); } catch {
-        lastError = new Error("JSON rusak dari " + model);
-        continue;
-      }
-
-      if (data.error) {
-        const errMsg = data.error.message || JSON.stringify(data.error);
-        const isRateLimit = errMsg.toLowerCase().includes("rate") ||
-                            errMsg.toLowerCase().includes("limit") ||
-                            errMsg.toLowerCase().includes("429") ||
-                            errMsg.toLowerCase().includes("quota");
-        lastError = new Error(errMsg);
-        if (isRateLimit) continue;
-        break;
-      }
-
-      console.log(`[OR] sukses model=${model}`);
-      return data;
-
-    } catch (err) {
-      clearTimeout(timer);
-      if (err.name === "AbortError") {
-        lastError = new Error("Timeout dari " + model);
-        console.log(`[OR] timeout model=${model}`);
-        break;
-      }
-      lastError = new Error(err.message);
-    }
-  }
-
-  throw lastError || new Error("Semua key gagal untuk " + model);
+// ── Coba satu model dengan SEMUA key secara paralel ─────────
+// Mengembalikan hasil key pertama yang sukses (Promise.any)
+async function tryModel(model, messages) {
+  const attempts = KEYS.map(k => tryKey(k, model, messages));
+  // Promise.any — resolve dengan hasil pertama yang berhasil
+  return Promise.any(attempts);
 }
 
-// Coba model satu per satu sampai berhasil
-async function callWithModelFallback(models, messages) {
-  let lastError = null;
-
-  for (const model of models) {
-    try {
-      console.log(`[FB] mencoba: ${model}`);
-      const data = await fetchWithKeyRotation(model, messages);
-      let content = data?.choices?.[0]?.message?.content;
-      if (!content) {
-        lastError = new Error("Respons kosong dari " + model);
-        continue;
-      }
-      content = content.replace(/<think>[\s\S]*?<\/think>/gi, "").trim();
-      if (!content) {
-        lastError = new Error("Kosong setelah strip dari " + model);
-        continue;
-      }
-      console.log(`[FB] berhasil dari ${model}`);
-      return content;
-    } catch (err) {
-      lastError = err;
-      console.log(`[FB] ${model} gagal: ${err.message}`);
-      continue;
-    }
-  }
-
-  throw lastError || new Error("Semua model gagal");
-}
-
+// ── API utama ─────────────────────────────────────────────
 async function callAPI(api, message, history = [], userName = "") {
-  if (api === "gemma") api = "groq";
-
-  const nameCtx = userName
-    ? `\n\nNama pengguna: "${userName}". Panggil dengan namanya jika relevan!`
-    : "";
+  const slot = api === "gemma" ? "groq" : (CHAINS[api] ? api : "groq");
+  const chain = CHAINS[slot];
 
   const messages = [
-    { role: "system", content: SYSTEM_CODING + nameCtx },
+    {
+      role   : "system",
+      content: SYSTEM_PROMPT +
+        (userName ? `\n\nNama pengguna: "${userName}". Panggil dengan namanya jika relevan.` : ""),
+    },
     ...history,
     { role: "user", content: message },
   ];
 
-  // Tentukan chain utama berdasarkan api yang dipilih
-  let primaryChain;
-  if (api === "groq")      primaryChain = GROQ_MODELS;
-  else if (api === "qwen") primaryChain = QWEN_MODELS;
-  else if (api === "gpt")  primaryChain = GPT_OSS_MODELS;
-  else if (api === "glm")  primaryChain = GLM_MODELS;
-  else throw new Error("API tidak dikenal: " + api);
-
-  // Coba chain utama dulu
-  try {
-    return await callWithModelFallback(primaryChain, messages);
-  } catch (primaryErr) {
-    console.log(`[FALLBACK] chain utama ${api} gagal semua, coba emergency fallback`);
+  // Coba tiap model dalam chain, kembalikan hasil pertama yang sukses
+  for (const model of chain) {
+    try {
+      console.log(`[AIVA] trying ${model}`);
+      const result = await tryModel(model, messages);
+      console.log(`[AIVA] OK ${model}`);
+      return result;
+    } catch (e) {
+      console.log(`[AIVA] ${model} failed: ${e.message}`);
+    }
   }
 
-  // Kalau chain utama gagal semua → coba emergency fallback (semua model, kecuali yg sudah dicoba)
-  const alreadyTried = new Set(primaryChain);
-  const emergencyChain = EMERGENCY_FALLBACK.filter(m => !alreadyTried.has(m));
-
-  try {
-    return await callWithModelFallback(emergencyChain, messages);
-  } catch (emergencyErr) {
-    throw new Error("Semua model dari semua grup gagal. Rate limit global.");
-  }
+  throw new Error("Semua model gagal. Coba lagi sebentar.");
 }
 
-module.exports = { callAPI, OPENROUTER_KEYS, GROQ_MODELS, QWEN_MODELS, GPT_OSS_MODELS, GLM_MODELS };
+module.exports = { callAPI };
