@@ -1,4 +1,4 @@
-// api/_lib.js — clean rewrite, parallel keys, fast fallback
+// api/_lib.js
 
 const KEYS = [
   process.env.OR_KEY_1 || "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",
@@ -10,55 +10,81 @@ const KEYS = [
   process.env.OR_KEY_7 || "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",
 ].filter(Boolean);
 
-// ── Model chains per "AI" slot ─────────────────────────────
-const CHAINS = {
-  groq: [
-    "meta-llama/llama-3.3-70b-instruct:free",
-    "meta-llama/llama-3.1-8b-instruct:free",
-    "google/gemma-3-27b-it:free",
-  ],
-  qwen: [
-    "qwen/qwen3-8b:free",
-    "qwen/qwen3-14b:free",
-    "mistralai/mistral-small-3.1-24b-instruct:free",
-  ],
-  gpt: [
-    "microsoft/phi-4:free",
-    "meta-llama/llama-3.3-70b-instruct:free",
-    "mistralai/mistral-small-3.1-24b-instruct:free",
-  ],
-  glm: [
-    "google/gemma-3-27b-it:free",
-    "meta-llama/llama-3.3-70b-instruct:free",
-    "deepseek/deepseek-r1:free",
-  ],
-};
+const FREE_ROUTER = "openrouter/auto";
+const SITE_URL    = process.env.SITE_URL || "https://aiva.vercel.app";
+const TIMEOUT_MS  = 9000;
 
-const TIMEOUT_MS = 9000; // 9 detik per request
-const SITE_URL   = process.env.SITE_URL || "https://aiva.vercel.app";
+// ── Model chains (persis sesuai permintaan) ────────────────
+const GROQ_MODELS = [
+  "meta-llama/llama-3.3-70b-instruct:free",
+  "deepseek/deepseek-r1-0528:free",
+  "meta-llama/llama-3.1-8b-instruct:free",
+  "google/gemma-3-27b-it:free",
+  "mistralai/mistral-small-3.1-24b-instruct:free",
+  "meta-llama/llama-3.2-3b-instruct:free",
+];
+
+const QWEN_MODELS = [
+  "deepseek/deepseek-r1-0528:free",
+  "deepseek/deepseek-v3-base:free",
+  "mistralai/mistral-small-3.1-24b-instruct:free",
+  "mistralai/devstral-small:free",
+  "google/gemma-3-27b-it:free",
+  "meta-llama/llama-3.3-70b-instruct:free",
+  FREE_ROUTER,
+];
+
+const GPT_MODELS = [
+  "openai/gpt-oss-120b:free",
+  "openai/gpt-oss-20b:free",
+  "meta-llama/llama-3.3-70b-instruct:free",
+  "deepseek/deepseek-r1-0528:free",
+  "mistralai/mistral-small-3.1-24b-instruct:free",
+  FREE_ROUTER,
+];
+
+const GLM_MODELS = [
+  "z-ai/glm-4.5-air:free",
+  "z-ai/glm-4.5:free",
+  "google/gemma-3-27b-it:free",
+  "mistralai/mistral-small-3.1-24b-instruct:free",
+  "meta-llama/llama-3.3-70b-instruct:free",
+  FREE_ROUTER,
+];
+
+const EMERGENCY_FALLBACK = [
+  "meta-llama/llama-3.3-70b-instruct:free",
+  "deepseek/deepseek-r1-0528:free",
+  "google/gemma-3-27b-it:free",
+  "mistralai/mistral-small-3.1-24b-instruct:free",
+  "openai/gpt-oss-20b:free",
+  "z-ai/glm-4.5-air:free",
+  "meta-llama/llama-3.1-8b-instruct:free",
+  FREE_ROUTER,
+];
 
 const SYSTEM_PROMPT = `
 Kamu adalah AIVA, AI assistant cerdas, ramah, santai, dan helpful.
 AIVA dibuat oleh OpetxDy (TikTok: @opetxdy2).
-Jika ditanya siapa pembuatmu, sebutkan OpetxDy / @opetxdy2.
+Jika ditanya siapa pembuatmu, jawab: OpetxDy / @opetxdy2.
 
 ATURAN UTAMA:
 - Jawab TUNTAS & LENGKAP, jangan dipotong di tengah.
 - Jangan gunakan "..." atau placeholder. Full jawaban selalu.
 - Pahami typo user secara otomatis.
-- Gaya santai seperti teman, tapi tetap informatif.
+- Gaya santai seperti teman, tapi tetap informatif dan detail.
 
 FORMAT (WAJIB):
 - **teks tebal** untuk poin penting.
 - *italic* untuk istilah.
 - ## Judul dan ### Sub-judul untuk struktur.
-- - list dan 1. 2. 3. untuk langkah.
+- - list dan 1. 2. 3. untuk langkah berurutan.
 - > untuk catatan penting.
 - \`\`\`bahasa untuk KODE SAJA, bukan penjelasan biasa.
 - Paragraf mengalir, pisah topik dengan baris kosong.
 
 CODING:
-- Selalu berikan full code yang bisa langsung dipakai.
+- Selalu full code yang bisa langsung dipakai.
 - Jelaskan singkat → kode lengkap → cara pakai → cara kerja.
 
 KEAMANAN:
@@ -102,17 +128,31 @@ async function tryKey(key, model, messages) {
 }
 
 // ── Coba satu model dengan SEMUA key secara paralel ─────────
-// Mengembalikan hasil key pertama yang sukses (Promise.any)
 async function tryModel(model, messages) {
-  const attempts = KEYS.map(k => tryKey(k, model, messages));
-  // Promise.any — resolve dengan hasil pertama yang berhasil
-  return Promise.any(attempts);
+  return Promise.any(KEYS.map(k => tryKey(k, model, messages)));
 }
 
-// ── API utama ─────────────────────────────────────────────
+// ── Coba chain sampai ada yang berhasil ─────────────────────
+async function tryChain(chain, messages) {
+  const tried = new Set();
+  for (const model of chain) {
+    if (tried.has(model)) continue;
+    tried.add(model);
+    try {
+      console.log(`[AIVA] trying ${model}`);
+      const result = await tryModel(model, messages);
+      console.log(`[AIVA] OK ${model}`);
+      return result;
+    } catch (e) {
+      console.log(`[AIVA] ${model} failed: ${e.message}`);
+    }
+  }
+  throw new Error("Semua model di chain gagal");
+}
+
+// ── callAPI — entry point ────────────────────────────────────
 async function callAPI(api, message, history = [], userName = "") {
-  const slot = api === "gemma" ? "groq" : (CHAINS[api] ? api : "groq");
-  const chain = CHAINS[slot];
+  if (api === "gemma") api = "groq";
 
   const messages = [
     {
@@ -124,19 +164,25 @@ async function callAPI(api, message, history = [], userName = "") {
     { role: "user", content: message },
   ];
 
-  // Coba tiap model dalam chain, kembalikan hasil pertama yang sukses
-  for (const model of chain) {
-    try {
-      console.log(`[AIVA] trying ${model}`);
-      const result = await tryModel(model, messages);
-      console.log(`[AIVA] OK ${model}`);
-      return result;
-    } catch (e) {
-      console.log(`[AIVA] ${model} failed: ${e.message}`);
-    }
+  // Pilih chain utama
+  let primaryChain;
+  if      (api === "groq") primaryChain = GROQ_MODELS;
+  else if (api === "qwen") primaryChain = QWEN_MODELS;
+  else if (api === "gpt")  primaryChain = GPT_MODELS;
+  else if (api === "glm")  primaryChain = GLM_MODELS;
+  else throw new Error("API tidak dikenal: " + api);
+
+  // Coba chain utama
+  try {
+    return await tryChain(primaryChain, messages);
+  } catch {
+    console.log(`[AIVA] chain utama ${api} habis, emergency fallback`);
   }
 
-  throw new Error("Semua model gagal. Coba lagi sebentar.");
+  // Emergency fallback — model yang belum dicoba
+  const tried   = new Set(primaryChain);
+  const fallback = EMERGENCY_FALLBACK.filter(m => !tried.has(m));
+  return tryChain(fallback, messages);
 }
 
 module.exports = { callAPI };
