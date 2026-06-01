@@ -1426,6 +1426,311 @@ body.light #uploadPreviewPanel{background:rgba(240,244,255,0.96)}
   background:rgba(6,9,18,0.72);backdrop-filter:blur(4px);border-radius:20px;z-index:10;
   pointer-events:none;
 }
+/* ============================
+   VIDEO CONVERTER PAGE
+   ============================ */
+#videoConverterPage{
+  position:fixed;inset:0;z-index:100001;
+  overflow-y:auto;display:none;
+  background:
+    radial-gradient(ellipse 70% 55% at 15% 10%, rgba(114,72,245,0.18) 0%, transparent 55%),
+    radial-gradient(ellipse 60% 50% at 85% 85%, rgba(61,114,246,0.14) 0%, transparent 55%),
+    radial-gradient(ellipse 40% 40% at 50% 50%, rgba(0,180,255,0.06) 0%, transparent 60%),
+    #060912;
+  animation:popIn 0.28s var(--ease);
+}
+#videoConverterPage.show{display:block}
+#videoConverterPage.out{animation:splOut 0.25s var(--ease) forwards}
+
+/* Animated grid bg */
+#vcPage-bg{
+  position:fixed;inset:0;pointer-events:none;z-index:0;
+  background-image:
+    linear-gradient(rgba(114,72,245,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(114,72,245,0.04) 1px, transparent 1px);
+  background-size:36px 36px;
+  animation:gridScroll 14s linear infinite;
+}
+@keyframes gridScroll{from{background-position:0 0}to{background-position:36px 36px}}
+
+.vc-inner{
+  position:relative;z-index:1;
+  max-width:520px;margin:0 auto;padding:22px 18px 80px;
+}
+
+/* Top bar */
+.vc-topbar{
+  display:flex;align-items:center;gap:10px;margin-bottom:24px;
+}
+.vc-back{
+  width:38px;height:38px;border-radius:12px;
+  background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);
+  display:flex;align-items:center;justify-content:center;cursor:pointer;
+  transition:all 0.2s;flex-shrink:0;
+}
+.vc-back:hover{background:rgba(114,72,245,0.18);border-color:rgba(114,72,245,0.35);}
+.vc-back svg{width:16px;height:16px;stroke:var(--muted);stroke-width:2.2;fill:none;}
+.vc-header-title{
+  font-size:16px;font-weight:800;letter-spacing:4px;
+  background:linear-gradient(90deg,#7248f5,#3d72f6,#00c8ff);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+}
+.vc-beta-tag{
+  font-size:9px;padding:2px 7px;border-radius:5px;
+  background:rgba(114,72,245,0.15);border:1px solid rgba(114,72,245,0.3);
+  color:#c4a8ff;letter-spacing:1.5px;margin-left:auto;
+}
+
+/* Platform chips */
+.vc-platforms{
+  display:flex;flex-wrap:wrap;gap:6px;margin-bottom:18px;
+}
+.vc-plat{
+  display:inline-flex;align-items:center;gap:5px;
+  padding:5px 10px;border-radius:20px;
+  background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);
+  font-size:11px;font-weight:600;color:var(--muted);letter-spacing:0.3px;
+  cursor:default;
+}
+.vc-plat.tiktok{border-color:rgba(0,242,234,0.2);color:#00f2ea;}
+.vc-plat.youtube{border-color:rgba(255,0,0,0.2);color:#ff4444;}
+.vc-plat.instagram{border-color:rgba(225,48,108,0.2);color:#e1306c;}
+.vc-plat.twitter{border-color:rgba(29,161,242,0.2);color:#1da1f2;}
+.vc-plat.facebook{border-color:rgba(24,119,242,0.2);color:#1877f2;}
+
+/* Input card */
+.vc-card{
+  background:rgba(255,255,255,0.038);
+  border:1px solid rgba(255,255,255,0.08);
+  border-radius:20px;padding:20px 18px;margin-bottom:14px;
+  backdrop-filter:blur(20px);
+  box-shadow:0 8px 40px rgba(0,0,0,0.25),inset 0 1px 0 rgba(255,255,255,0.05);
+}
+.vc-card-title{
+  font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;
+  color:rgba(114,72,245,0.75);margin-bottom:12px;
+  display:flex;align-items:center;gap:6px;
+}
+.vc-card-title::before{
+  content:'';width:5px;height:5px;border-radius:50%;
+  background:rgba(114,72,245,0.8);box-shadow:0 0 6px rgba(114,72,245,0.7);
+  display:inline-block;
+}
+
+/* URL input */
+.vc-url-wrap{
+  display:flex;align-items:center;gap:8px;
+  background:rgba(255,255,255,0.05);
+  border:1.5px solid rgba(255,255,255,0.1);
+  border-radius:14px;padding:4px 4px 4px 14px;
+  transition:border-color 0.22s,box-shadow 0.22s;
+}
+.vc-url-wrap:focus-within{
+  border-color:rgba(114,72,245,0.55);
+  box-shadow:0 0 0 3px rgba(114,72,245,0.1);
+}
+.vc-url-input{
+  flex:1;border:none;outline:none;background:transparent;
+  color:var(--text);font-family:var(--F);font-size:13px;padding:10px 0;
+}
+.vc-url-input::placeholder{color:var(--muted);}
+.vc-paste-btn{
+  width:38px;height:38px;border-radius:10px;border:none;
+  background:rgba(114,72,245,0.15);
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;transition:all 0.2s;flex-shrink:0;
+  color:rgba(114,72,245,0.8);
+}
+.vc-paste-btn:hover{background:rgba(114,72,245,0.28);}
+.vc-paste-btn svg{width:14px;height:14px;stroke:currentColor;stroke-width:2;fill:none;}
+
+/* Platform detected badge */
+.vc-detect-badge{
+  display:none;margin-top:8px;
+  font-size:11px;font-weight:600;letter-spacing:0.5px;
+  padding:5px 12px;border-radius:20px;width:fit-content;
+  animation:msgIn 0.25s var(--ease);
+}
+.vc-detect-badge.show{display:inline-flex;align-items:center;gap:5px;}
+.vc-detect-badge.tiktok{background:rgba(0,242,234,0.1);border:1px solid rgba(0,242,234,0.25);color:#00f2ea;}
+.vc-detect-badge.youtube{background:rgba(255,68,68,0.1);border:1px solid rgba(255,68,68,0.25);color:#ff4444;}
+.vc-detect-badge.instagram{background:rgba(225,48,108,0.1);border:1px solid rgba(225,48,108,0.25);color:#e1306c;}
+.vc-detect-badge.twitter{background:rgba(29,161,242,0.1);border:1px solid rgba(29,161,242,0.25);color:#1da1f2;}
+.vc-detect-badge.facebook{background:rgba(24,119,242,0.1);border:1px solid rgba(24,119,242,0.25);color:#1877f2;}
+.vc-detect-badge.unknown{background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);color:var(--muted);}
+
+/* Quality selector */
+.vc-quality-row{
+  display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:7px;
+  margin-bottom:16px;
+}
+.vc-qual-btn{
+  padding:9px 6px;border-radius:12px;border:1.5px solid rgba(255,255,255,0.08);
+  background:rgba(255,255,255,0.03);color:var(--muted);
+  font-family:var(--F);font-size:11px;font-weight:700;letter-spacing:0.5px;
+  cursor:pointer;transition:all 0.2s;text-align:center;
+  display:flex;flex-direction:column;align-items:center;gap:3px;
+}
+.vc-qual-btn:hover{background:rgba(114,72,245,0.1);border-color:rgba(114,72,245,0.3);}
+.vc-qual-btn.active{
+  background:rgba(114,72,245,0.18);border-color:rgba(114,72,245,0.5);
+  color:#c4a8ff;box-shadow:0 0 12px rgba(114,72,245,0.2);
+}
+.vc-qual-btn .qual-icon{font-size:14px;margin-bottom:1px;}
+.vc-qual-btn .qual-label{font-size:10px;letter-spacing:0.5px;}
+.vc-qual-btn .qual-desc{font-size:8.5px;opacity:0.5;font-weight:500;}
+
+/* Format toggle */
+.vc-format-row{display:flex;gap:8px;margin-bottom:16px;}
+.vc-fmt-btn{
+  flex:1;padding:9px;border-radius:11px;
+  border:1.5px solid rgba(255,255,255,0.08);
+  background:rgba(255,255,255,0.03);
+  color:var(--muted);font-family:var(--F);font-size:12px;font-weight:600;
+  cursor:pointer;transition:all 0.2s;display:flex;align-items:center;justify-content:center;gap:6px;
+}
+.vc-fmt-btn.active{
+  background:rgba(61,114,246,0.18);border-color:rgba(61,114,246,0.45);color:#7aa8f7;
+}
+.vc-fmt-btn:hover{background:rgba(255,255,255,0.07);}
+.vc-fmt-btn svg{width:13px;height:13px;stroke:currentColor;stroke-width:2;fill:none;}
+
+/* Convert button */
+.vc-convert-btn{
+  width:100%;padding:15px;border-radius:16px;border:none;
+  background:linear-gradient(135deg,#7248f5 0%,#3d72f6 60%,#00c8ff 100%);
+  color:#fff;font-family:var(--F);font-size:15px;font-weight:700;
+  letter-spacing:1px;cursor:pointer;position:relative;overflow:hidden;
+  transition:all 0.22s var(--ease);
+  box-shadow:0 6px 28px rgba(114,72,245,0.4);
+}
+.vc-convert-btn::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,rgba(255,255,255,0.14) 0%,transparent 55%);
+  pointer-events:none;
+}
+.vc-convert-btn:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 10px 36px rgba(114,72,245,0.55);}
+.vc-convert-btn:disabled{opacity:0.4;cursor:not-allowed;transform:none;}
+
+/* Progress */
+.vc-progress-wrap{
+  display:none;margin-top:16px;
+  background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);
+  border-radius:16px;padding:16px;
+}
+.vc-progress-wrap.show{display:block;animation:msgIn 0.3s var(--ease);}
+.vc-progress-label{
+  font-size:11px;font-weight:600;letter-spacing:0.5px;
+  color:var(--muted);margin-bottom:10px;display:flex;align-items:center;gap:6px;
+}
+.vc-progress-bar-track{
+  height:5px;background:rgba(255,255,255,0.07);border-radius:3px;overflow:hidden;
+  margin-bottom:10px;
+}
+.vc-progress-bar-fill{
+  height:100%;border-radius:3px;width:0%;
+  background:linear-gradient(90deg,#7248f5,#3d72f6,#00c8ff);
+  transition:width 0.4s ease;
+  box-shadow:0 0 8px rgba(114,72,245,0.5);
+}
+.vc-progress-steps{
+  display:flex;flex-direction:column;gap:5px;
+}
+.vc-step{
+  display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);
+  transition:color 0.2s;
+}
+.vc-step.active{color:var(--text);}
+.vc-step.done{color:rgba(16,185,129,0.8);}
+.vc-step-dot{
+  width:7px;height:7px;border-radius:50%;flex-shrink:0;
+  background:rgba(255,255,255,0.12);transition:all 0.25s;
+}
+.vc-step.active .vc-step-dot{background:#7248f5;animation:dotPulse 1s ease-in-out infinite;box-shadow:0 0 8px rgba(114,72,245,0.6);}
+.vc-step.done .vc-step-dot{background:#10b981;}
+
+/* Result card */
+.vc-result-card{
+  display:none;margin-top:16px;
+  background:rgba(16,185,129,0.06);border:1px solid rgba(16,185,129,0.22);
+  border-radius:18px;padding:18px;overflow:hidden;
+  animation:msgIn 0.35s var(--ease);
+}
+.vc-result-card.show{display:block;}
+.vc-result-title{
+  font-size:14px;font-weight:700;color:var(--text);
+  margin-bottom:5px;line-height:1.4;
+}
+.vc-result-meta{
+  font-size:11px;color:var(--muted);margin-bottom:14px;
+  display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+}
+.vc-result-meta span{
+  padding:2px 8px;border-radius:6px;
+  background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.09);
+}
+.vc-thumb{
+  width:100%;max-height:180px;object-fit:cover;
+  border-radius:12px;margin-bottom:12px;
+  border:1px solid rgba(255,255,255,0.07);
+}
+.vc-dl-btn{
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  width:100%;padding:13px;border-radius:13px;border:none;
+  background:linear-gradient(135deg,#10b981,#0d9a6a);
+  color:#fff;font-family:var(--F);font-size:14px;font-weight:700;
+  cursor:pointer;transition:all 0.22s var(--ease);
+  box-shadow:0 5px 22px rgba(16,185,129,0.35);
+  text-decoration:none;
+}
+.vc-dl-btn:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(16,185,129,0.5);}
+.vc-dl-btn svg{width:16px;height:16px;stroke:#fff;stroke-width:2.2;fill:none;}
+.vc-dl-formats{
+  display:flex;flex-direction:column;gap:7px;margin-top:10px;
+}
+.vc-dl-link{
+  display:flex;align-items:center;gap:10px;padding:11px 14px;
+  border-radius:12px;background:rgba(255,255,255,0.04);
+  border:1px solid rgba(255,255,255,0.08);cursor:pointer;
+  transition:all 0.2s;text-decoration:none;color:var(--text);
+}
+.vc-dl-link:hover{background:rgba(114,72,245,0.1);border-color:rgba(114,72,245,0.25);}
+.vc-dl-link-icon{
+  width:34px;height:34px;border-radius:9px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+}
+.vc-dl-link-info{flex:1;min-width:0;}
+.vc-dl-link-label{font-size:13px;font-weight:600;color:var(--text);}
+.vc-dl-link-meta{font-size:10px;color:var(--muted);margin-top:2px;}
+.vc-dl-arrow{margin-left:auto;flex-shrink:0;}
+.vc-dl-arrow svg{width:14px;height:14px;stroke:var(--muted);stroke-width:2;fill:none;}
+
+/* Error card */
+.vc-error-card{
+  display:none;margin-top:14px;
+  background:rgba(240,68,68,0.07);border:1px solid rgba(240,68,68,0.2);
+  border-radius:14px;padding:14px;font-size:13px;color:#f87171;
+  animation:msgIn 0.3s var(--ease);
+}
+.vc-error-card.show{display:block;}
+
+/* How-to section */
+.vc-howto{
+  display:flex;flex-direction:column;gap:8px;margin-top:4px;
+}
+.vc-howto-step{
+  display:flex;align-items:center;gap:10px;padding:10px 14px;
+  background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);
+  border-radius:12px;font-size:12px;color:var(--muted);line-height:1.5;
+}
+.vc-howto-num{
+  width:24px;height:24px;border-radius:8px;flex-shrink:0;
+  background:linear-gradient(135deg,rgba(114,72,245,0.3),rgba(61,114,246,0.3));
+  border:1px solid rgba(114,72,245,0.35);
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:800;color:#c4a8ff;
+}
+
 /* ================= MAINTENANCE ================= */
 
 .maintenance-screen{
@@ -1664,6 +1969,11 @@ line-height:1.8;
       <svg viewBox="0 0 24 24" fill="#25d366" style="width:15px;height:15px;flex-shrink:0;opacity:1;stroke:none;filter:drop-shadow(0 0 5px rgba(37,211,102,0.6));"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/></svg>
       <span style="font-weight:600;letter-spacing:0.3px;">Saluran WA</span>
     </a>
+    <div class="sb-nav-item" onclick="openVideoConverter();closeSidebar()" style="color:rgba(114,72,245,0.8);background:rgba(114,72,245,0.06);border:1px solid rgba(114,72,245,0.15);">
+      <svg viewBox="0 0 24 24" fill="none"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+      <span style="font-weight:700;">Video Converter</span>
+      <span style="font-size:9px;padding:1px 5px;border-radius:5px;background:rgba(114,72,245,0.15);border:1px solid rgba(114,72,245,0.3);color:#c4a8ff;letter-spacing:0.5px;font-weight:600;margin-left:auto;">NEW</span>
+    </div>
     <div class="sb-nav-item" onclick="openAbout();closeSidebar()">
       <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
       About AIVA
@@ -1747,6 +2057,132 @@ line-height:1.8;
       <div class="payment-row">DANA — GoPay — OVO — LinkAja — BCA — BRI — Mandiri</div>
     </div>
     <div class="fp-footer">OpetXdy — Thank you for your support</div>
+  </div>
+</div>
+
+<!-- VIDEO CONVERTER PAGE -->
+<div id="videoConverterPage">
+  <div id="vcPage-bg"></div>
+  <div class="vc-inner">
+
+    <!-- Top bar -->
+    <div class="vc-topbar">
+      <div class="vc-back" onclick="closeVideoConverter()">
+        <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+      </div>
+      <div class="vc-header-title">VIDEO CONVERTER</div>
+      <span class="vc-beta-tag">BETA</span>
+    </div>
+
+    <!-- Supported platforms -->
+    <div class="vc-platforms">
+      <span class="vc-plat tiktok">⬥ TikTok</span>
+      <span class="vc-plat youtube">⬥ YouTube</span>
+      <span class="vc-plat instagram">⬥ Instagram</span>
+      <span class="vc-plat twitter">⬥ Twitter/X</span>
+      <span class="vc-plat facebook">⬥ Facebook</span>
+      <span class="vc-plat" style="border-color:rgba(255,150,0,0.2);color:#ffa500;">⬥ Snapchat</span>
+      <span class="vc-plat" style="border-color:rgba(255,0,80,0.2);color:#ff0050;">⬥ Pinterest</span>
+      <span class="vc-plat" style="border-color:rgba(255,255,255,0.1);color:var(--muted);">⬥ & more</span>
+    </div>
+
+    <!-- URL Input Card -->
+    <div class="vc-card">
+      <div class="vc-card-title">Paste Link Video</div>
+      <div class="vc-url-wrap" id="vcUrlWrap">
+        <input class="vc-url-input" id="vcUrlInput" type="url"
+          placeholder="https://www.tiktok.com/@user/video/..."
+          autocomplete="off" spellcheck="false" oninput="vcDetectPlatform()">
+        <button class="vc-paste-btn" onclick="vcPasteUrl()" title="Paste dari clipboard">
+          <svg viewBox="0 0 24 24"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg>
+        </button>
+      </div>
+      <div class="vc-detect-badge" id="vcDetectBadge"></div>
+    </div>
+
+    <!-- Format toggle -->
+    <div class="vc-card">
+      <div class="vc-card-title">Format Output</div>
+      <div class="vc-format-row">
+        <button class="vc-fmt-btn active" id="vcFmtMp4" onclick="vcSetFormat('mp4')">
+          <svg viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+          MP4 Video
+        </button>
+        <button class="vc-fmt-btn" id="vcFmtMp3" onclick="vcSetFormat('mp3')">
+          <svg viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+          MP3 Audio
+        </button>
+      </div>
+
+      <!-- Quality selector -->
+      <div class="vc-card-title" style="margin-top:4px">Kualitas</div>
+      <div class="vc-quality-row" id="vcQualityRow">
+        <button class="vc-qual-btn" onclick="vcSetQuality('superhd')" id="vcQSuperHD">
+          <span class="qual-icon">✦</span>
+          <span class="qual-label">SUPER HD</span>
+          <span class="qual-desc">4K / 1080p</span>
+        </button>
+        <button class="vc-qual-btn active" onclick="vcSetQuality('hd')" id="vcQHD">
+          <span class="qual-icon">◈</span>
+          <span class="qual-label">HD</span>
+          <span class="qual-desc">720p</span>
+        </button>
+        <button class="vc-qual-btn" onclick="vcSetQuality('normal')" id="vcQNormal">
+          <span class="qual-icon">◇</span>
+          <span class="qual-label">NORMAL</span>
+          <span class="qual-desc">480p</span>
+        </button>
+        <button class="vc-qual-btn" onclick="vcSetQuality('low')" id="vcQLow">
+          <span class="qual-icon">○</span>
+          <span class="qual-label">LOW</span>
+          <span class="qual-desc">360p</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Convert button -->
+    <button class="vc-convert-btn" id="vcConvertBtn" onclick="vcStartConvert()" disabled>
+      ↓ Konversi Sekarang
+    </button>
+
+    <!-- Progress -->
+    <div class="vc-progress-wrap" id="vcProgressWrap">
+      <div class="vc-progress-label">
+        <div class="td" style="width:6px;height:6px;border-radius:50%;background:#7248f5;animation:tdA 1.3s ease-in-out infinite;flex-shrink:0"></div>
+        <span id="vcProgressLabel">Memproses...</span>
+      </div>
+      <div class="vc-progress-bar-track">
+        <div class="vc-progress-bar-fill" id="vcProgressFill"></div>
+      </div>
+      <div class="vc-progress-steps" id="vcProgressSteps">
+        <div class="vc-step" id="vcStep1"><div class="vc-step-dot"></div>Menganalisis URL</div>
+        <div class="vc-step" id="vcStep2"><div class="vc-step-dot"></div>Mengambil info video</div>
+        <div class="vc-step" id="vcStep3"><div class="vc-step-dot"></div>Memproses kualitas</div>
+        <div class="vc-step" id="vcStep4"><div class="vc-step-dot"></div>Menyiapkan link download</div>
+      </div>
+    </div>
+
+    <!-- Error card -->
+    <div class="vc-error-card" id="vcErrorCard"></div>
+
+    <!-- Result card -->
+    <div class="vc-result-card" id="vcResultCard">
+      <img class="vc-thumb" id="vcThumb" src="" alt="" style="display:none">
+      <div class="vc-result-title" id="vcResultTitle"></div>
+      <div class="vc-result-meta" id="vcResultMeta"></div>
+      <div class="vc-dl-formats" id="vcDlFormats"></div>
+    </div>
+
+    <!-- How to use -->
+    <div class="vc-card" style="margin-top:18px">
+      <div class="vc-card-title">Cara Pakai</div>
+      <div class="vc-howto">
+        <div class="vc-howto-step"><div class="vc-howto-num">1</div>Copy link video dari TikTok, YouTube, Instagram, dll</div>
+        <div class="vc-howto-step"><div class="vc-howto-num">2</div>Paste link di kolom di atas, pilih format & kualitas</div>
+        <div class="vc-howto-step"><div class="vc-howto-num">3</div>Klik "Konversi" lalu download file-nya</div>
+      </div>
+    </div>
+
   </div>
 </div>
 
@@ -4817,6 +5253,303 @@ function startNameCanvas(){
     if(document.getElementById("nameScreen")) requestAnimationFrame(drawNC);
   }
   requestAnimationFrame(drawNC);
+}
+
+/* ════════════════════════════════════════════════════════
+   VIDEO CONVERTER
+   ════════════════════════════════════════════════════════ */
+const VC_API_KEY  = "axka_0657afec2e114afeabcf6c230227bf00";
+const VC_BASE_URL = "https://webtoapk2-web2apk.up.railway.app";
+let vcFormat   = "mp4";
+let vcQuality  = "hd";
+let vcAbort    = null;
+
+function openVideoConverter(){
+  const p = document.getElementById("videoConverterPage");
+  p.style.display = "block";
+  p.classList.remove("out");
+  p.classList.add("show");
+}
+function closeVideoConverter(){
+  const p = document.getElementById("videoConverterPage");
+  p.classList.add("out");
+  setTimeout(()=>{ p.style.display="none"; p.classList.remove("show","out"); }, 260);
+}
+
+function vcSetFormat(fmt){
+  vcFormat = fmt;
+  document.getElementById("vcFmtMp4").classList.toggle("active", fmt==="mp4");
+  document.getElementById("vcFmtMp3").classList.toggle("active", fmt==="mp3");
+  // Quality selector — hide for mp3 (only audio)
+  const qrow = document.getElementById("vcQualityRow");
+  if(fmt==="mp3"){
+    qrow.style.opacity = "0.35"; qrow.style.pointerEvents = "none";
+  } else {
+    qrow.style.opacity = ""; qrow.style.pointerEvents = "";
+  }
+}
+
+function vcSetQuality(q){
+  vcQuality = q;
+  const allQIds = {superhd:"SuperHD",hd:"HD",normal:"Normal",low:"Low"};
+  Object.values(allQIds).forEach(v=>{
+    const el=document.getElementById("vcQ"+v); if(el) el.classList.remove("active");
+  });
+  const map = {superhd:"SuperHD",hd:"HD",normal:"Normal",low:"Low"};
+  const mapId = document.getElementById("vcQ"+map[q]);
+  if(mapId) mapId.classList.add("active");
+}
+
+function vcDetectPlatform(){
+  const url = (document.getElementById("vcUrlInput").value||"").trim();
+  const badge = document.getElementById("vcDetectBadge");
+  const btn   = document.getElementById("vcConvertBtn");
+  badge.className = "vc-detect-badge";
+  badge.textContent = "";
+
+  if(!url){ btn.disabled = true; return; }
+
+  let platform = null, cls = "unknown", icon = "🔗";
+  if(/tiktok\.com/i.test(url))  { platform="TikTok";    cls="tiktok";    icon="♪"; }
+  else if(/youtube\.com|youtu\.be/i.test(url)){ platform="YouTube";  cls="youtube";   icon="▶"; }
+  else if(/instagram\.com/i.test(url)){ platform="Instagram"; cls="instagram"; icon="◈"; }
+  else if(/twitter\.com|x\.com/i.test(url)){ platform="Twitter/X"; cls="twitter";   icon="✦"; }
+  else if(/facebook\.com|fb\.com/i.test(url)){ platform="Facebook"; cls="facebook";  icon="◆"; }
+  else if(/snapchat\.com/i.test(url)){ platform="Snapchat"; icon="◉"; }
+  else if(/pinterest\.com/i.test(url)){ platform="Pinterest"; icon="◑"; }
+  else if(/vimeo\.com/i.test(url)){ platform="Vimeo"; icon="◒"; }
+  else if(/twitch\.tv/i.test(url)){ platform="Twitch"; icon="◓"; }
+  else if(/dailymotion\.com/i.test(url)){ platform="Dailymotion"; icon="◔"; }
+
+  if(url.startsWith("http")){
+    badge.className = "vc-detect-badge show " + cls;
+    badge.innerHTML = (platform ? icon+" "+platform+" terdeteksi" : "🔗 Link valid");
+    btn.disabled = false;
+  } else {
+    btn.disabled = true;
+  }
+}
+
+async function vcPasteUrl(){
+  try {
+    const text = await navigator.clipboard.readText();
+    document.getElementById("vcUrlInput").value = text;
+    vcDetectUrl();
+  } catch(e){
+    // fallback: focus the input
+    document.getElementById("vcUrlInput").focus();
+  }
+}
+function vcDetectUrl(){ vcDetectPlatform(); }
+
+/* quality → numeric preference sent to API */
+function vcQualToParam(q){
+  return {superhd:"1080",hd:"720",normal:"480",low:"360"}[q]||"720";
+}
+
+function vcShowProgress(show){
+  document.getElementById("vcProgressWrap").classList.toggle("show", show);
+  document.getElementById("vcConvertBtn").disabled = show;
+  document.getElementById("vcUrlInput").disabled = show;
+}
+function vcSetStep(n){
+  const steps = ["vcStep1","vcStep2","vcStep3","vcStep4"];
+  steps.forEach((id,i)=>{
+    const el = document.getElementById(id);
+    if(i < n-1){ el.className="vc-step done"; }
+    else if(i===n-1){ el.className="vc-step active"; }
+    else { el.className="vc-step"; }
+  });
+  const pct = {1:15,2:40,3:65,4:90}[n]||10;
+  document.getElementById("vcProgressFill").style.width = pct+"%";
+}
+function vcShowError(msg){
+  const el = document.getElementById("vcErrorCard");
+  el.innerHTML = "⚠️ "+msg;
+  el.classList.add("show");
+  document.getElementById("vcResultCard").classList.remove("show");
+}
+function vcHideError(){
+  document.getElementById("vcErrorCard").classList.remove("show");
+}
+
+async function vcStartConvert(){
+  const url = (document.getElementById("vcUrlInput").value||"").trim();
+  if(!url) return;
+
+  vcHideError();
+  document.getElementById("vcResultCard").classList.remove("show");
+  vcShowProgress(true);
+  vcSetStep(1);
+
+  vcAbort = new AbortController();
+  const sig = vcAbort.signal;
+
+  try {
+    // Step 1 — send to API
+    vcSetStep(1);
+    document.getElementById("vcProgressLabel").textContent = "Menganalisis URL...";
+
+    const qualParam = vcQualToParam(vcQuality);
+
+    const body = {
+      url: url,
+      format: vcFormat,
+      quality: qualParam,
+      api_key: VC_API_KEY
+    };
+
+    // Try endpoint /api/video/convert
+    let res = await fetch(VC_BASE_URL+"/api/video/convert", {
+      method:"POST",
+      headers:{"Content-Type":"application/json","X-API-Key":VC_API_KEY},
+      body: JSON.stringify(body),
+      signal: sig
+    });
+
+    // If not found, try /convert
+    if(!res.ok && res.status === 404){
+      res = await fetch(VC_BASE_URL+"/convert", {
+        method:"POST",
+        headers:{"Content-Type":"application/json","X-API-Key":VC_API_KEY},
+        body: JSON.stringify(body),
+        signal: sig
+      });
+    }
+
+    vcSetStep(2);
+    document.getElementById("vcProgressLabel").textContent = "Mengambil info video...";
+
+    let data;
+    try { data = await res.json(); } catch(e){ throw new Error("Server mengembalikan respons tidak valid"); }
+
+    if(!res.ok){
+      throw new Error(data.message || data.error || "Server error "+res.status);
+    }
+
+    vcSetStep(3);
+    document.getElementById("vcProgressLabel").textContent = "Memproses kualitas...";
+    await new Promise(r=>setTimeout(r,600));
+
+    vcSetStep(4);
+    document.getElementById("vcProgressLabel").textContent = "Menyiapkan link download...";
+    await new Promise(r=>setTimeout(r,400));
+
+    document.getElementById("vcProgressFill").style.width = "100%";
+    await new Promise(r=>setTimeout(r,300));
+
+    vcShowProgress(false);
+    vcRenderResult(data, url);
+
+  } catch(e){
+    if(e.name==="AbortError") return;
+    vcShowProgress(false);
+
+    // Friendly fallback: some railway APIs may need GET
+    // Try alternate approach
+    try {
+      const fallbackUrl = VC_BASE_URL+"/api/download?url="+encodeURIComponent(url)+"&format="+vcFormat+"&quality="+vcQualToParam(vcQuality)+"&api_key="+VC_API_KEY;
+      const res2 = await fetch(fallbackUrl, {signal: vcAbort?.signal});
+      if(res2.ok){
+        const data2 = await res2.json();
+        vcRenderResult(data2, url);
+        return;
+      }
+    } catch(_){}
+
+    vcShowError(e.message || "Gagal mengkonversi video. Pastikan link valid dan coba lagi.");
+  }
+}
+
+function vcRenderResult(data, originalUrl){
+  const card  = document.getElementById("vcResultCard");
+  const title = document.getElementById("vcResultTitle");
+  const meta  = document.getElementById("vcResultMeta");
+  const fmts  = document.getElementById("vcDlFormats");
+  const thumb = document.getElementById("vcThumb");
+
+  // Normalize API response fields (API may use different key names)
+  const videoTitle   = data.title || data.video_title || data.name || "Video";
+  const thumbnail    = data.thumbnail || data.thumb || data.cover || data.poster || "";
+  const duration     = data.duration || data.length || "";
+  const author       = data.author || data.uploader || data.creator || "";
+  const downloadUrl  = data.download_url || data.url || data.link || data.direct_url || "";
+  const downloads    = data.downloads || data.formats || data.links || [];
+
+  title.textContent = videoTitle;
+
+  let metaHtml = "";
+  if(author) metaHtml += `<span>👤 ${author}</span>`;
+  if(duration) metaHtml += `<span>⏱ ${duration}</span>`;
+  metaHtml += `<span>${vcFormat.toUpperCase()}</span>`;
+  metaHtml += `<span>${vcQualToParam(vcQuality)}p</span>`;
+  meta.innerHTML = metaHtml;
+
+  if(thumbnail){
+    thumb.src = thumbnail; thumb.style.display = "block";
+    thumb.onerror = ()=>{ thumb.style.display="none"; };
+  } else {
+    thumb.style.display = "none";
+  }
+
+  fmts.innerHTML = "";
+
+  // If API returned an array of download links
+  if(Array.isArray(downloads) && downloads.length > 0){
+    downloads.forEach(item=>{
+      const label = item.quality||item.label||item.format||"Download";
+      const dlUrl = item.url||item.link||item.download_url||"";
+      const size  = item.size||item.filesize||"";
+      if(!dlUrl) return;
+      const a = document.createElement("a");
+      a.className = "vc-dl-link";
+      a.href = dlUrl; a.target = "_blank"; a.rel = "noopener";
+      const isAudio = (item.format||"").toLowerCase()==="mp3"||(item.type||"").toLowerCase().includes("audio");
+      const bgColor = isAudio ? "rgba(114,72,245,0.15)" : "rgba(61,114,246,0.15)";
+      const iconColor = isAudio ? "#c4a8ff" : "#7aa8f7";
+      a.innerHTML = `
+        <div class="vc-dl-link-icon" style="background:${bgColor}">
+          ${isAudio
+            ? '<svg viewBox="0 0 24 24" fill="none" stroke="'+iconColor+'" stroke-width="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>'
+            : '<svg viewBox="0 0 24 24" fill="none" stroke="'+iconColor+'" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>'}
+        </div>
+        <div class="vc-dl-link-info">
+          <div class="vc-dl-link-label">${label}</div>
+          <div class="vc-dl-link-meta">${size ? size+" · " : ""}Klik untuk download</div>
+        </div>
+        <div class="vc-dl-arrow"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg></div>`;
+      fmts.appendChild(a);
+    });
+  }
+
+  // Single download URL fallback
+  if(downloadUrl && fmts.children.length === 0){
+    const a = document.createElement("a");
+    a.className = "vc-dl-link";
+    a.href = downloadUrl; a.target = "_blank"; a.rel = "noopener";
+    const iconColor = vcFormat==="mp3" ? "#c4a8ff" : "#7aa8f7";
+    const bg        = vcFormat==="mp3" ? "rgba(114,72,245,0.15)" : "rgba(61,114,246,0.15)";
+    a.innerHTML = `
+      <div class="vc-dl-link-icon" style="background:${bg}">
+        ${vcFormat==="mp3"
+          ? '<svg viewBox="0 0 24 24" fill="none" stroke="'+iconColor+'" stroke-width="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>'
+          : '<svg viewBox="0 0 24 24" fill="none" stroke="'+iconColor+'" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>'}
+      </div>
+      <div class="vc-dl-link-info">
+        <div class="vc-dl-link-label">${vcQualToParam(vcQuality)}p ${vcFormat.toUpperCase()}</div>
+        <div class="vc-dl-link-meta">Klik untuk download</div>
+      </div>
+      <div class="vc-dl-arrow"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg></div>`;
+    fmts.appendChild(a);
+  }
+
+  // No download link at all
+  if(fmts.children.length === 0){
+    fmts.innerHTML = `<div style="font-size:12px;color:var(--muted);padding:10px;text-align:center">Link download tidak tersedia dari server. Coba kualitas berbeda.</div>`;
+  }
+
+  card.classList.add("show");
+  card.scrollIntoView({behavior:"smooth",block:"nearest"});
 }
 
 </script>
