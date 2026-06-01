@@ -594,6 +594,13 @@ body.light .md-table th{border-color:rgba(0,0,0,0.07);background:rgba(0,0,0,0.03
 
 
 /* Typing */
+.stream-cursor{
+  display:inline-block;width:2px;height:1.1em;background:var(--accent);
+  border-radius:1px;margin-left:2px;vertical-align:text-bottom;
+  animation:cursorBlink 0.7s ease-in-out infinite;
+}
+@keyframes cursorBlink{0%,100%{opacity:1}50%{opacity:0}}
+
 .typing-bubble{align-self:flex-start;background:var(--ai-bg);border:1px solid var(--gb);border-radius:var(--r-md) var(--r-md) var(--r-md) 4px;padding:14px 18px;display:inline-flex;align-items:center;gap:5px;backdrop-filter:blur(14px);animation:msgIn 0.28s var(--ease)}
 .td{width:6px;height:6px;border-radius:50%;background:var(--accent);animation:tdA 1.3s ease-in-out infinite}
 .td:nth-child(2){animation-delay:0.15s}.td:nth-child(3){animation-delay:0.3s}
@@ -3544,27 +3551,8 @@ function sendSingle(msg, displayMsg, filesSnap){
   const loader = showThinking();
   const history = buildHistory();
 
-  callAPI(currentAPI, msg, history)
-  .then(reply => {
-    loader.remove();
-    if(!isGenerating) return; // stopped
-    const dEl = document.createElement("div");
-    dEl.className = "msg ai";
-    chatEl.appendChild(dEl);
-    typeText(dEl, reply, 0, ()=>{
-      const t = getTime();
-      addMsgToSession({ role:"ai", text:reply, time:t });
-      finishAI();
-    });
-  })
-  .catch(err => {
-    loader.remove();
-    if(!isGenerating) return;
-    const errMsg = "Error: " + err.message;
-    const { time:et } = addMsg(errMsg, "ai");
-    addMsgToSession({ role:"ai", text:errMsg, time:et });
-    finishAI();
-  });
+  // Streaming — teks muncul langsung saat AI menggenerate
+  streamSingleChat(currentAPI, msg, history, loader);
 }
 
 /* ======================== CANVAS ENGINE ======================== */
@@ -4896,6 +4884,103 @@ function startNameCanvas(){
     e.preventDefault();
   });
 })();
+
+/* ════════════════════════════════════════════════════════
+   STREAMING SINGLE CHAT — Teks muncul real-time
+   ════════════════════════════════════════════════════════ */
+async function streamSingleChat(api, msg, history, loader) {
+  let   full    = "";
+  let   aiEl    = null;
+  let   started = false;
+
+  function getAiEl() {
+    if (!aiEl) {
+      aiEl = document.createElement("div");
+      aiEl.className = "msg ai";
+      chatEl.appendChild(aiEl);
+    }
+    return aiEl;
+  }
+
+  function renderPartial(text) {
+    const el   = getAiEl();
+    const clean = text.replace(/<think>[\s\S]*?<\/think>/gi, "").trim();
+    el.innerHTML = renderMessage(clean) +
+      '<span class="stream-cursor"></span>';
+    autoScroll();
+  }
+
+  function finalize(text) {
+    const clean = text.replace(/<think>[\s\S]*?<\/think>/gi, "").trim();
+    const el    = getAiEl();
+    const t     = getTime();
+    el.innerHTML = renderMessage(clean) +
+      \`<div class="msg-time">\${t}</div>\`;
+    addMsgToSession({ role: "ai", text: clean, time: t });
+    autoScroll();
+    finishAI();
+  }
+
+  try {
+    const resp = await fetch("/api/chat", {
+      method : "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Accept"       : "text/event-stream",
+      },
+      body   : JSON.stringify({
+        message: msg, api, history,
+        userName: localStorage.getItem("aivaUserName") || "",
+      }),
+      signal : controller.signal,
+    });
+
+    if (!resp.ok) throw new Error("HTTP " + resp.status);
+
+    loader.remove();
+
+    const reader  = resp.body.getReader();
+    const decoder = new TextDecoder();
+    let   buf     = "";
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      buf += decoder.decode(value, { stream: true });
+      const lines = buf.split("\n");
+      buf = lines.pop() || "";
+
+      for (const line of lines) {
+        const t = line.trim();
+        if (!t || t === "data: [DONE]") { if (t === "data: [DONE]") { finalize(full); return; } continue; }
+        if (t.startsWith("data: ")) {
+          try {
+            const d = JSON.parse(t.slice(6));
+            if (d.error) throw new Error(d.error);
+            if (d.done)  { finalize(d.text || full); return; }
+            if (d.delta) {
+              full += d.delta;
+              if (!isGenerating) { reader.cancel(); return; } // stopped
+              renderPartial(full);
+            }
+          } catch (e) { if (e.message !== "parse_err") throw e; }
+        }
+      }
+    }
+
+    finalize(full);
+
+  } catch (err) {
+    if (loader.parentNode) loader.remove();
+    if (!isGenerating) return;
+    const errMsg = "❌ " + (err.message || "Error tidak diketahui");
+    const { time: et } = addMsg(errMsg, "ai");
+    addMsgToSession({ role: "ai", text: errMsg, time: et });
+    finishAI();
+  }
+}
+
 </script>
 </body>
 </html>
