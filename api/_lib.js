@@ -12,7 +12,7 @@ const KEYS = [
 
 const FREE_ROUTER = "openrouter/auto";
 const SITE_URL    = process.env.SITE_URL || "https://aiva.vercel.app";
-// No request timeout — let AI think as long as needed
+const TIMEOUT_MS  = 9000;
 
 // ── Model chains (persis sesuai permintaan) ────────────────
 const GROQ_MODELS = [
@@ -64,88 +64,67 @@ const EMERGENCY_FALLBACK = [
 ];
 
 const SYSTEM_PROMPT = `
-Kamu adalah AIVA — AI assistant cerdas buatan OpetxDy (@opetxdy2 TikTok).
-Jika ditanya siapa pembuatmu: OpetxDy / @opetxdy2.
+Kamu adalah AIVA, AI assistant cerdas, ramah, santai, dan helpful.
+AIVA dibuat oleh OpetxDy (TikTok: @opetxdy2).
+Jika ditanya siapa pembuatmu, jawab: OpetxDy / @opetxdy2.
 
-═══════════════════════════════════════
-HUKUM ABSOLUT — TIDAK BOLEH DILANGGAR
-═══════════════════════════════════════
+ATURAN UTAMA:
+- Jawab TUNTAS & LENGKAP, jangan dipotong di tengah.
+- Jangan gunakan "..." atau placeholder. Full jawaban selalu.
+- Pahami typo user secara otomatis.
+- Gaya santai seperti teman, tapi tetap informatif dan detail.
 
-1. JAWAB SAMPAI TUNTAS SEPENUHNYA.
-   Tidak boleh berhenti sebelum jawaban benar-benar selesai 100%.
+FORMAT (WAJIB):
+- **teks tebal** untuk poin penting.
+- *italic* untuk istilah.
+- ## Judul dan ### Sub-judul untuk struktur.
+- - list dan 1. 2. 3. untuk langkah berurutan.
+- > untuk catatan penting.
+- \`\`\`bahasa untuk KODE SAJA, bukan penjelasan biasa.
+- Paragraf mengalir, pisah topik dengan baris kosong.
 
-2. KODE HARUS FULL TANPA TERKECUALI.
-   - Tulis SELURUH source code dari baris pertama sampai baris TERAKHIR.
-   - DILARANG KERAS menulis: "// ... sisa kode", "// lanjutan sama", 
-     "// (kode sebelumnya)", "// dst", "[ ... ]", "tambahkan kode sebelumnya".
-   - Setiap fungsi, setiap class, setiap baris — tulis semua.
-   - Jika ada beberapa file, tulis semua file secara lengkap satu per satu.
-   - TIDAK ADA PENGECUALIAN meskipun kode sangat panjang.
+CODING:
+- Selalu full code yang bisa langsung dipakai.
+- Jelaskan singkat → kode lengkap → cara pakai → cara kerja.
 
-3. PENJELASAN HARUS LENGKAP.
-   - Jika diminta 10 poin, tulis 10 poin — semua, tidak ada yang diskip.
-   - Tidak boleh meringkas bagian manapun dengan "dll", "dsb", "dan lain-lain".
-   - Jika penjelasan butuh 5 paragraf, tulis 5 paragraf penuh.
-
-4. DILARANG SETENGAH JAWABAN.
-   Respons yang dipotong = gagal. Lebih baik lambat tapi selesai.
-
-═══════════════════════════════════════
-FORMAT WAJIB
-═══════════════════════════════════════
-
-- **teks tebal** → kata kunci / poin penting
-- *italic* → istilah teknis
-- ## Judul, ### Sub-judul → struktur besar
-- - poin atau 1. 2. 3. → list / langkah
-- > teks → catatan / peringatan penting
-- \`\`\`bahasa → HANYA untuk kode program sungguhan
-- Penjelasan biasa = teks mengalir, BUKAN dimasukkan ke \`\`\` kotak
-
-═══════════════════════════════════════
-ALUR CODING (WAJIB)
-═══════════════════════════════════════
-
-1. Penjelasan singkat apa yang akan dibuat
-2. Full source code LENGKAP (semua file, semua baris)
-3. Cara menjalankan / instalasi
-4. Penjelasan cara kerja kode
-
-═══════════════════════════════════════
-GAYA
-═══════════════════════════════════════
-
-- Santai seperti teman, tapi tetap informatif dan mendetail.
-- Pahami typo otomatis.
+KEAMANAN:
 - Tolak: hacking, malware, scam, phishing, aktivitas ilegal.
-- Jika user kasar: tetap tenang, ajak bicara baik-baik.
+- Jika user toxic: tetap tenang, minta bicara baik-baik.
 `;
 
 // ── Satu request ke OpenRouter dengan satu key ──────────────
 async function tryKey(key, model, messages) {
-  // Tidak ada timeout — biarkan AI berpikir selama yang dibutuhkan
-  const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-    method : "POST",
-    headers: {
-      "Authorization": "Bearer " + key,
-      "Content-Type" : "application/json",
-      "HTTP-Referer"  : SITE_URL,
-      "X-Title"       : "AIVA",
-    },
-    body: JSON.stringify({ model, messages, temperature: 0.7, max_tokens: 32000 }),
-  });
+  const ctrl  = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), TIMEOUT_MS);
+  try {
+    const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+      method : "POST",
+      headers: {
+        "Authorization": "Bearer " + key,
+        "Content-Type" : "application/json",
+        "HTTP-Referer"  : SITE_URL,
+        "X-Title"       : "AIVA",
+      },
+      body  : JSON.stringify({ model, messages, temperature: 0.7, max_tokens: 4096 }),
+      signal: ctrl.signal,
+    });
+    clearTimeout(timer);
 
-  const raw = await res.text();
-  if (!res.ok) throw new Error("HTTP " + res.status);
+    const raw = await res.text();
+    if (!res.ok) throw new Error("HTTP " + res.status);
 
-  const data = JSON.parse(raw);
-  if (data.error) throw new Error(data.error.message || "model error");
+    const data = JSON.parse(raw);
+    if (data.error) throw new Error(data.error.message || "model error");
 
-  let text = data?.choices?.[0]?.message?.content || "";
-  text = text.replace(/<think>[\s\S]*?<\/think>/gi, "").trim();
-  if (!text) throw new Error("empty response");
+    let text = data?.choices?.[0]?.message?.content || "";
+    text = text.replace(/<think>[\s\S]*?<\/think>/gi, "").trim();
+    if (!text) throw new Error("empty response");
 
-  return text;
+    return text;
+  } catch (e) {
+    clearTimeout(timer);
+    throw e;
+  }
 }
 
 // ── Coba satu model dengan SEMUA key secara paralel ─────────
@@ -206,21 +185,4 @@ async function callAPI(api, message, history = [], userName = "") {
   return tryChain(fallback, messages);
 }
 
-// ── Helpers exported for chat.js streaming mode ─────────────
-function getChain(api) {
-  if (api === "gemma") api = "groq";
-  const map = { groq: GROQ_MODELS, qwen: QWEN_MODELS, gpt: GPT_MODELS, glm: GLM_MODELS };
-  return map[api] || GROQ_MODELS;
-}
-
-function buildSystemMsg(api, message, history, userName) {
-  const sysContent = SYSTEM_PROMPT +
-    (userName ? `\n\nNama pengguna: "${userName}". Panggil dengan namanya jika relevan.` : "");
-  return [
-    { role: "system", content: sysContent },
-    ...history,
-    { role: "user", content: message },
-  ];
-}
-
-module.exports = { callAPI, getChain, buildSystemMsg, KEYS, GROQ_MODELS, QWEN_MODELS, GPT_MODELS, GLM_MODELS };
+module.exports = { callAPI };
