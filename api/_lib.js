@@ -12,7 +12,7 @@ const KEYS = [
 
 const FREE_ROUTER = "openrouter/auto";
 const SITE_URL    = process.env.SITE_URL || "https://aiva.vercel.app";
-const TIMEOUT_MS  = 55000; // 55s — sesuai Vercel maxDuration 60s
+// No request timeout — let AI think as long as needed
 
 // ── Model chains (persis sesuai permintaan) ────────────────
 const GROQ_MODELS = [
@@ -123,37 +123,29 @@ GAYA
 
 // ── Satu request ke OpenRouter dengan satu key ──────────────
 async function tryKey(key, model, messages) {
-  const ctrl  = new AbortController();
-  const timer = setTimeout(() => ctrl.abort(), TIMEOUT_MS);
-  try {
-    const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-      method : "POST",
-      headers: {
-        "Authorization": "Bearer " + key,
-        "Content-Type" : "application/json",
-        "HTTP-Referer"  : SITE_URL,
-        "X-Title"       : "AIVA",
-      },
-      body  : JSON.stringify({ model, messages, temperature: 0.7, max_tokens: 16000 }),
-      signal: ctrl.signal,
-    });
-    clearTimeout(timer);
+  // Tidak ada timeout — biarkan AI berpikir selama yang dibutuhkan
+  const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+    method : "POST",
+    headers: {
+      "Authorization": "Bearer " + key,
+      "Content-Type" : "application/json",
+      "HTTP-Referer"  : SITE_URL,
+      "X-Title"       : "AIVA",
+    },
+    body: JSON.stringify({ model, messages, temperature: 0.7, max_tokens: 32000 }),
+  });
 
-    const raw = await res.text();
-    if (!res.ok) throw new Error("HTTP " + res.status);
+  const raw = await res.text();
+  if (!res.ok) throw new Error("HTTP " + res.status);
 
-    const data = JSON.parse(raw);
-    if (data.error) throw new Error(data.error.message || "model error");
+  const data = JSON.parse(raw);
+  if (data.error) throw new Error(data.error.message || "model error");
 
-    let text = data?.choices?.[0]?.message?.content || "";
-    text = text.replace(/<think>[\s\S]*?<\/think>/gi, "").trim();
-    if (!text) throw new Error("empty response");
+  let text = data?.choices?.[0]?.message?.content || "";
+  text = text.replace(/<think>[\s\S]*?<\/think>/gi, "").trim();
+  if (!text) throw new Error("empty response");
 
-    return text;
-  } catch (e) {
-    clearTimeout(timer);
-    throw e;
-  }
+  return text;
 }
 
 // ── Coba satu model dengan SEMUA key secara paralel ─────────
@@ -214,4 +206,21 @@ async function callAPI(api, message, history = [], userName = "") {
   return tryChain(fallback, messages);
 }
 
-module.exports = { callAPI };
+// ── Helpers exported for chat.js streaming mode ─────────────
+function getChain(api) {
+  if (api === "gemma") api = "groq";
+  const map = { groq: GROQ_MODELS, qwen: QWEN_MODELS, gpt: GPT_MODELS, glm: GLM_MODELS };
+  return map[api] || GROQ_MODELS;
+}
+
+function buildSystemMsg(api, message, history, userName) {
+  const sysContent = SYSTEM_PROMPT +
+    (userName ? `\n\nNama pengguna: "${userName}". Panggil dengan namanya jika relevan.` : "");
+  return [
+    { role: "system", content: sysContent },
+    ...history,
+    { role: "user", content: message },
+  ];
+}
+
+module.exports = { callAPI, getChain, buildSystemMsg, KEYS, GROQ_MODELS, QWEN_MODELS, GPT_MODELS, GLM_MODELS };
