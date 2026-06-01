@@ -4,7 +4,17 @@
   "outputDirectory": ".",
   "functions": {
     "api/serve.js": {
-      "includeFiles": "index.html"
+      "includeFiles": "index.html",
+      "maxDuration": 60
+    },
+    "api/chat.js": {
+      "maxDuration": 60
+    },
+    "api/multi-chat.js": {
+      "maxDuration": 60
+    },
+    "api/status.js": {
+      "maxDuration": 10
     }
   },
   "rewrites": [
