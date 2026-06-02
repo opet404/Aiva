@@ -1427,97 +1427,145 @@ body.light #uploadPreviewPanel{background:rgba(240,244,255,0.96)}
   pointer-events:none;
 }
 /* ============================
-   VIDEO CONVERTER PAGE
+   MEDIA DOWNLOADER PAGE
    ============================ */
 #videoConverterPage{
   position:fixed;inset:0;z-index:100001;
   overflow-y:auto;display:none;
-  background:
-    radial-gradient(ellipse 70% 55% at 15% 10%, rgba(114,72,245,0.18) 0%, transparent 55%),
-    radial-gradient(ellipse 60% 50% at 85% 85%, rgba(61,114,246,0.14) 0%, transparent 55%),
-    radial-gradient(ellipse 40% 40% at 50% 50%, rgba(0,180,255,0.06) 0%, transparent 60%),
-    #060912;
+  background:#07091a;
   animation:popIn 0.28s var(--ease);
 }
 #videoConverterPage.show{display:block}
 #videoConverterPage.out{animation:splOut 0.25s var(--ease) forwards}
 
-/* Animated grid bg */
+/* Deep nebula layers — fixed so they don't scroll */
 #vcPage-bg{
   position:fixed;inset:0;pointer-events:none;z-index:0;
-  background-image:
-    linear-gradient(rgba(114,72,245,0.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(114,72,245,0.04) 1px, transparent 1px);
-  background-size:36px 36px;
-  animation:gridScroll 14s linear infinite;
+  background:
+    radial-gradient(ellipse 80% 55% at 5% -5%,  rgba(114,72,245,0.22) 0%,transparent 52%),
+    radial-gradient(ellipse 60% 50% at 95% 100%, rgba(61,114,246,0.18) 0%,transparent 50%),
+    radial-gradient(ellipse 45% 40% at 55% 48%,  rgba(0,180,255,0.07) 0%,transparent 58%);
 }
-@keyframes gridScroll{from{background-position:0 0}to{background-position:36px 36px}}
+#vcPage-grid{
+  position:fixed;inset:0;pointer-events:none;z-index:0;
+  background-image:
+    linear-gradient(rgba(114,72,245,0.045) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(114,72,245,0.045) 1px,transparent 1px);
+  background-size:32px 32px;
+  animation:vcGridMove 18s linear infinite;
+}
+@keyframes vcGridMove{0%{background-position:0 0}100%{background-position:32px 32px}}
 
 .vc-inner{
   position:relative;z-index:1;
-  max-width:520px;margin:0 auto;padding:22px 18px 80px;
+  max-width:500px;margin:0 auto;padding:20px 16px 80px;
 }
 
-/* Top bar */
+/* ── Hero header ── */
+.vc-hero{
+  text-align:center;padding:24px 0 20px;margin-bottom:6px;
+}
+.vc-hero-icon{
+  width:64px;height:64px;border-radius:20px;margin:0 auto 14px;
+  background:linear-gradient(135deg,rgba(114,72,245,0.25),rgba(61,114,246,0.2));
+  border:1px solid rgba(114,72,245,0.4);
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 0 32px rgba(114,72,245,0.3),inset 0 1px 0 rgba(255,255,255,0.1);
+  position:relative;
+}
+.vc-hero-icon svg{width:28px;height:28px;stroke:url(#vcIconGrad);stroke-width:1.8;fill:none;}
+.vc-hero-title{
+  font-size:22px;font-weight:800;letter-spacing:5px;
+  background:linear-gradient(90deg,#c4a8ff 0%,#7aa8f7 50%,#00e5ff 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  margin-bottom:5px;
+}
+.vc-hero-sub{
+  font-size:12px;color:var(--muted);letter-spacing:0.5px;line-height:1.6;
+}
+
+/* ── Back button ── */
 .vc-topbar{
-  display:flex;align-items:center;gap:10px;margin-bottom:24px;
+  display:flex;align-items:center;gap:10px;margin-bottom:18px;
 }
 .vc-back{
-  width:38px;height:38px;border-radius:12px;
-  background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);
+  width:36px;height:36px;border-radius:11px;
+  background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.09);
   display:flex;align-items:center;justify-content:center;cursor:pointer;
   transition:all 0.2s;flex-shrink:0;
 }
-.vc-back:hover{background:rgba(114,72,245,0.18);border-color:rgba(114,72,245,0.35);}
-.vc-back svg{width:16px;height:16px;stroke:var(--muted);stroke-width:2.2;fill:none;}
-.vc-header-title{
-  font-size:16px;font-weight:800;letter-spacing:4px;
-  background:linear-gradient(90deg,#7248f5,#3d72f6,#00c8ff);
-  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
-}
-.vc-beta-tag{
-  font-size:9px;padding:2px 7px;border-radius:5px;
-  background:rgba(114,72,245,0.15);border:1px solid rgba(114,72,245,0.3);
-  color:#c4a8ff;letter-spacing:1.5px;margin-left:auto;
-}
+.vc-back:hover{background:rgba(114,72,245,0.18);border-color:rgba(114,72,245,0.4);}
+.vc-back svg{width:15px;height:15px;stroke:var(--muted);stroke-width:2.2;fill:none;}
 
-/* Platform chips */
-.vc-platforms{
-  display:flex;flex-wrap:wrap;gap:6px;margin-bottom:18px;
+/* ── Platform grid ── */
+.vc-plat-section{margin-bottom:18px;}
+.vc-plat-label{
+  font-size:9.5px;letter-spacing:2px;font-weight:700;
+  color:rgba(114,72,245,0.6);text-transform:uppercase;
+  margin-bottom:10px;padding-left:2px;
 }
-.vc-plat{
-  display:inline-flex;align-items:center;gap:5px;
-  padding:5px 10px;border-radius:20px;
-  background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);
-  font-size:11px;font-weight:600;color:var(--muted);letter-spacing:0.3px;
-  cursor:default;
+.vc-plat-grid{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:7px;
 }
-.vc-plat.tiktok{border-color:rgba(0,242,234,0.2);color:#00f2ea;}
-.vc-plat.youtube{border-color:rgba(255,0,0,0.2);color:#ff4444;}
-.vc-plat.instagram{border-color:rgba(225,48,108,0.2);color:#e1306c;}
-.vc-plat.twitter{border-color:rgba(29,161,242,0.2);color:#1da1f2;}
-.vc-plat.facebook{border-color:rgba(24,119,242,0.2);color:#1877f2;}
+.vc-plat-item{
+  display:flex;flex-direction:column;align-items:center;gap:5px;
+  padding:10px 6px 8px;border-radius:14px;
+  background:rgba(255,255,255,0.03);
+  border:1px solid rgba(255,255,255,0.07);
+  cursor:default;transition:all 0.2s;
+}
+.vc-plat-item:hover{background:rgba(255,255,255,0.06);transform:translateY(-2px);}
+.vc-plat-icon{
+  width:32px;height:32px;border-radius:10px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:16px;flex-shrink:0;
+}
+.vc-plat-name{font-size:9.5px;font-weight:700;letter-spacing:0.3px;text-align:center;line-height:1.2;}
+/* Per-platform colors */
+.vc-plat-item.tiktok .vc-plat-icon{background:rgba(0,0,0,0.5);border:1px solid rgba(0,242,234,0.3);}
+.vc-plat-item.tiktok .vc-plat-name{color:#00f2ea;}
+.vc-plat-item.youtube .vc-plat-icon{background:rgba(255,0,0,0.12);border:1px solid rgba(255,0,0,0.25);}
+.vc-plat-item.youtube .vc-plat-name{color:#ff4444;}
+.vc-plat-item.instagram .vc-plat-icon{background:linear-gradient(135deg,rgba(255,183,0,0.12),rgba(225,48,108,0.12),rgba(100,60,255,0.12));border:1px solid rgba(225,48,108,0.25);}
+.vc-plat-item.instagram .vc-plat-name{color:#e1306c;}
+.vc-plat-item.twitter .vc-plat-icon{background:rgba(29,161,242,0.1);border:1px solid rgba(29,161,242,0.25);}
+.vc-plat-item.twitter .vc-plat-name{color:#1da1f2;}
+.vc-plat-item.facebook .vc-plat-icon{background:rgba(24,119,242,0.1);border:1px solid rgba(24,119,242,0.25);}
+.vc-plat-item.facebook .vc-plat-name{color:#1877f2;}
+.vc-plat-item.snapchat .vc-plat-icon{background:rgba(255,252,0,0.1);border:1px solid rgba(255,252,0,0.25);}
+.vc-plat-item.snapchat .vc-plat-name{color:#fffc00;}
+.vc-plat-item.pinterest .vc-plat-icon{background:rgba(230,0,35,0.1);border:1px solid rgba(230,0,35,0.25);}
+.vc-plat-item.pinterest .vc-plat-name{color:#e60023;}
+.vc-plat-item.vimeo .vc-plat-icon{background:rgba(26,183,234,0.1);border:1px solid rgba(26,183,234,0.25);}
+.vc-plat-item.vimeo .vc-plat-name{color:#1ab7ea;}
+.vc-plat-item.twitch .vc-plat-icon{background:rgba(145,70,255,0.12);border:1px solid rgba(145,70,255,0.3);}
+.vc-plat-item.twitch .vc-plat-name{color:#9146ff;}
+.vc-plat-item.dailymotion .vc-plat-icon{background:rgba(0,120,255,0.1);border:1px solid rgba(0,120,255,0.25);}
+.vc-plat-item.dailymotion .vc-plat-name{color:#0078ff;}
+.vc-plat-item.twitter2 .vc-plat-icon{background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.12);}
+.vc-plat-item.twitter2 .vc-plat-name{color:rgba(255,255,255,0.5);}
+.vc-plat-item.more .vc-plat-icon{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);}
+.vc-plat-item.more .vc-plat-name{color:var(--muted);}
 
-/* Input card */
+/* ── Cards ── */
 .vc-card{
-  background:rgba(255,255,255,0.038);
+  background:rgba(255,255,255,0.036);
   border:1px solid rgba(255,255,255,0.08);
-  border-radius:20px;padding:20px 18px;margin-bottom:14px;
-  backdrop-filter:blur(20px);
-  box-shadow:0 8px 40px rgba(0,0,0,0.25),inset 0 1px 0 rgba(255,255,255,0.05);
+  border-radius:20px;padding:18px 16px;margin-bottom:12px;
+  backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);
+  box-shadow:0 6px 36px rgba(0,0,0,0.28),inset 0 1px 0 rgba(255,255,255,0.05);
 }
 .vc-card-title{
-  font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;
-  color:rgba(114,72,245,0.75);margin-bottom:12px;
+  font-size:9.5px;font-weight:700;letter-spacing:2px;text-transform:uppercase;
+  color:rgba(114,72,245,0.7);margin-bottom:11px;
   display:flex;align-items:center;gap:6px;
 }
 .vc-card-title::before{
-  content:'';width:5px;height:5px;border-radius:50%;
-  background:rgba(114,72,245,0.8);box-shadow:0 0 6px rgba(114,72,245,0.7);
-  display:inline-block;
+  content:'';width:5px;height:5px;border-radius:50%;flex-shrink:0;
+  background:rgba(114,72,245,0.85);box-shadow:0 0 6px rgba(114,72,245,0.7);
 }
 
-/* URL input */
+/* ── URL input ── */
 .vc-url-wrap{
   display:flex;align-items:center;gap:8px;
   background:rgba(255,255,255,0.05);
@@ -1527,11 +1575,11 @@ body.light #uploadPreviewPanel{background:rgba(240,244,255,0.96)}
 }
 .vc-url-wrap:focus-within{
   border-color:rgba(114,72,245,0.55);
-  box-shadow:0 0 0 3px rgba(114,72,245,0.1);
+  box-shadow:0 0 0 3px rgba(114,72,245,0.1),0 4px 18px rgba(0,0,0,0.2);
 }
 .vc-url-input{
   flex:1;border:none;outline:none;background:transparent;
-  color:var(--text);font-family:var(--F);font-size:13px;padding:10px 0;
+  color:var(--text);font-family:var(--F);font-size:13px;padding:11px 0;
 }
 .vc-url-input::placeholder{color:var(--muted);}
 .vc-paste-btn{
@@ -1539,196 +1587,183 @@ body.light #uploadPreviewPanel{background:rgba(240,244,255,0.96)}
   background:rgba(114,72,245,0.15);
   display:flex;align-items:center;justify-content:center;
   cursor:pointer;transition:all 0.2s;flex-shrink:0;
-  color:rgba(114,72,245,0.8);
+  color:rgba(160,130,255,0.9);
 }
-.vc-paste-btn:hover{background:rgba(114,72,245,0.28);}
+.vc-paste-btn:hover{background:rgba(114,72,245,0.3);color:#c4a8ff;}
 .vc-paste-btn svg{width:14px;height:14px;stroke:currentColor;stroke-width:2;fill:none;}
 
-/* Platform detected badge */
+/* Detect badge */
 .vc-detect-badge{
-  display:none;margin-top:8px;
-  font-size:11px;font-weight:600;letter-spacing:0.5px;
+  display:none;margin-top:9px;
+  font-size:11px;font-weight:600;letter-spacing:0.4px;
   padding:5px 12px;border-radius:20px;width:fit-content;
-  animation:msgIn 0.25s var(--ease);
+  animation:msgIn 0.22s var(--ease);
 }
 .vc-detect-badge.show{display:inline-flex;align-items:center;gap:5px;}
-.vc-detect-badge.tiktok{background:rgba(0,242,234,0.1);border:1px solid rgba(0,242,234,0.25);color:#00f2ea;}
-.vc-detect-badge.youtube{background:rgba(255,68,68,0.1);border:1px solid rgba(255,68,68,0.25);color:#ff4444;}
-.vc-detect-badge.instagram{background:rgba(225,48,108,0.1);border:1px solid rgba(225,48,108,0.25);color:#e1306c;}
-.vc-detect-badge.twitter{background:rgba(29,161,242,0.1);border:1px solid rgba(29,161,242,0.25);color:#1da1f2;}
-.vc-detect-badge.facebook{background:rgba(24,119,242,0.1);border:1px solid rgba(24,119,242,0.25);color:#1877f2;}
-.vc-detect-badge.unknown{background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);color:var(--muted);}
+.vc-detect-badge.tiktok{background:rgba(0,242,234,0.09);border:1px solid rgba(0,242,234,0.28);color:#00f2ea;}
+.vc-detect-badge.youtube{background:rgba(255,68,68,0.09);border:1px solid rgba(255,68,68,0.28);color:#ff5555;}
+.vc-detect-badge.instagram{background:rgba(225,48,108,0.09);border:1px solid rgba(225,48,108,0.28);color:#e1306c;}
+.vc-detect-badge.twitter{background:rgba(29,161,242,0.09);border:1px solid rgba(29,161,242,0.28);color:#1da1f2;}
+.vc-detect-badge.facebook{background:rgba(24,119,242,0.09);border:1px solid rgba(24,119,242,0.28);color:#4a90e2;}
+.vc-detect-badge.unknown{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.12);color:var(--muted);}
 
-/* Quality selector */
+/* ── Quality selector ── */
 .vc-quality-row{
-  display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:7px;
-  margin-bottom:16px;
+  display:grid;grid-template-columns:repeat(4,1fr);gap:7px;
 }
 .vc-qual-btn{
-  padding:9px 6px;border-radius:12px;border:1.5px solid rgba(255,255,255,0.08);
-  background:rgba(255,255,255,0.03);color:var(--muted);
-  font-family:var(--F);font-size:11px;font-weight:700;letter-spacing:0.5px;
-  cursor:pointer;transition:all 0.2s;text-align:center;
+  padding:10px 4px 8px;border-radius:13px;
+  border:1.5px solid rgba(255,255,255,0.08);
+  background:rgba(255,255,255,0.025);color:var(--muted);
+  font-family:var(--F);cursor:pointer;transition:all 0.2s;text-align:center;
   display:flex;flex-direction:column;align-items:center;gap:3px;
 }
-.vc-qual-btn:hover{background:rgba(114,72,245,0.1);border-color:rgba(114,72,245,0.3);}
+.vc-qual-btn:hover{background:rgba(114,72,245,0.1);border-color:rgba(114,72,245,0.28);}
 .vc-qual-btn.active{
-  background:rgba(114,72,245,0.18);border-color:rgba(114,72,245,0.5);
-  color:#c4a8ff;box-shadow:0 0 12px rgba(114,72,245,0.2);
+  background:linear-gradient(160deg,rgba(114,72,245,0.22),rgba(61,114,246,0.15));
+  border-color:rgba(114,72,245,0.55);color:#c4a8ff;
+  box-shadow:0 0 14px rgba(114,72,245,0.18);
 }
-.vc-qual-btn .qual-icon{font-size:14px;margin-bottom:1px;}
-.vc-qual-btn .qual-label{font-size:10px;letter-spacing:0.5px;}
-.vc-qual-btn .qual-desc{font-size:8.5px;opacity:0.5;font-weight:500;}
+.qual-icon{font-size:15px;}
+.qual-label{font-size:10px;font-weight:700;letter-spacing:0.5px;}
+.qual-desc{font-size:8px;opacity:0.5;font-weight:500;letter-spacing:0.2px;}
 
-/* Format toggle */
-.vc-format-row{display:flex;gap:8px;margin-bottom:16px;}
+/* ── Format toggle ── */
+.vc-format-row{display:flex;gap:8px;margin-bottom:14px;}
 .vc-fmt-btn{
-  flex:1;padding:9px;border-radius:11px;
+  flex:1;padding:10px 8px;border-radius:12px;
   border:1.5px solid rgba(255,255,255,0.08);
   background:rgba(255,255,255,0.03);
   color:var(--muted);font-family:var(--F);font-size:12px;font-weight:600;
-  cursor:pointer;transition:all 0.2s;display:flex;align-items:center;justify-content:center;gap:6px;
+  cursor:pointer;transition:all 0.2s;display:flex;align-items:center;justify-content:center;gap:7px;
 }
 .vc-fmt-btn.active{
-  background:rgba(61,114,246,0.18);border-color:rgba(61,114,246,0.45);color:#7aa8f7;
+  background:rgba(61,114,246,0.16);border-color:rgba(61,114,246,0.45);color:#7aa8f7;
+  box-shadow:0 0 12px rgba(61,114,246,0.15);
 }
-.vc-fmt-btn:hover{background:rgba(255,255,255,0.07);}
+.vc-fmt-btn:hover:not(.active){background:rgba(255,255,255,0.06);}
 .vc-fmt-btn svg{width:13px;height:13px;stroke:currentColor;stroke-width:2;fill:none;}
 
-/* Convert button */
+/* ── Convert button ── */
 .vc-convert-btn{
   width:100%;padding:15px;border-radius:16px;border:none;
-  background:linear-gradient(135deg,#7248f5 0%,#3d72f6 60%,#00c8ff 100%);
-  color:#fff;font-family:var(--F);font-size:15px;font-weight:700;
-  letter-spacing:1px;cursor:pointer;position:relative;overflow:hidden;
+  background:linear-gradient(135deg,#7248f5 0%,#3d72f6 55%,#00c8ff 100%);
+  color:#fff;font-family:var(--F);font-size:14px;font-weight:700;
+  letter-spacing:1.5px;cursor:pointer;position:relative;overflow:hidden;
   transition:all 0.22s var(--ease);
-  box-shadow:0 6px 28px rgba(114,72,245,0.4);
+  box-shadow:0 6px 28px rgba(114,72,245,0.42);
+  margin-bottom:0;
 }
 .vc-convert-btn::before{
   content:'';position:absolute;inset:0;
-  background:linear-gradient(135deg,rgba(255,255,255,0.14) 0%,transparent 55%);
+  background:linear-gradient(135deg,rgba(255,255,255,0.15) 0%,transparent 50%);
   pointer-events:none;
 }
-.vc-convert-btn:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 10px 36px rgba(114,72,245,0.55);}
-.vc-convert-btn:disabled{opacity:0.4;cursor:not-allowed;transform:none;}
+.vc-convert-btn:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 10px 38px rgba(114,72,245,0.58);}
+.vc-convert-btn:active:not(:disabled){transform:translateY(0);}
+.vc-convert-btn:disabled{opacity:0.35;cursor:not-allowed;transform:none;}
 
-/* Progress */
+/* ── Progress ── */
 .vc-progress-wrap{
-  display:none;margin-top:16px;
-  background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);
+  display:none;margin-top:14px;
+  background:rgba(255,255,255,0.035);border:1px solid rgba(255,255,255,0.07);
   border-radius:16px;padding:16px;
 }
-.vc-progress-wrap.show{display:block;animation:msgIn 0.3s var(--ease);}
+.vc-progress-wrap.show{display:block;animation:msgIn 0.28s var(--ease);}
 .vc-progress-label{
   font-size:11px;font-weight:600;letter-spacing:0.5px;
-  color:var(--muted);margin-bottom:10px;display:flex;align-items:center;gap:6px;
+  color:var(--muted);margin-bottom:10px;display:flex;align-items:center;gap:7px;
 }
 .vc-progress-bar-track{
-  height:5px;background:rgba(255,255,255,0.07);border-radius:3px;overflow:hidden;
-  margin-bottom:10px;
+  height:4px;background:rgba(255,255,255,0.07);border-radius:2px;overflow:hidden;margin-bottom:12px;
 }
 .vc-progress-bar-fill{
-  height:100%;border-radius:3px;width:0%;
+  height:100%;border-radius:2px;width:0%;
   background:linear-gradient(90deg,#7248f5,#3d72f6,#00c8ff);
-  transition:width 0.4s ease;
-  box-shadow:0 0 8px rgba(114,72,245,0.5);
+  transition:width 0.45s ease;box-shadow:0 0 10px rgba(114,72,245,0.5);
 }
-.vc-progress-steps{
-  display:flex;flex-direction:column;gap:5px;
-}
+.vc-progress-steps{display:flex;flex-direction:column;gap:6px;}
 .vc-step{
-  display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);
-  transition:color 0.2s;
+  display:flex;align-items:center;gap:8px;font-size:11.5px;color:var(--muted);transition:color 0.2s;
 }
 .vc-step.active{color:var(--text);}
-.vc-step.done{color:rgba(16,185,129,0.8);}
+.vc-step.done{color:rgba(16,185,129,0.85);}
 .vc-step-dot{
   width:7px;height:7px;border-radius:50%;flex-shrink:0;
-  background:rgba(255,255,255,0.12);transition:all 0.25s;
+  background:rgba(255,255,255,0.1);transition:all 0.25s;
 }
-.vc-step.active .vc-step-dot{background:#7248f5;animation:dotPulse 1s ease-in-out infinite;box-shadow:0 0 8px rgba(114,72,245,0.6);}
-.vc-step.done .vc-step-dot{background:#10b981;}
+.vc-step.active .vc-step-dot{background:#7248f5;animation:dotPulse 1s ease-in-out infinite;box-shadow:0 0 8px rgba(114,72,245,0.7);}
+.vc-step.done .vc-step-dot{background:#10b981;box-shadow:0 0 6px rgba(16,185,129,0.5);}
 
-/* Result card */
+/* ── Result card ── */
 .vc-result-card{
-  display:none;margin-top:16px;
-  background:rgba(16,185,129,0.06);border:1px solid rgba(16,185,129,0.22);
-  border-radius:18px;padding:18px;overflow:hidden;
-  animation:msgIn 0.35s var(--ease);
+  display:none;margin-top:14px;
+  background:rgba(16,185,129,0.055);border:1px solid rgba(16,185,129,0.2);
+  border-radius:18px;padding:16px;overflow:hidden;animation:msgIn 0.35s var(--ease);
 }
 .vc-result-card.show{display:block;}
-.vc-result-title{
-  font-size:14px;font-weight:700;color:var(--text);
-  margin-bottom:5px;line-height:1.4;
+.vc-result-success-row{
+  display:flex;align-items:center;gap:8px;
+  margin-bottom:12px;padding-bottom:10px;
+  border-bottom:1px solid rgba(255,255,255,0.06);
 }
+.vc-result-success-dot{
+  width:8px;height:8px;border-radius:50%;background:#10b981;flex-shrink:0;
+  box-shadow:0 0 8px rgba(16,185,129,0.7);animation:dotPulse 1.8s ease-in-out infinite;
+}
+.vc-result-success-label{font-size:10px;font-weight:700;letter-spacing:1.5px;color:#6ee7b7;text-transform:uppercase;}
+.vc-result-title{font-size:13px;font-weight:700;color:var(--text);margin-bottom:5px;line-height:1.45;}
 .vc-result-meta{
-  font-size:11px;color:var(--muted);margin-bottom:14px;
-  display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+  font-size:10.5px;color:var(--muted);margin-bottom:14px;
+  display:flex;align-items:center;gap:6px;flex-wrap:wrap;
 }
 .vc-result-meta span{
   padding:2px 8px;border-radius:6px;
-  background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.09);
+  background:rgba(255,255,255,0.055);border:1px solid rgba(255,255,255,0.09);
 }
 .vc-thumb{
-  width:100%;max-height:180px;object-fit:cover;
-  border-radius:12px;margin-bottom:12px;
-  border:1px solid rgba(255,255,255,0.07);
+  width:100%;max-height:170px;object-fit:cover;
+  border-radius:11px;margin-bottom:12px;border:1px solid rgba(255,255,255,0.07);
 }
-.vc-dl-btn{
-  display:flex;align-items:center;justify-content:center;gap:8px;
-  width:100%;padding:13px;border-radius:13px;border:none;
-  background:linear-gradient(135deg,#10b981,#0d9a6a);
-  color:#fff;font-family:var(--F);font-size:14px;font-weight:700;
-  cursor:pointer;transition:all 0.22s var(--ease);
-  box-shadow:0 5px 22px rgba(16,185,129,0.35);
-  text-decoration:none;
-}
-.vc-dl-btn:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(16,185,129,0.5);}
-.vc-dl-btn svg{width:16px;height:16px;stroke:#fff;stroke-width:2.2;fill:none;}
-.vc-dl-formats{
-  display:flex;flex-direction:column;gap:7px;margin-top:10px;
-}
+.vc-dl-formats{display:flex;flex-direction:column;gap:8px;}
 .vc-dl-link{
-  display:flex;align-items:center;gap:10px;padding:11px 14px;
-  border-radius:12px;background:rgba(255,255,255,0.04);
-  border:1px solid rgba(255,255,255,0.08);cursor:pointer;
-  transition:all 0.2s;text-decoration:none;color:var(--text);
+  display:flex;align-items:center;gap:10px;padding:11px 13px;
+  border-radius:13px;background:rgba(255,255,255,0.04);
+  border:1px solid rgba(255,255,255,0.08);
+  cursor:pointer;transition:all 0.2s;text-decoration:none;color:var(--text);
 }
-.vc-dl-link:hover{background:rgba(114,72,245,0.1);border-color:rgba(114,72,245,0.25);}
+.vc-dl-link:hover{background:rgba(114,72,245,0.1);border-color:rgba(114,72,245,0.3);transform:translateY(-1px);}
 .vc-dl-link-icon{
-  width:34px;height:34px;border-radius:9px;flex-shrink:0;
+  width:36px;height:36px;border-radius:10px;flex-shrink:0;
   display:flex;align-items:center;justify-content:center;
 }
 .vc-dl-link-info{flex:1;min-width:0;}
 .vc-dl-link-label{font-size:13px;font-weight:600;color:var(--text);}
 .vc-dl-link-meta{font-size:10px;color:var(--muted);margin-top:2px;}
-.vc-dl-arrow{margin-left:auto;flex-shrink:0;}
-.vc-dl-arrow svg{width:14px;height:14px;stroke:var(--muted);stroke-width:2;fill:none;}
+.vc-dl-arrow svg{width:15px;height:15px;stroke:rgba(114,72,245,0.6);stroke-width:2;fill:none;}
 
-/* Error card */
+/* ── Error card ── */
 .vc-error-card{
-  display:none;margin-top:14px;
+  display:none;margin-top:13px;
   background:rgba(240,68,68,0.07);border:1px solid rgba(240,68,68,0.2);
-  border-radius:14px;padding:14px;font-size:13px;color:#f87171;
-  animation:msgIn 0.3s var(--ease);
+  border-radius:14px;padding:14px 16px;font-size:12.5px;color:#f87171;
+  animation:msgIn 0.28s var(--ease);line-height:1.6;
 }
 .vc-error-card.show{display:block;}
 
-/* How-to section */
-.vc-howto{
-  display:flex;flex-direction:column;gap:8px;margin-top:4px;
-}
+/* ── How-to ── */
+.vc-howto{display:flex;flex-direction:column;gap:8px;}
 .vc-howto-step{
-  display:flex;align-items:center;gap:10px;padding:10px 14px;
-  background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);
-  border-radius:12px;font-size:12px;color:var(--muted);line-height:1.5;
+  display:flex;align-items:flex-start;gap:10px;padding:10px 13px;
+  background:rgba(255,255,255,0.025);border:1px solid rgba(255,255,255,0.06);
+  border-radius:12px;font-size:12px;color:var(--muted);line-height:1.55;
 }
 .vc-howto-num{
-  width:24px;height:24px;border-radius:8px;flex-shrink:0;
-  background:linear-gradient(135deg,rgba(114,72,245,0.3),rgba(61,114,246,0.3));
+  width:22px;height:22px;border-radius:7px;flex-shrink:0;margin-top:1px;
+  background:linear-gradient(135deg,rgba(114,72,245,0.3),rgba(61,114,246,0.25));
   border:1px solid rgba(114,72,245,0.35);
   display:flex;align-items:center;justify-content:center;
-  font-size:11px;font-weight:800;color:#c4a8ff;
+  font-size:10px;font-weight:800;color:#c4a8ff;
 }
 
 /* ================= MAINTENANCE ================= */
@@ -1971,7 +2006,7 @@ line-height:1.8;
     </a>
     <div class="sb-nav-item" onclick="openVideoConverter();closeSidebar()" style="color:rgba(114,72,245,0.8);background:rgba(114,72,245,0.06);border:1px solid rgba(114,72,245,0.15);">
       <svg viewBox="0 0 24 24" fill="none"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
-      <span style="font-weight:700;">Video Converter</span>
+      <span style="font-weight:700;">Media Downloader</span>
       <span style="font-size:9px;padding:1px 5px;border-radius:5px;background:rgba(114,72,245,0.15);border:1px solid rgba(114,72,245,0.3);color:#c4a8ff;letter-spacing:0.5px;font-weight:600;margin-left:auto;">NEW</span>
     </div>
     <div class="sb-nav-item" onclick="openAbout();closeSidebar()">
@@ -2060,30 +2095,112 @@ line-height:1.8;
   </div>
 </div>
 
-<!-- VIDEO CONVERTER PAGE -->
+<!-- MEDIA DOWNLOADER PAGE -->
 <div id="videoConverterPage">
   <div id="vcPage-bg"></div>
+  <div id="vcPage-grid"></div>
+  <svg style="position:absolute;width:0;height:0"><defs>
+    <linearGradient id="vcIconGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#c4a8ff"/>
+      <stop offset="100%" stop-color="#7aa8f7"/>
+    </linearGradient>
+  </defs></svg>
+
   <div class="vc-inner">
 
-    <!-- Top bar -->
+    <!-- Back -->
     <div class="vc-topbar">
       <div class="vc-back" onclick="closeVideoConverter()">
         <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
       </div>
-      <div class="vc-header-title">VIDEO CONVERTER</div>
-      <span class="vc-beta-tag">BETA</span>
     </div>
 
-    <!-- Supported platforms -->
-    <div class="vc-platforms">
-      <span class="vc-plat tiktok">⬥ TikTok</span>
-      <span class="vc-plat youtube">⬥ YouTube</span>
-      <span class="vc-plat instagram">⬥ Instagram</span>
-      <span class="vc-plat twitter">⬥ Twitter/X</span>
-      <span class="vc-plat facebook">⬥ Facebook</span>
-      <span class="vc-plat" style="border-color:rgba(255,150,0,0.2);color:#ffa500;">⬥ Snapchat</span>
-      <span class="vc-plat" style="border-color:rgba(255,0,80,0.2);color:#ff0050;">⬥ Pinterest</span>
-      <span class="vc-plat" style="border-color:rgba(255,255,255,0.1);color:var(--muted);">⬥ & more</span>
+    <!-- Hero -->
+    <div class="vc-hero">
+      <div class="vc-hero-icon">
+        <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      </div>
+      <div class="vc-hero-title">MEDIA DOWNLOADER</div>
+      <div class="vc-hero-sub">Download video & audio dari semua platform sosial media favoritmu</div>
+    </div>
+
+    <!-- Platform grid -->
+    <div class="vc-plat-section">
+      <div class="vc-plat-label">Platform yang Didukung</div>
+      <div class="vc-plat-grid">
+        <div class="vc-plat-item tiktok">
+          <div class="vc-plat-icon">
+            <svg viewBox="0 0 24 24" fill="none" style="width:18px;height:18px"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 0 0-.79-.05A6.34 6.34 0 0 0 3.15 15.3a6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.34-6.34V8.69a8.18 8.18 0 0 0 4.78 1.52V6.76a4.85 4.85 0 0 1-1.02-.07z" fill="#00f2ea"/></svg>
+          </div>
+          <div class="vc-plat-name">TikTok</div>
+        </div>
+        <div class="vc-plat-item youtube">
+          <div class="vc-plat-icon">
+            <svg viewBox="0 0 24 24" style="width:18px;height:18px"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.95-1.96C18.88 4 12 4 12 4s-6.88 0-8.59.46A2.78 2.78 0 0 0 1.46 6.42 29 29 0 0 0 1 12a29 29 0 0 0 .46 5.58 2.78 2.78 0 0 0 1.95 1.96C5.12 20 12 20 12 20s6.88 0 8.59-.46a2.78 2.78 0 0 0 1.95-1.96A29 29 0 0 0 23 12a29 29 0 0 0-.46-5.58z" fill="#ff0000"/><polygon points="9.75 15.02 15.5 12 9.75 8.98 9.75 15.02" fill="#fff"/></svg>
+          </div>
+          <div class="vc-plat-name">YouTube</div>
+        </div>
+        <div class="vc-plat-item instagram">
+          <div class="vc-plat-icon">
+            <svg viewBox="0 0 24 24" style="width:18px;height:18px"><defs><radialGradient id="ig" cx="30%" cy="107%" r="150%"><stop offset="0%" stop-color="#ffd600"/><stop offset="30%" stop-color="#ff6b00"/><stop offset="65%" stop-color="#e1306c"/><stop offset="100%" stop-color="#833ab4"/></radialGradient></defs><rect x="2" y="2" width="20" height="20" rx="5" ry="5" fill="url(#ig)"/><path d="M12 7a5 5 0 1 0 0 10A5 5 0 0 0 12 7zm0 8a3 3 0 1 1 0-6 3 3 0 0 1 0 6z" fill="#fff"/><circle cx="17.5" cy="6.5" r="1.5" fill="#fff"/></svg>
+          </div>
+          <div class="vc-plat-name">Instagram</div>
+        </div>
+        <div class="vc-plat-item twitter">
+          <div class="vc-plat-icon">
+            <svg viewBox="0 0 24 24" style="width:18px;height:18px"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" fill="#ffffff"/></svg>
+          </div>
+          <div class="vc-plat-name">Twitter / X</div>
+        </div>
+        <div class="vc-plat-item facebook">
+          <div class="vc-plat-icon">
+            <svg viewBox="0 0 24 24" style="width:18px;height:18px"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" fill="#1877f2"/></svg>
+          </div>
+          <div class="vc-plat-name">Facebook</div>
+        </div>
+        <div class="vc-plat-item snapchat">
+          <div class="vc-plat-icon">
+            <svg viewBox="0 0 24 24" style="width:18px;height:18px"><path d="M12.166.006C9.228.006 6.96 1.002 5.441 2.971 4.2 4.567 3.675 6.6 3.675 8.894v.782C3.2 9.82 2.75 9.93 2.388 9.93c-.375 0-.687-.11-.938-.33-.25-.22-.375-.47-.375-.75 0-.469.25-.875.75-1.219.5-.344.95-.516 1.35-.516l.013-.031C2.5 5.972 2.313 3.16 4.5 1.753 5.663 1.032 7.325.397 9.756.006c.125-.015.256-.003.375.037zm6.46 9.39c.5.344.75.75.75 1.219 0 .28-.125.53-.375.75-.25.22-.563.33-.938.33-.362 0-.812-.11-1.287-.257v-.782c0-2.294-.525-4.327-1.766-5.923C13.49 2.763 11.222.756 8.534.006c2.225.11 4.15.769 5.313 1.75 1.562 1.297 2.406 3.078 2.406 5.203 0 .469.125.875.5 1.219.375.344.738.547 1.125.547.563 0 1.032-.234 1.407-.703.375-.469.625-1.094.75-1.875l.031-.031c.219.047.406.141.557.281zm-2.125 6.656c-.125.438-.25.876-.375 1.313-.688.281-1.313.563-1.875.844-.125.063-.25.156-.25.313-.031.125.031.25.094.344.375.407.563.813.563 1.25 0 1.063-.813 1.594-2.438 1.594-1.031 0-1.937-.313-2.719-.938-.5-.406-1.031-.875-1.594-1.344-.5.469-1.031.938-1.563 1.375-.844.688-1.75 1-2.719 1-1.625 0-2.438-.531-2.438-1.594 0-.437.188-.843.563-1.25.063-.094.125-.219.094-.344-.031-.156-.125-.25-.25-.313-.563-.281-1.188-.563-1.875-.844-.125-.437-.25-.875-.375-1.313-.063-.25 0-.437.188-.563.25-.125.469-.218.656-.218.344 0 .75.125 1.188.375l.031-.031c-.031-.313-.063-.656-.063-1.031C5.5 11.737 8 9.175 12 9.175s6.5 2.562 6.5 5.844c0 .375-.031.718-.063 1.031l.031.031c.438-.25.844-.375 1.188-.375.188 0 .407.093.657.218.187.126.25.313.187.563z" fill="#fffc00"/></svg>
+          </div>
+          <div class="vc-plat-name">Snapchat</div>
+        </div>
+        <div class="vc-plat-item pinterest">
+          <div class="vc-plat-icon">
+            <svg viewBox="0 0 24 24" style="width:18px;height:18px"><path d="M12 0C5.373 0 0 5.373 0 12c0 5.084 3.163 9.426 7.627 11.174-.105-.949-.2-2.405.042-3.441.218-.937 1.407-5.965 1.407-5.965s-.359-.719-.359-1.782c0-1.668.967-2.914 2.171-2.914 1.023 0 1.518.769 1.518 1.69 0 1.029-.655 2.568-.994 3.995-.283 1.194.599 2.169 1.777 2.169 2.133 0 3.772-2.249 3.772-5.495 0-2.873-2.064-4.882-5.012-4.882-3.414 0-5.418 2.561-5.418 5.207 0 1.031.397 2.138.893 2.738a.36.36 0 0 1 .083.345l-.333 1.36c-.053.22-.174.267-.402.161-1.499-.698-2.436-2.889-2.436-4.649 0-3.785 2.75-7.262 7.929-7.262 4.163 0 7.398 2.967 7.398 6.931 0 4.136-2.607 7.464-6.227 7.464-1.216 0-2.359-.632-2.75-1.378l-.748 2.853c-.271 1.043-1.002 2.35-1.492 3.146C9.57 23.812 10.763 24 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0z" fill="#e60023"/></svg>
+          </div>
+          <div class="vc-plat-name">Pinterest</div>
+        </div>
+        <div class="vc-plat-item vimeo">
+          <div class="vc-plat-icon">
+            <svg viewBox="0 0 24 24" style="width:18px;height:18px"><path d="M23.977 6.416c-.105 2.338-1.739 5.543-4.894 9.609-3.268 4.247-6.026 6.37-8.29 6.37-1.409 0-2.578-1.294-3.553-3.881L5.322 12.37C4.603 9.783 3.834 8.489 3.01 8.489c-.169 0-.752.353-1.753 1.055L0 8.138c1.105-.971 2.19-1.944 3.25-2.916C4.897 3.71 6.112 2.955 6.91 2.88c1.849-.171 2.986.997 3.388 3.48.45 2.748.763 4.466.957 5.152.527 2.405 1.105 3.607 1.737 3.607.489 0 1.232-.756 2.198-2.265 1.415-2.035 2.166-3.583 2.255-4.642.2-1.718-.495-2.578-2.085-2.578-.742 0-1.508.169-2.302.507 1.527-4.99 4.444-7.418 8.752-7.28 3.189.086 4.692 2.159 4.507 6.155z" fill="#1ab7ea"/></svg>
+          </div>
+          <div class="vc-plat-name">Vimeo</div>
+        </div>
+        <div class="vc-plat-item twitch">
+          <div class="vc-plat-icon">
+            <svg viewBox="0 0 24 24" style="width:18px;height:18px"><path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714z" fill="#9146ff"/></svg>
+          </div>
+          <div class="vc-plat-name">Twitch</div>
+        </div>
+        <div class="vc-plat-item dailymotion">
+          <div class="vc-plat-icon">
+            <svg viewBox="0 0 24 24" style="width:18px;height:18px"><path d="M22.547 9.17a7.235 7.235 0 0 0-4.637-4.584 7.286 7.286 0 0 0-2.184-.33 7.23 7.23 0 0 0-3.58.954V0h-3.637v23.973h3.532v-.856a7.21 7.21 0 0 0 3.685 1.01c4.012 0 7.268-3.21 7.27-7.166a7.15 7.15 0 0 0-.449-2.79zm-6.82 4.957a3.619 3.619 0 0 1-3.58-3.168v-.906a3.617 3.617 0 1 1 3.58 4.074z" fill="#0078ff"/></svg>
+          </div>
+          <div class="vc-plat-name">Dailymotion</div>
+        </div>
+        <div class="vc-plat-item twitter2" style="border-color:rgba(200,50,50,0.2);">
+          <div class="vc-plat-icon" style="background:rgba(200,50,50,0.1);border-color:rgba(200,50,50,0.25);">
+            <svg viewBox="0 0 24 24" style="width:17px;height:17px"><rect width="24" height="24" rx="4" fill="#ff0000"/><path d="M23.495 6.205a3.007 3.007 0 0 0-2.088-2.088c-1.87-.501-9.396-.501-9.396-.501s-7.507-.01-9.396.501A3.007 3.007 0 0 0 .527 6.205a31.247 31.247 0 0 0-.522 5.805 31.247 31.247 0 0 0 .522 5.783 3.007 3.007 0 0 0 2.088 2.088c1.868.502 9.396.502 9.396.502s7.506 0 9.396-.502a3.007 3.007 0 0 0 2.088-2.088 31.247 31.247 0 0 0 .5-5.783 31.247 31.247 0 0 0-.5-5.805zM9.609 15.601V8.408l6.264 3.602z" fill="#fff"/></svg>
+          </div>
+          <div class="vc-plat-name" style="color:#ff4444;">YouTube Short</div>
+        </div>
+        <div class="vc-plat-item more">
+          <div class="vc-plat-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.35)" stroke-width="1.8" style="width:17px;height:17px"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
+          </div>
+          <div class="vc-plat-name">& Lainnya</div>
+        </div>
+      </div>
     </div>
 
     <!-- URL Input Card -->
@@ -2100,11 +2217,11 @@ line-height:1.8;
       <div class="vc-detect-badge" id="vcDetectBadge"></div>
     </div>
 
-    <!-- Format toggle -->
+    <!-- Format + Quality Card -->
     <div class="vc-card">
       <div class="vc-card-title">Format Output</div>
       <div class="vc-format-row">
-        <button class="vc-fmt-btn active" id="vcFmtMp4" onclick="vcSetFormat('mp4')">
+        <button class="vc-fmt-btn active" id="vcFmtMp4" onclick="vcSetFormat('video')">
           <svg viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
           MP4 Video
         </button>
@@ -2114,25 +2231,24 @@ line-height:1.8;
         </button>
       </div>
 
-      <!-- Quality selector -->
-      <div class="vc-card-title" style="margin-top:4px">Kualitas</div>
+      <div class="vc-card-title" style="margin-top:2px">Kualitas Video</div>
       <div class="vc-quality-row" id="vcQualityRow">
-        <button class="vc-qual-btn" onclick="vcSetQuality('superhd')" id="vcQSuperHD">
+        <button class="vc-qual-btn active" onclick="vcSetQuality('best')" id="vcQBest">
           <span class="qual-icon">✦</span>
-          <span class="qual-label">SUPER HD</span>
-          <span class="qual-desc">4K / 1080p</span>
+          <span class="qual-label">BEST</span>
+          <span class="qual-desc">Kualitas terbaik</span>
         </button>
-        <button class="vc-qual-btn active" onclick="vcSetQuality('hd')" id="vcQHD">
+        <button class="vc-qual-btn" onclick="vcSetQuality('video')" id="vcQVideo">
           <span class="qual-icon">◈</span>
           <span class="qual-label">HD</span>
-          <span class="qual-desc">720p</span>
+          <span class="qual-desc">Standar HD</span>
         </button>
-        <button class="vc-qual-btn" onclick="vcSetQuality('normal')" id="vcQNormal">
+        <button class="vc-qual-btn" onclick="vcSetQuality('480')" id="vcQ480">
           <span class="qual-icon">◇</span>
           <span class="qual-label">NORMAL</span>
           <span class="qual-desc">480p</span>
         </button>
-        <button class="vc-qual-btn" onclick="vcSetQuality('low')" id="vcQLow">
+        <button class="vc-qual-btn" onclick="vcSetQuality('360')" id="vcQ360">
           <span class="qual-icon">○</span>
           <span class="qual-label">LOW</span>
           <span class="qual-desc">360p</span>
@@ -2142,7 +2258,7 @@ line-height:1.8;
 
     <!-- Convert button -->
     <button class="vc-convert-btn" id="vcConvertBtn" onclick="vcStartConvert()" disabled>
-      ↓ Konversi Sekarang
+      ↓ Download Sekarang
     </button>
 
     <!-- Progress -->
@@ -2154,10 +2270,10 @@ line-height:1.8;
       <div class="vc-progress-bar-track">
         <div class="vc-progress-bar-fill" id="vcProgressFill"></div>
       </div>
-      <div class="vc-progress-steps" id="vcProgressSteps">
+      <div class="vc-progress-steps">
         <div class="vc-step" id="vcStep1"><div class="vc-step-dot"></div>Menganalisis URL</div>
-        <div class="vc-step" id="vcStep2"><div class="vc-step-dot"></div>Mengambil info video</div>
-        <div class="vc-step" id="vcStep3"><div class="vc-step-dot"></div>Memproses kualitas</div>
+        <div class="vc-step" id="vcStep2"><div class="vc-step-dot"></div>Menghubungi server</div>
+        <div class="vc-step" id="vcStep3"><div class="vc-step-dot"></div>Memproses video</div>
         <div class="vc-step" id="vcStep4"><div class="vc-step-dot"></div>Menyiapkan link download</div>
       </div>
     </div>
@@ -2167,6 +2283,10 @@ line-height:1.8;
 
     <!-- Result card -->
     <div class="vc-result-card" id="vcResultCard">
+      <div class="vc-result-success-row">
+        <div class="vc-result-success-dot"></div>
+        <div class="vc-result-success-label">Berhasil! Siap Download</div>
+      </div>
       <img class="vc-thumb" id="vcThumb" src="" alt="" style="display:none">
       <div class="vc-result-title" id="vcResultTitle"></div>
       <div class="vc-result-meta" id="vcResultMeta"></div>
@@ -2174,12 +2294,12 @@ line-height:1.8;
     </div>
 
     <!-- How to use -->
-    <div class="vc-card" style="margin-top:18px">
+    <div class="vc-card" style="margin-top:16px">
       <div class="vc-card-title">Cara Pakai</div>
       <div class="vc-howto">
-        <div class="vc-howto-step"><div class="vc-howto-num">1</div>Copy link video dari TikTok, YouTube, Instagram, dll</div>
-        <div class="vc-howto-step"><div class="vc-howto-num">2</div>Paste link di kolom di atas, pilih format & kualitas</div>
-        <div class="vc-howto-step"><div class="vc-howto-num">3</div>Klik "Konversi" lalu download file-nya</div>
+        <div class="vc-howto-step"><div class="vc-howto-num">1</div>Copy link video dari TikTok, YouTube, Instagram, atau sosmed lainnya</div>
+        <div class="vc-howto-step"><div class="vc-howto-num">2</div>Paste link, pilih format MP4 atau MP3 dan pilih kualitas yang diinginkan</div>
+        <div class="vc-howto-step"><div class="vc-howto-num">3</div>Klik "Download" — tunggu sebentar, lalu klik tombol download yang muncul</div>
       </div>
     </div>
 
@@ -5256,74 +5376,82 @@ function startNameCanvas(){
 }
 
 /* ════════════════════════════════════════════════════════
-   VIDEO CONVERTER
+   MEDIA DOWNLOADER — fixed endpoint + new key
+   POST /api/download/video  { url, quality }
+   Response: { success, downloadUrl, fileName, size }
    ════════════════════════════════════════════════════════ */
-const VC_API_KEY  = "axka_0657afec2e114afeabcf6c230227bf00";
+const VC_API_KEY  = "axka_d9e2e2baa4494a8980fb513d19d9ec85";
 const VC_BASE_URL = "https://webtoapk2-web2apk.up.railway.app";
-let vcFormat   = "mp4";
-let vcQuality  = "hd";
-let vcAbort    = null;
+let vcFormat  = "video";   // "video" | "mp3"
+let vcQuality = "best";    // "best" | "video" | "480" | "360"
+let vcAbort   = null;
 
+/* ── open / close ── */
 function openVideoConverter(){
   const p = document.getElementById("videoConverterPage");
   p.style.display = "block";
   p.classList.remove("out");
   p.classList.add("show");
+  window.scrollTo(0,0);
 }
 function closeVideoConverter(){
   const p = document.getElementById("videoConverterPage");
   p.classList.add("out");
   setTimeout(()=>{ p.style.display="none"; p.classList.remove("show","out"); }, 260);
+  // cancel any in-flight request
+  if(vcAbort){ vcAbort.abort(); vcAbort=null; }
 }
 
+/* ── format toggle ── */
 function vcSetFormat(fmt){
   vcFormat = fmt;
-  document.getElementById("vcFmtMp4").classList.toggle("active", fmt==="mp4");
+  document.getElementById("vcFmtMp4").classList.toggle("active", fmt==="video");
   document.getElementById("vcFmtMp3").classList.toggle("active", fmt==="mp3");
-  // Quality selector — hide for mp3 (only audio)
   const qrow = document.getElementById("vcQualityRow");
   if(fmt==="mp3"){
-    qrow.style.opacity = "0.35"; qrow.style.pointerEvents = "none";
+    qrow.style.opacity="0.3"; qrow.style.pointerEvents="none";
   } else {
-    qrow.style.opacity = ""; qrow.style.pointerEvents = "";
+    qrow.style.opacity=""; qrow.style.pointerEvents="";
   }
 }
 
+/* ── quality buttons — IDs: vcQBest, vcQVideo, vcQ480, vcQ360 ── */
 function vcSetQuality(q){
   vcQuality = q;
-  const allQIds = {superhd:"SuperHD",hd:"HD",normal:"Normal",low:"Low"};
-  Object.values(allQIds).forEach(v=>{
-    const el=document.getElementById("vcQ"+v); if(el) el.classList.remove("active");
+  ["Best","Video","480","360"].forEach(v=>{
+    const el = document.getElementById("vcQ"+v);
+    if(el) el.classList.remove("active");
   });
-  const map = {superhd:"SuperHD",hd:"HD",normal:"Normal",low:"Low"};
-  const mapId = document.getElementById("vcQ"+map[q]);
-  if(mapId) mapId.classList.add("active");
+  const map = {best:"Best", video:"Video", "480":"480", "360":"360"};
+  const el = document.getElementById("vcQ"+map[q]);
+  if(el) el.classList.add("active");
 }
 
+/* ── platform detect ── */
 function vcDetectPlatform(){
   const url = (document.getElementById("vcUrlInput").value||"").trim();
   const badge = document.getElementById("vcDetectBadge");
   const btn   = document.getElementById("vcConvertBtn");
   badge.className = "vc-detect-badge";
-  badge.textContent = "";
+  badge.innerHTML = "";
 
-  if(!url){ btn.disabled = true; return; }
+  if(!url){ btn.disabled=true; return; }
 
-  let platform = null, cls = "unknown", icon = "🔗";
-  if(/tiktok\.com/i.test(url))  { platform="TikTok";    cls="tiktok";    icon="♪"; }
-  else if(/youtube\.com|youtu\.be/i.test(url)){ platform="YouTube";  cls="youtube";   icon="▶"; }
-  else if(/instagram\.com/i.test(url)){ platform="Instagram"; cls="instagram"; icon="◈"; }
-  else if(/twitter\.com|x\.com/i.test(url)){ platform="Twitter/X"; cls="twitter";   icon="✦"; }
-  else if(/facebook\.com|fb\.com/i.test(url)){ platform="Facebook"; cls="facebook";  icon="◆"; }
-  else if(/snapchat\.com/i.test(url)){ platform="Snapchat"; icon="◉"; }
-  else if(/pinterest\.com/i.test(url)){ platform="Pinterest"; icon="◑"; }
-  else if(/vimeo\.com/i.test(url)){ platform="Vimeo"; icon="◒"; }
-  else if(/twitch\.tv/i.test(url)){ platform="Twitch"; icon="◓"; }
-  else if(/dailymotion\.com/i.test(url)){ platform="Dailymotion"; icon="◔"; }
+  let platform="", cls="unknown";
+  if(/tiktok\.com/i.test(url))               { platform="TikTok";      cls="tiktok";    }
+  else if(/youtube\.com|youtu\.be/i.test(url)){ platform="YouTube";     cls="youtube";   }
+  else if(/instagram\.com/i.test(url))        { platform="Instagram";   cls="instagram"; }
+  else if(/twitter\.com|x\.com/i.test(url))   { platform="Twitter / X"; cls="twitter";   }
+  else if(/facebook\.com|fb\.com/i.test(url)) { platform="Facebook";    cls="facebook";  }
+  else if(/snapchat\.com/i.test(url))         { platform="Snapchat";                     }
+  else if(/pinterest\.com/i.test(url))        { platform="Pinterest";                    }
+  else if(/vimeo\.com/i.test(url))            { platform="Vimeo";                        }
+  else if(/twitch\.tv/i.test(url))            { platform="Twitch";                       }
+  else if(/dailymotion\.com/i.test(url))      { platform="Dailymotion";                  }
 
   if(url.startsWith("http")){
-    badge.className = "vc-detect-badge show " + cls;
-    badge.innerHTML = (platform ? icon+" "+platform+" terdeteksi" : "🔗 Link valid");
+    badge.className = "vc-detect-badge show "+cls;
+    badge.textContent = platform ? "✦ "+platform+" terdeteksi" : "🔗 Link valid";
     btn.disabled = false;
   } else {
     btn.disabled = true;
@@ -5334,38 +5462,29 @@ async function vcPasteUrl(){
   try {
     const text = await navigator.clipboard.readText();
     document.getElementById("vcUrlInput").value = text;
-    vcDetectUrl();
+    vcDetectPlatform();
   } catch(e){
-    // fallback: focus the input
     document.getElementById("vcUrlInput").focus();
   }
 }
-function vcDetectUrl(){ vcDetectPlatform(); }
 
-/* quality → numeric preference sent to API */
-function vcQualToParam(q){
-  return {superhd:"1080",hd:"720",normal:"480",low:"360"}[q]||"720";
-}
-
+/* ── progress helpers ── */
 function vcShowProgress(show){
   document.getElementById("vcProgressWrap").classList.toggle("show", show);
   document.getElementById("vcConvertBtn").disabled = show;
-  document.getElementById("vcUrlInput").disabled = show;
+  document.getElementById("vcUrlInput").disabled   = show;
 }
 function vcSetStep(n){
-  const steps = ["vcStep1","vcStep2","vcStep3","vcStep4"];
-  steps.forEach((id,i)=>{
-    const el = document.getElementById(id);
-    if(i < n-1){ el.className="vc-step done"; }
-    else if(i===n-1){ el.className="vc-step active"; }
-    else { el.className="vc-step"; }
+  ["vcStep1","vcStep2","vcStep3","vcStep4"].forEach((id,i)=>{
+    const el = document.getElementById(id); if(!el) return;
+    el.className = i<n-1 ? "vc-step done" : i===n-1 ? "vc-step active" : "vc-step";
   });
-  const pct = {1:15,2:40,3:65,4:90}[n]||10;
-  document.getElementById("vcProgressFill").style.width = pct+"%";
+  document.getElementById("vcProgressFill").style.width =
+    ({1:15,2:38,3:65,4:88}[n]||10)+"%";
 }
 function vcShowError(msg){
   const el = document.getElementById("vcErrorCard");
-  el.innerHTML = "⚠️ "+msg;
+  el.innerHTML = "⚠️ &nbsp;"+msg;
   el.classList.add("show");
   document.getElementById("vcResultCard").classList.remove("show");
 }
@@ -5373,94 +5492,80 @@ function vcHideError(){
   document.getElementById("vcErrorCard").classList.remove("show");
 }
 
+/* ── MAIN DOWNLOAD ── */
 async function vcStartConvert(){
-  const url = (document.getElementById("vcUrlInput").value||"").trim();
-  if(!url) return;
+  const rawUrl = (document.getElementById("vcUrlInput").value||"").trim();
+  if(!rawUrl) return;
 
   vcHideError();
   document.getElementById("vcResultCard").classList.remove("show");
   vcShowProgress(true);
   vcSetStep(1);
+  document.getElementById("vcProgressLabel").textContent = "Menganalisis URL...";
 
+  if(vcAbort) vcAbort.abort();
   vcAbort = new AbortController();
   const sig = vcAbort.signal;
 
   try {
-    // Step 1 — send to API
-    vcSetStep(1);
-    document.getElementById("vcProgressLabel").textContent = "Menganalisis URL...";
+    vcSetStep(2);
+    document.getElementById("vcProgressLabel").textContent = "Menghubungi server...";
 
-    const qualParam = vcQualToParam(vcQuality);
-
-    const body = {
-      url: url,
-      format: vcFormat,
-      quality: qualParam,
-      api_key: VC_API_KEY
+    /* ── Exact payload from API docs ──
+       POST /api/download/video
+       Body: { "url": "...", "quality": "best"|"mp3"|"video"|"..." }
+       Header: X-API-Key (optional per docs, but send anyway)
+    ── */
+    const payload = {
+      url: rawUrl,
+      quality: vcFormat === "mp3" ? "mp3" : vcQuality
     };
 
-    // Try endpoint /api/video/convert
-    let res = await fetch(VC_BASE_URL+"/api/video/convert", {
-      method:"POST",
-      headers:{"Content-Type":"application/json","X-API-Key":VC_API_KEY},
-      body: JSON.stringify(body),
+    const res = await fetch(VC_BASE_URL + "/api/download/video", {
+      method : "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-API-Key"   : VC_API_KEY
+      },
+      body  : JSON.stringify(payload),
       signal: sig
     });
 
-    // If not found, try /convert
-    if(!res.ok && res.status === 404){
-      res = await fetch(VC_BASE_URL+"/convert", {
-        method:"POST",
-        headers:{"Content-Type":"application/json","X-API-Key":VC_API_KEY},
-        body: JSON.stringify(body),
-        signal: sig
-      });
-    }
-
-    vcSetStep(2);
-    document.getElementById("vcProgressLabel").textContent = "Mengambil info video...";
+    vcSetStep(3);
+    document.getElementById("vcProgressLabel").textContent = "Memproses video...";
 
     let data;
-    try { data = await res.json(); } catch(e){ throw new Error("Server mengembalikan respons tidak valid"); }
-
-    if(!res.ok){
-      throw new Error(data.message || data.error || "Server error "+res.status);
+    const contentType = res.headers.get("content-type")||"";
+    if(contentType.includes("application/json")){
+      data = await res.json();
+    } else {
+      const txt = await res.text();
+      try { data = JSON.parse(txt); }
+      catch(_){ throw new Error("Respons server tidak valid ("+res.status+")"); }
     }
 
-    vcSetStep(3);
-    document.getElementById("vcProgressLabel").textContent = "Memproses kualitas...";
-    await new Promise(r=>setTimeout(r,600));
+    if(!res.ok || data.success === false){
+      throw new Error(data.message || data.error || "Gagal: server error "+res.status);
+    }
 
     vcSetStep(4);
     document.getElementById("vcProgressLabel").textContent = "Menyiapkan link download...";
-    await new Promise(r=>setTimeout(r,400));
+    await new Promise(r=>setTimeout(r,350));
 
     document.getElementById("vcProgressFill").style.width = "100%";
-    await new Promise(r=>setTimeout(r,300));
+    await new Promise(r=>setTimeout(r,250));
 
     vcShowProgress(false);
-    vcRenderResult(data, url);
+    vcRenderResult(data, rawUrl);
 
   } catch(e){
     if(e.name==="AbortError") return;
     vcShowProgress(false);
-
-    // Friendly fallback: some railway APIs may need GET
-    // Try alternate approach
-    try {
-      const fallbackUrl = VC_BASE_URL+"/api/download?url="+encodeURIComponent(url)+"&format="+vcFormat+"&quality="+vcQualToParam(vcQuality)+"&api_key="+VC_API_KEY;
-      const res2 = await fetch(fallbackUrl, {signal: vcAbort?.signal});
-      if(res2.ok){
-        const data2 = await res2.json();
-        vcRenderResult(data2, url);
-        return;
-      }
-    } catch(_){}
-
-    vcShowError(e.message || "Gagal mengkonversi video. Pastikan link valid dan coba lagi.");
+    vcShowError(e.message || "Gagal download. Pastikan link valid dan coba lagi.");
   }
 }
 
+/* ── render result card ── */
 function vcRenderResult(data, originalUrl){
   const card  = document.getElementById("vcResultCard");
   const title = document.getElementById("vcResultTitle");
@@ -5468,88 +5573,95 @@ function vcRenderResult(data, originalUrl){
   const fmts  = document.getElementById("vcDlFormats");
   const thumb = document.getElementById("vcThumb");
 
-  // Normalize API response fields (API may use different key names)
-  const videoTitle   = data.title || data.video_title || data.name || "Video";
-  const thumbnail    = data.thumbnail || data.thumb || data.cover || data.poster || "";
-  const duration     = data.duration || data.length || "";
-  const author       = data.author || data.uploader || data.creator || "";
-  const downloadUrl  = data.download_url || data.url || data.link || data.direct_url || "";
-  const downloads    = data.downloads || data.formats || data.links || [];
+  /* API response keys from docs: success, downloadUrl, fileName, size */
+  const dlUrl     = data.downloadUrl || data.download_url || data.url || data.link || "";
+  const fileName  = data.fileName    || data.filename     || data.name || "";
+  const fileSize  = data.size        ? vcFormatBytes(data.size) : "";
+  const videoTitle= data.title       || data.video_title  || fileName || "Video";
+  const thumbnail = data.thumbnail   || data.thumb        || data.cover || "";
+  const duration  = data.duration    || "";
+  const author    = data.author      || data.uploader     || "";
+  /* some APIs return an array of options */
+  const extras    = data.downloads   || data.formats      || data.links || [];
 
-  title.textContent = videoTitle;
+  title.textContent = videoTitle || "Video siap download";
 
   let metaHtml = "";
-  if(author) metaHtml += `<span>👤 ${author}</span>`;
+  if(author)   metaHtml += `<span>👤 ${author}</span>`;
   if(duration) metaHtml += `<span>⏱ ${duration}</span>`;
-  metaHtml += `<span>${vcFormat.toUpperCase()}</span>`;
-  metaHtml += `<span>${vcQualToParam(vcQuality)}p</span>`;
+  if(fileSize) metaHtml += `<span>◈ ${fileSize}</span>`;
+  const qualLabel = vcFormat==="mp3" ? "MP3" : (vcQuality==="best"?"Best Quality":vcQuality==="video"?"HD":"Normal");
+  metaHtml += `<span>${qualLabel}</span>`;
   meta.innerHTML = metaHtml;
 
   if(thumbnail){
-    thumb.src = thumbnail; thumb.style.display = "block";
+    thumb.src = thumbnail; thumb.style.display="block";
     thumb.onerror = ()=>{ thumb.style.display="none"; };
   } else {
-    thumb.style.display = "none";
+    thumb.style.display="none";
   }
 
   fmts.innerHTML = "";
 
-  // If API returned an array of download links
-  if(Array.isArray(downloads) && downloads.length > 0){
-    downloads.forEach(item=>{
-      const label = item.quality||item.label||item.format||"Download";
-      const dlUrl = item.url||item.link||item.download_url||"";
-      const size  = item.size||item.filesize||"";
-      if(!dlUrl) return;
-      const a = document.createElement("a");
-      a.className = "vc-dl-link";
-      a.href = dlUrl; a.target = "_blank"; a.rel = "noopener";
-      const isAudio = (item.format||"").toLowerCase()==="mp3"||(item.type||"").toLowerCase().includes("audio");
-      const bgColor = isAudio ? "rgba(114,72,245,0.15)" : "rgba(61,114,246,0.15)";
-      const iconColor = isAudio ? "#c4a8ff" : "#7aa8f7";
-      a.innerHTML = `
-        <div class="vc-dl-link-icon" style="background:${bgColor}">
-          ${isAudio
-            ? '<svg viewBox="0 0 24 24" fill="none" stroke="'+iconColor+'" stroke-width="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>'
-            : '<svg viewBox="0 0 24 24" fill="none" stroke="'+iconColor+'" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>'}
-        </div>
-        <div class="vc-dl-link-info">
-          <div class="vc-dl-link-label">${label}</div>
-          <div class="vc-dl-link-meta">${size ? size+" · " : ""}Klik untuk download</div>
-        </div>
-        <div class="vc-dl-arrow"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg></div>`;
-      fmts.appendChild(a);
+  /* Multiple download options from API */
+  if(Array.isArray(extras) && extras.length > 0){
+    extras.forEach(item=>{
+      const iUrl  = item.url||item.link||item.download_url||"";
+      if(!iUrl) return;
+      const iLabel = item.quality||item.label||item.format||"Download";
+      const iSize  = item.size ? vcFormatBytes(item.size) : (item.filesize||"");
+      const isAudio = /mp3|audio/i.test(item.format||item.type||"");
+      fmts.appendChild(vcMakeDlRow(iUrl, iLabel, iSize, isAudio));
     });
   }
 
-  // Single download URL fallback
-  if(downloadUrl && fmts.children.length === 0){
-    const a = document.createElement("a");
-    a.className = "vc-dl-link";
-    a.href = downloadUrl; a.target = "_blank"; a.rel = "noopener";
-    const iconColor = vcFormat==="mp3" ? "#c4a8ff" : "#7aa8f7";
-    const bg        = vcFormat==="mp3" ? "rgba(114,72,245,0.15)" : "rgba(61,114,246,0.15)";
-    a.innerHTML = `
-      <div class="vc-dl-link-icon" style="background:${bg}">
-        ${vcFormat==="mp3"
-          ? '<svg viewBox="0 0 24 24" fill="none" stroke="'+iconColor+'" stroke-width="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>'
-          : '<svg viewBox="0 0 24 24" fill="none" stroke="'+iconColor+'" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>'}
-      </div>
-      <div class="vc-dl-link-info">
-        <div class="vc-dl-link-label">${vcQualToParam(vcQuality)}p ${vcFormat.toUpperCase()}</div>
-        <div class="vc-dl-link-meta">Klik untuk download</div>
-      </div>
-      <div class="vc-dl-arrow"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg></div>`;
-    fmts.appendChild(a);
+  /* Single direct URL (primary API response) */
+  if(dlUrl && fmts.children.length === 0){
+    const isAudio = vcFormat==="mp3";
+    const label   = isAudio ? "MP3 Audio" : (vcQuality==="best"?"Best Quality Video":"Video");
+    fmts.appendChild(vcMakeDlRow(dlUrl, label, fileSize, isAudio));
   }
 
-  // No download link at all
   if(fmts.children.length === 0){
-    fmts.innerHTML = `<div style="font-size:12px;color:var(--muted);padding:10px;text-align:center">Link download tidak tersedia dari server. Coba kualitas berbeda.</div>`;
+    fmts.innerHTML = `<div style="font-size:12px;color:var(--muted);padding:12px;text-align:center;line-height:1.6">
+      Link download tidak tersedia.<br>Coba kualitas lain atau platform lain.
+    </div>`;
   }
 
   card.classList.add("show");
-  card.scrollIntoView({behavior:"smooth",block:"nearest"});
+  setTimeout(()=>{ card.scrollIntoView({behavior:"smooth",block:"nearest"}); }, 80);
+}
+
+function vcMakeDlRow(url, label, size, isAudio){
+  const a = document.createElement("a");
+  a.className = "vc-dl-link";
+  a.href = url; a.target = "_blank"; a.rel = "noopener noreferrer";
+  const bg  = isAudio ? "rgba(114,72,245,0.18)" : "rgba(61,114,246,0.18)";
+  const clr = isAudio ? "#c4a8ff" : "#7aa8f7";
+  const icon = isAudio
+    ? `<svg viewBox="0 0 24 24" fill="none" stroke="${clr}" stroke-width="2" style="width:17px;height:17px"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>`
+    : `<svg viewBox="0 0 24 24" fill="none" stroke="${clr}" stroke-width="2" style="width:17px;height:17px"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>`;
+  a.innerHTML = `
+    <div class="vc-dl-link-icon" style="background:${bg};border:1px solid ${clr}33">${icon}</div>
+    <div class="vc-dl-link-info">
+      <div class="vc-dl-link-label">${label}</div>
+      <div class="vc-dl-link-meta">${size ? size+" · " : ""}Tap untuk download</div>
+    </div>
+    <div class="vc-dl-arrow">
+      <svg viewBox="0 0 24 24" fill="none" stroke="rgba(114,72,245,0.7)" stroke-width="2.2" style="width:16px;height:16px">
+        <line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/>
+      </svg>
+    </div>`;
+  return a;
+}
+
+function vcFormatBytes(bytes){
+  if(!bytes || isNaN(bytes)) return "";
+  const b = Number(bytes);
+  if(b < 1024)           return b+" B";
+  if(b < 1024*1024)      return (b/1024).toFixed(1)+" KB";
+  if(b < 1024*1024*1024) return (b/(1024*1024)).toFixed(1)+" MB";
+  return (b/(1024*1024*1024)).toFixed(2)+" GB";
 }
 
 </script>
