@@ -5396,165 +5396,158 @@ function startNameCanvas(){
 }
 
 /* ════════════════════════════════════════════════════════
-   MEDIA DOWNLOADER
-   POST /api/download/video { url, quality }
-   Response: { success, downloadUrl, fileName, size }
+   MEDIA DOWNLOADER  v3
+   Step 1: POST /api/download/info  → title, thumbnail, duration, formats[]
+   Step 2: POST /api/download/video → downloadUrl, fileName, size
    ════════════════════════════════════════════════════════ */
-const VC_KEY  = "axka_d9e2e2baa4494a8980fb513d19d9ec85";
-const VC_URL  = "https://webtoapk2-web2apk.up.railway.app";
-let _vcFmt = "video";
-let _vcQual = "best";
+const VC_KEY = "axka_48b3b63e4d914b10800f679770ee73bf";
+const VC_URL = "https://webtoapk2-web2apk.up.railway.app";
+
+let _vcFmt  = "video";   // "video" | "mp3"
+let _vcQual = "best";    // "best"  | "video" | "mp3"
 let _vcCtrl = null;
+let _vcInfo = null;      // cached /info response
 
-/* helpers — grab elements by new HTML IDs */
-const vcEl = id => document.getElementById(id);
+const $ = id => document.getElementById(id);
 
+/* ── open / close ── */
 function openVideoConverter(){
-  const p = vcEl("videoConverterPage");
-  p.style.display = "block";
+  const p=$("videoConverterPage");
+  p.style.display="block";
   requestAnimationFrame(()=>{ p.classList.remove("out"); p.classList.add("show"); });
-  p.scrollTop = 0;
+  p.scrollTop=0;
 }
 function closeVideoConverter(){
-  const p = vcEl("videoConverterPage");
+  const p=$("videoConverterPage");
   p.classList.add("out");
-  setTimeout(()=>{ p.style.display="none"; p.classList.remove("show","out"); }, 270);
+  setTimeout(()=>{ p.style.display="none"; p.classList.remove("show","out"); },270);
   if(_vcCtrl){ _vcCtrl.abort(); _vcCtrl=null; }
 }
 
-/* format */
+/* ── format toggle ── */
 function vcSetFormat(f){
-  _vcFmt = f;
-  vcEl("vcFmtMp4").classList.toggle("on", f==="video");
-  vcEl("vcFmtMp3").classList.toggle("on", f==="mp3");
-  const qr = vcEl("vcQualRow");
-  qr.style.opacity = f==="mp3" ? "0.28" : "";
-  qr.style.pointerEvents = f==="mp3" ? "none" : "";
+  _vcFmt=f;
+  $("vcFmtMp4").classList.toggle("on",f==="video");
+  $("vcFmtMp3").classList.toggle("on",f==="mp3");
+  const qr=$("vcQualRow");
+  if(f==="mp3"){ qr.style.opacity="0.3"; qr.style.pointerEvents="none"; }
+  else          { qr.style.opacity="";   qr.style.pointerEvents="";    }
 }
 
-/* quality — IDs: vcQBest, vcQVideo, vcQ480, vcQ360 */
+/* ── quality buttons ── */
 function vcSetQuality(q){
-  _vcQual = q;
+  _vcQual=q;
   ["vcQBest","vcQVideo","vcQ480","vcQ360"].forEach(id=>{
-    const el=vcEl(id); if(el) el.classList.remove("on");
+    const el=$(id); if(el) el.classList.remove("on");
   });
   const map={best:"vcQBest",video:"vcQVideo","480":"vcQ480","360":"vcQ360"};
-  const el=vcEl(map[q]); if(el) el.classList.add("on");
+  const el=$(map[q]); if(el) el.classList.add("on");
 }
 
-/* detect platform from URL */
+/* ── detect platform ── */
 function vcDetectPlatform(){
-  const raw=(vcEl("vcUrlInput").value||"").trim();
-  const badge=vcEl("vcBadge");
-  const btn=vcEl("vcConvertBtn");
-  badge.className="vc-badge";
-  badge.textContent="";
+  const raw=($("vcUrlInput").value||"").trim();
+  const badge=$("vcBadge"), btn=$("vcConvertBtn");
+  badge.className="vc-badge"; badge.textContent="";
   if(!raw){ btn.disabled=true; return; }
-
-  let plat="", cls="ok";
-  if(/tiktok\.com/i.test(raw))               { plat="TikTok";    cls="tiktok";    }
-  else if(/youtube\.com|youtu\.be/i.test(raw)){ plat="YouTube";   cls="youtube";   }
-  else if(/instagram\.com/i.test(raw))        { plat="Instagram"; cls="instagram"; }
-  else if(/twitter\.com|x\.com/i.test(raw))   { plat="Twitter/X"; cls="twitter";   }
-  else if(/facebook\.com|fb\.com/i.test(raw)) { plat="Facebook";  cls="facebook";  }
-  else if(/snapchat\.com/i.test(raw))         { plat="Snapchat";  }
-  else if(/pinterest\.com/i.test(raw))        { plat="Pinterest"; }
-  else if(/vimeo\.com/i.test(raw))            { plat="Vimeo";     }
-  else if(/twitch\.tv/i.test(raw))            { plat="Twitch";    }
-  else if(/dailymotion\.com/i.test(raw))      { plat="Dailymotion";}
-
+  let plat="",cls="ok";
+  if(/tiktok\.com/i.test(raw))               {plat="TikTok";    cls="tiktok";   }
+  else if(/youtube\.com|youtu\.be/i.test(raw)){plat="YouTube";   cls="youtube";  }
+  else if(/instagram\.com/i.test(raw))        {plat="Instagram"; cls="instagram";}
+  else if(/twitter\.com|x\.com/i.test(raw))   {plat="Twitter/X"; cls="twitter";  }
+  else if(/facebook\.com|fb\.com/i.test(raw)) {plat="Facebook";  cls="facebook"; }
+  else if(/snapchat\.com/i.test(raw))         {plat="Snapchat";                  }
+  else if(/pinterest\.com/i.test(raw))        {plat="Pinterest";                 }
+  else if(/vimeo\.com/i.test(raw))            {plat="Vimeo";                     }
+  else if(/twitch\.tv/i.test(raw))            {plat="Twitch";                    }
+  else if(/dailymotion\.com/i.test(raw))      {plat="Dailymotion";               }
   if(raw.startsWith("http")){
     badge.className="vc-badge on "+cls;
-    badge.textContent = plat ? "✦  "+plat+" terdeteksi" : "🔗  Link valid";
+    badge.textContent=plat?"✦  "+plat+" terdeteksi":"🔗  Link valid";
     btn.disabled=false;
-  } else {
-    btn.disabled=true;
-  }
+  } else { btn.disabled=true; }
 }
 
 async function vcPasteUrl(){
-  try{
-    const t=await navigator.clipboard.readText();
-    vcEl("vcUrlInput").value=t;
-    vcDetectPlatform();
-  }catch(e){ vcEl("vcUrlInput").focus(); }
+  try{ const t=await navigator.clipboard.readText(); $("vcUrlInput").value=t; vcDetectPlatform(); }
+  catch(e){ $("vcUrlInput").focus(); }
 }
 
-/* ── progress UI ── */
-function _vcProg(show){
-  vcEl("vcProg").classList.toggle("on",show);
-  vcEl("vcConvertBtn").disabled=show;
-  vcEl("vcUrlInput").disabled=show;
+/* ── progress ── */
+function _vcProg(on){
+  $("vcProg").classList.toggle("on",on);
+  $("vcConvertBtn").disabled=on;
+  $("vcUrlInput").disabled=on;
 }
-function _vcStep(n){
+function _vcStep(n,txt){
   ["vs1","vs2","vs3","vs4"].forEach((id,i)=>{
-    const el=vcEl(id); if(!el)return;
+    const el=$(id); if(!el)return;
     el.className="vc-step"+(i<n-1?" ok":i===n-1?" go":"");
   });
-  vcEl("vcProgFill").style.width=({1:12,2:36,3:64,4:88}[n]||10)+"%";
+  $("vcProgFill").style.width=({1:10,2:35,3:65,4:90}[n]||10)+"%";
+  if(txt) $("vcProgLabel").textContent=txt;
 }
 function _vcErr(msg){
-  const e=vcEl("vcErr");
+  const e=$("vcErr");
   e.innerHTML="⚠️ &nbsp;"+msg;
   e.classList.add("on");
-  vcEl("vcResult").classList.remove("on");
+  $("vcResult").classList.remove("on");
 }
-function _vcClearErr(){ vcEl("vcErr").classList.remove("on"); }
+function _vcClearErr(){ $("vcErr").classList.remove("on"); }
 
-/* ════ MAIN FETCH ════ */
+/* ── POST helper ── */
+async function _vcPost(path, body, sig){
+  const res=await fetch(VC_URL+path,{
+    method:"POST",
+    headers:{"Content-Type":"application/json","X-API-Key":VC_KEY},
+    body:JSON.stringify(body),
+    signal:sig
+  });
+  let data;
+  try{ data=await res.json(); }
+  catch(e){ throw new Error("Respons server tidak valid (HTTP "+res.status+")"); }
+  if(!res.ok||data.success===false)
+    throw new Error(data.message||data.error||"Server error "+res.status);
+  return data;
+}
+
+/* ══════════════════════════════════════════
+   MAIN: 2-step flow
+   Step 1 — /api/download/info   (get meta)
+   Step 2 — /api/download/video  (get link)
+══════════════════════════════════════════ */
 async function vcStartConvert(){
-  const rawUrl=(vcEl("vcUrlInput").value||"").trim();
+  const rawUrl=($("vcUrlInput").value||"").trim();
   if(!rawUrl)return;
 
   _vcClearErr();
-  vcEl("vcResult").classList.remove("on");
+  $("vcResult").classList.remove("on");
+  _vcInfo=null;
   _vcProg(true);
-  _vcStep(1);
-  vcEl("vcProgLabel").textContent="Menganalisis URL…";
+  _vcStep(1,"Menganalisis URL…");
 
   if(_vcCtrl)_vcCtrl.abort();
   _vcCtrl=new AbortController();
   const sig=_vcCtrl.signal;
 
   try{
-    _vcStep(2);
-    vcEl("vcProgLabel").textContent="Menghubungi server…";
+    /* ── Step 1: GET VIDEO INFO ── */
+    _vcStep(2,"Mengambil info video…");
+    const info=await _vcPost("/api/download/info",{url:rawUrl},sig);
+    _vcInfo=info;
 
-    /* exact payload per API docs */
-    const body={
-      url: rawUrl,
-      quality: _vcFmt==="mp3" ? "mp3" : _vcQual
-    };
+    /* ── Step 2: GET DOWNLOAD LINK ── */
+    _vcStep(3,"Memproses & konversi…");
+    const quality=_vcFmt==="mp3"?"mp3":_vcQual;
+    const dl=await _vcPost("/api/download/video",{url:rawUrl,quality},sig);
 
-    const res=await fetch(VC_URL+"/api/download/video",{
-      method:"POST",
-      headers:{
-        "Content-Type":"application/json",
-        "X-API-Key": VC_KEY
-      },
-      body:JSON.stringify(body),
-      signal:sig
-    });
-
-    _vcStep(3);
-    vcEl("vcProgLabel").textContent="Memproses video…";
-
-    let data;
-    try{ data=await res.json(); }
-    catch(_e){ throw new Error("Respons server tidak valid ("+res.status+")"); }
-
-    if(!res.ok||data.success===false){
-      throw new Error(data.message||data.error||"Server error "+res.status);
-    }
-
-    _vcStep(4);
-    vcEl("vcProgLabel").textContent="Menyiapkan link…";
-    await new Promise(r=>setTimeout(r,320));
-    vcEl("vcProgFill").style.width="100%";
-    await new Promise(r=>setTimeout(r,200));
+    _vcStep(4,"Menyiapkan link…");
+    await new Promise(r=>setTimeout(r,280));
+    $("vcProgFill").style.width="100%";
+    await new Promise(r=>setTimeout(r,180));
 
     _vcProg(false);
-    _vcRender(data, rawUrl);
+    _vcRender(info, dl, rawUrl);
 
   }catch(e){
     if(e.name==="AbortError")return;
@@ -5563,111 +5556,140 @@ async function vcStartConvert(){
   }
 }
 
-/* ════ RENDER RESULT ════ */
-function _vcRender(data, srcUrl){
-  /* normalise API fields */
-  const dlUrl   = data.downloadUrl||data.download_url||data.url||data.link||"";
-  const fname   = data.fileName||data.filename||data.name||"video";
-  const fsize   = data.size ? _vcBytes(data.size) : "";
-  const vtitle  = data.title||data.video_title||fname||"Video";
-  const vthumb  = data.thumbnail||data.thumb||data.cover||"";
-  const vdur    = data.duration||"";
-  const vauthor = data.author||data.uploader||"";
-  const extras  = data.downloads||data.formats||data.links||[];
+/* ══════════════════════════════════════════
+   RENDER RESULT — uses info + dl data
+══════════════════════════════════════════ */
+function _vcRender(info, dl, srcUrl){
+  /* from /info */
+  const vtitle = info.title||info.video_title||"Video";
+  const vthumb = info.thumbnail||info.thumb||info.cover||"";
+  const vdur   = info.duration  ? _vcSec(info.duration) : "";
+  const vfmts  = Array.isArray(info.formats) ? info.formats : [];
+
+  /* from /download/video */
+  const dlUrl  = dl.downloadUrl||dl.download_url||dl.url||dl.link||"";
+  const fname  = dl.fileName||dl.filename||dl.name||"video";
+  const fsize  = dl.size ? _vcBytes(dl.size) : "";
 
   /* title */
-  vcEl("vcTitle").textContent = vtitle||"Video siap download";
+  $("vcTitle").textContent=vtitle||"Video siap download";
 
   /* tags */
   let tags="";
-  if(vauthor) tags+=`<span class="vc-result-tag">👤 ${vauthor}</span>`;
-  if(vdur)    tags+=`<span class="vc-result-tag">⏱ ${vdur}</span>`;
-  if(fsize)   tags+=`<span class="vc-result-tag">◈ ${fsize}</span>`;
-  const ql=_vcFmt==="mp3"?"MP3 Audio":_vcQual==="best"?"Best Quality":_vcQual==="video"?"HD":"Normal";
-  tags+=`<span class="vc-result-tag">${ql}</span>`;
-  vcEl("vcTags").innerHTML=tags;
+  if(vdur)   tags+=`<span class="vc-result-tag">⏱ ${vdur}</span>`;
+  if(fsize)  tags+=`<span class="vc-result-tag">◈ ${fsize}</span>`;
+  const qlbl=_vcFmt==="mp3"?"MP3 Audio":_vcQual==="best"?"Best Quality":_vcQual==="video"?"HD":_vcQual+"p";
+  tags+=`<span class="vc-result-tag">${qlbl}</span>`;
+  $("vcTags").innerHTML=tags;
 
   /* thumbnail */
-  const th=vcEl("vcThumb");
-  if(vthumb){ th.src=vthumb; th.style.display="block"; th.onerror=()=>th.style.display="none"; }
+  const th=$("vcThumb");
+  if(vthumb){th.src=vthumb;th.style.display="block";th.onerror=()=>th.style.display="none";}
   else th.style.display="none";
 
-  /* links */
-  const links=vcEl("vcLinks");
+  /* build download rows */
+  const links=$("vcLinks");
   links.innerHTML="";
 
-  if(Array.isArray(extras)&&extras.length>0){
-    extras.forEach(item=>{
-      const u=item.url||item.link||item.download_url||""; if(!u)return;
-      const lbl=item.quality||item.label||item.format||"Download";
-      const sz=item.size?_vcBytes(item.size):(item.filesize||"");
-      const audio=/mp3|audio/i.test(item.format||item.type||"");
-      links.appendChild(_vcRow(u, lbl, sz, audio, fname));
+  if(dlUrl){
+    const isAudio=_vcFmt==="mp3"||/\.mp3(\?|$)/i.test(dlUrl);
+    const lbl=isAudio?"MP3 Audio — "+qlbl:"MP4 Video — "+qlbl;
+    links.appendChild(_vcRow(dlUrl,lbl,fsize,isAudio,fname));
+  }
+
+  /* if API returned formats array with URLs, show extras */
+  if(Array.isArray(dl.downloads)&&dl.downloads.length){
+    dl.downloads.forEach(item=>{
+      const u=item.url||item.link||""; if(!u||u===dlUrl)return;
+      const lbl2=item.quality||item.label||item.format||"Download";
+      const sz2=item.size?_vcBytes(item.size):"";
+      const aud=/mp3|audio/i.test(item.format||item.type||"");
+      links.appendChild(_vcRow(u,lbl2,sz2,aud,fname));
     });
   }
 
-  /* single direct URL */
-  if(dlUrl&&links.children.length===0){
-    const audio=_vcFmt==="mp3";
-    const lbl=audio?"MP3 Audio":_vcQual==="best"?"Best Quality Video":"Video";
-    links.appendChild(_vcRow(dlUrl, lbl, fsize, audio, fname));
+  if(!links.children.length){
+    links.innerHTML=`<div style="font-size:12px;color:rgba(255,255,255,0.28);padding:14px;text-align:center;line-height:1.7">
+      Link tidak tersedia.<br>Coba format atau kualitas lain.</div>`;
   }
 
-  if(links.children.length===0){
-    links.innerHTML=`<div style="font-size:12px;color:rgba(255,255,255,0.3);padding:12px;text-align:center;line-height:1.7">
-      Tidak ada link tersedia.<br>Coba kualitas atau format lain.</div>`;
-  }
-
-  const card=vcEl("vcResult");
-  card.classList.add("on");
-  setTimeout(()=>card.scrollIntoView({behavior:"smooth",block:"nearest"}),80);
+  $("vcResult").classList.add("on");
+  setTimeout(()=>$("vcResult").scrollIntoView({behavior:"smooth",block:"nearest"}),90);
 }
 
+/* ── Build one download row ── */
 function _vcRow(url, label, size, isAudio, fname){
-  const wrap=document.createElement("div");
-  wrap.className="vc-link";
+  const div=document.createElement("div");
+  div.className="vc-link";
+  const bg =isAudio?"rgba(114,72,245,0.22)":"rgba(61,114,246,0.22)";
+  const clr=isAudio?"#c4a8ff":"#8ab4f8";
+  const ico=isAudio
+    ?`<svg viewBox="0 0 24 24" fill="none" stroke="${clr}" stroke-width="2" style="width:17px;height:17px"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>`
+    :`<svg viewBox="0 0 24 24" fill="none" stroke="${clr}" stroke-width="2" style="width:17px;height:17px"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>`;
 
-  const bg  = isAudio ? "rgba(114,72,245,0.2)"  : "rgba(61,114,246,0.2)";
-  const clr = isAudio ? "#c4a8ff" : "#8ab4f8";
-  const icon= isAudio
-    ? `<svg viewBox="0 0 24 24" fill="none" stroke="${clr}" stroke-width="2" style="width:17px;height:17px"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>`
-    : `<svg viewBox="0 0 24 24" fill="none" stroke="${clr}" stroke-width="2" style="width:17px;height:17px"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>`;
-
-  wrap.innerHTML=`
-    <div class="vc-link-ic" style="background:${bg};border:1px solid ${clr}44">${icon}</div>
+  div.innerHTML=`
+    <div class="vc-link-ic" style="background:${bg};border:1px solid ${clr}55">${ico}</div>
     <div class="vc-link-info">
       <div class="vc-link-lbl">${label}</div>
-      <div class="vc-link-sub">${size?size+" · ":""}Tap untuk download</div>
+      <div class="vc-link-sub">${size?size+" · ":""}Tap untuk download ↓</div>
     </div>
     <div class="vc-link-arr">
-      <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="${clr}" stroke-width="2.2" style="width:16px;height:16px">
+        <line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/>
+      </svg>
     </div>`;
 
-  /* ── Actual download logic ── */
-  wrap.addEventListener("click",()=>{
-    /* Try <a download> first — works when same-origin or server sends CORS */
+  div.addEventListener("click", async ()=>{
+    /* visual feedback */
+    div.style.opacity="0.6";
+    div.querySelector(".vc-link-sub").textContent="Memulai download…";
+
+    /* Method 1: fetch → blob → object URL → <a download>
+       Works for cross-origin when server allows CORS */
+    try{
+      const r=await fetch(url);
+      if(r.ok){
+        const blob=await r.blob();
+        const ob=URL.createObjectURL(blob);
+        const a=document.createElement("a");
+        a.href=ob; a.download=fname+(isAudio?".mp3":".mp4");
+        document.body.appendChild(a); a.click();
+        setTimeout(()=>{ document.body.removeChild(a); URL.revokeObjectURL(ob); },1000);
+        div.style.opacity=""; div.querySelector(".vc-link-sub").textContent=(size?size+" · ":"")+"✓ Download dimulai!";
+        return;
+      }
+    }catch(_){}
+
+    /* Method 2: direct <a download> (same-origin) */
     const a=document.createElement("a");
-    a.href=url;
-    a.download=fname+(isAudio?".mp3":".mp4");
+    a.href=url; a.download=fname+(isAudio?".mp3":".mp4");
     a.rel="noopener noreferrer";
-    document.body.appendChild(a);
-    a.click();
+    document.body.appendChild(a); a.click();
     setTimeout(()=>document.body.removeChild(a),200);
 
-    /* Fallback: open in new tab (works for cross-origin URLs) */
-    setTimeout(()=>{ window.open(url,"_blank","noopener,noreferrer"); },400);
+    /* Method 3: new tab fallback (cross-origin) */
+    window.open(url,"_blank","noopener,noreferrer");
+
+    div.style.opacity="";
+    div.querySelector(".vc-link-sub").textContent=(size?size+" · ":"")+"✓ Download dimulai!";
   });
 
-  return wrap;
+  return div;
 }
 
+/* ── helpers ── */
 function _vcBytes(b){
   if(!b||isNaN(b))return"";
-  b=Number(b);
+  b=+b;
   if(b<1024)return b+" B";
   if(b<1048576)return(b/1024).toFixed(1)+" KB";
   if(b<1073741824)return(b/1048576).toFixed(1)+" MB";
   return(b/1073741824).toFixed(2)+" GB";
+}
+function _vcSec(s){
+  s=+s; if(!s)return"";
+  const m=Math.floor(s/60), sec=s%60;
+  return m+":"+(sec<10?"0":"")+sec;
 }
 
 </script>
