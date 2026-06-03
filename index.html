@@ -1432,123 +1432,116 @@ body.light #uploadPreviewPanel{background:rgba(240,244,255,0.96)}
 #videoConverterPage{
   position:fixed;inset:0;z-index:100001;
   overflow-y:auto;-webkit-overflow-scrolling:touch;
-  display:none;background:#06080f;
-  /* NO animation on the page itself — prevents intro flash */
+  display:none;
+  /* Deep space gradient base */
+  background:
+    radial-gradient(ellipse 120% 80% at 50% -20%, rgba(88,50,200,0.55) 0%, transparent 55%),
+    radial-gradient(ellipse 80% 60% at -10% 60%,  rgba(45,85,220,0.32) 0%, transparent 50%),
+    radial-gradient(ellipse 70% 70% at 110% 90%,  rgba(0,160,255,0.22) 0%, transparent 50%),
+    #06080f;
 }
 #videoConverterPage.show{display:block;}
 #videoConverterPage.vc-closing{
-  opacity:0;transform:translateY(8px);
+  opacity:0;transform:translateY(10px);
   transition:opacity 0.22s ease,transform 0.22s ease;
   pointer-events:none;
 }
-#vcBg{
-  position:fixed;inset:0;pointer-events:none;z-index:0;
-  background:
-    radial-gradient(ellipse 90% 60% at -5% -10%, rgba(114,72,245,0.28) 0%,transparent 50%),
-    radial-gradient(ellipse 70% 55% at 105% 105%, rgba(61,114,246,0.2) 0%,transparent 50%),
-    radial-gradient(ellipse 50% 45% at 50% 50%, rgba(0,160,255,0.06) 0%,transparent 60%);
-}
-#vcGrid{
+/* animated star-field grid */
+.vcp-grid{
   position:fixed;inset:0;pointer-events:none;z-index:0;
   background-image:
-    linear-gradient(rgba(114,72,245,0.05) 1px,transparent 1px),
-    linear-gradient(90deg,rgba(114,72,245,0.05) 1px,transparent 1px);
-  background-size:30px 30px;
-  animation:vcGM 20s linear infinite;
+    radial-gradient(circle, rgba(255,255,255,0.55) 1px, transparent 1px),
+    radial-gradient(circle, rgba(255,255,255,0.25) 1px, transparent 1px);
+  background-size:80px 80px, 40px 40px;
+  background-position:0 0, 20px 20px;
+  animation:vcStars 60s linear infinite;
+  opacity:0.18;
 }
-@keyframes vcGM{0%{background-position:0 0}100%{background-position:30px 30px}}
+@keyframes vcStars{0%{background-position:0 0,20px 20px}100%{background-position:0 -800px,20px -420px}}
+/* sweep line */
+.vcp-sweep{
+  position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:linear-gradient(180deg,
+    transparent 0%,
+    rgba(114,72,245,0.04) 48%,
+    rgba(114,72,245,0.09) 50%,
+    rgba(114,72,245,0.04) 52%,
+    transparent 100%);
+  background-size:100% 200%;
+  animation:vcSweep 8s ease-in-out infinite;
+}
+@keyframes vcSweep{0%,100%{background-position:0 100%}50%{background-position:0 0}}
+/* content wrap */
 .vc-wrap{
   position:relative;z-index:1;
-  max-width:480px;margin:0 auto;padding:16px 14px 80px;
+  max-width:480px;margin:0 auto;
+  padding:18px 16px 80px;
 }
 /* topbar */
 .vc-topbar{
-  display:flex;align-items:center;gap:10px;
-  padding:8px 0 20px;
+  display:flex;align-items:center;gap:10px;margin-bottom:20px;
 }
 .vc-back{
-  width:38px;height:38px;border-radius:12px;flex-shrink:0;
-  background:rgba(255,255,255,0.055);border:1px solid rgba(255,255,255,0.1);
-  display:flex;align-items:center;justify-content:center;
-  cursor:pointer;transition:all 0.2s;
+  width:36px;height:36px;border-radius:10px;flex-shrink:0;
+  background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);
+  display:flex;align-items:center;justify-content:center;cursor:pointer;
+  transition:background 0.18s,border-color 0.18s;
 }
-.vc-back:hover{background:rgba(114,72,245,0.2);border-color:rgba(114,72,245,0.45);}
-.vc-back svg{width:16px;height:16px;stroke:rgba(255,255,255,0.7);stroke-width:2.2;fill:none;}
+.vc-back:hover{background:rgba(114,72,245,0.2);border-color:rgba(114,72,245,0.4);}
+.vc-back svg{width:15px;height:15px;stroke:rgba(255,255,255,0.6);stroke-width:2.2;fill:none;}
 .vc-topbar-title{
   font-size:13px;font-weight:800;letter-spacing:4px;
-  background:linear-gradient(90deg,#c4a8ff,#7aa8f7,#00e5ff);
+  background:linear-gradient(90deg,#d4b8ff,#8ab4f8,#5ce0e6);
   -webkit-background-clip:text;-webkit-text-fill-color:transparent;
 }
 .vc-topbar-badge{
-  margin-left:auto;font-size:9px;padding:3px 8px;border-radius:6px;
-  background:rgba(114,72,245,0.18);border:1px solid rgba(114,72,245,0.35);
-  color:#c4a8ff;letter-spacing:1.5px;font-weight:700;
+  margin-left:auto;font-size:8.5px;font-weight:700;letter-spacing:1.5px;
+  padding:2px 8px;border-radius:5px;
+  background:rgba(114,72,245,0.15);border:1px solid rgba(114,72,245,0.3);color:#c4a8ff;
 }
 /* hero */
-.vc-hero{
-  text-align:center;padding:4px 0 22px;
-}
+.vc-hero{text-align:center;padding:10px 0 22px;}
 .vc-hero-ring{
-  width:72px;height:72px;border-radius:22px;margin:0 auto 14px;
-  background:linear-gradient(135deg,rgba(114,72,245,0.22),rgba(61,114,246,0.18));
-  border:1.5px solid rgba(114,72,245,0.45);
+  width:64px;height:64px;border-radius:22px;margin:0 auto 14px;
+  background:linear-gradient(135deg,rgba(114,72,245,0.3),rgba(61,114,246,0.2));
+  border:1px solid rgba(114,72,245,0.5);
   display:flex;align-items:center;justify-content:center;
-  box-shadow:0 0 40px rgba(114,72,245,0.25),inset 0 1px 0 rgba(255,255,255,0.12);
-  position:relative;
+  box-shadow:0 0 30px rgba(114,72,245,0.35),0 0 60px rgba(114,72,245,0.12),inset 0 1px 0 rgba(255,255,255,0.12);
 }
-.vc-hero-ring::after{
-  content:'';position:absolute;inset:-3px;border-radius:25px;
-  background:conic-gradient(from 0deg,transparent 60%,rgba(114,72,245,0.35) 100%);
-  animation:vcSpin 4s linear infinite;z-index:-1;
-  border-radius:inherit;
-}
-@keyframes vcSpin{to{transform:rotate(360deg)}}
-.vc-hero-ring svg{width:30px;height:30px;stroke:url(#vcG);stroke-width:1.7;fill:none;}
+.vc-hero-ring svg{width:26px;height:26px;stroke:url(#vcG);stroke-width:1.7;fill:none;}
 .vc-hero-h{
-  font-size:20px;font-weight:900;letter-spacing:5px;
-  background:linear-gradient(90deg,#c4a8ff 0%,#7aa8f7 45%,#00e5ff 100%);
+  font-size:20px;font-weight:800;letter-spacing:5px;
+  background:linear-gradient(90deg,#d4b8ff 0%,#8ab4f8 50%,#5ce0e6 100%);
   -webkit-background-clip:text;-webkit-text-fill-color:transparent;
-  margin-bottom:6px;
+  margin-bottom:7px;
 }
-.vc-hero-p{font-size:12px;color:rgba(255,255,255,0.38);letter-spacing:0.3px;line-height:1.6;}
-/* platform section */
+.vc-hero-p{font-size:12px;color:rgba(255,255,255,0.42);line-height:1.6;letter-spacing:0.2px;}
+/* section label */
 .vc-sec-label{
   font-size:9px;letter-spacing:2.5px;font-weight:700;text-transform:uppercase;
-  color:rgba(114,72,245,0.65);margin-bottom:10px;padding-left:1px;
-  display:flex;align-items:center;gap:6px;
+  color:rgba(114,72,245,0.7);margin-bottom:10px;
+  display:flex;align-items:center;gap:8px;
 }
-.vc-sec-label::before{
-  content:'';width:14px;height:1px;
-  background:linear-gradient(90deg,rgba(114,72,245,0.7),transparent);
-}
-/* pill tags — replaces old grid */
-.vc-pills{
-  display:flex;flex-wrap:wrap;gap:7px;
-  margin-bottom:16px;
-}
+.vc-sec-label::before{content:'';width:16px;height:1px;background:linear-gradient(90deg,rgba(114,72,245,0.8),transparent);}
+/* pills */
+.vc-pills{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:18px;}
 .vcp{
   display:inline-flex;align-items:center;
-  padding:5px 12px;border-radius:20px;border:1px solid;
-  font-size:11px;font-weight:700;letter-spacing:0.3px;
-  cursor:default;user-select:none;
+  padding:4px 11px;border-radius:20px;border:1px solid;
+  font-size:11px;font-weight:700;letter-spacing:0.3px;cursor:default;user-select:none;
 }
 /* card */
 .vc-card{
-  background:rgba(255,255,255,0.032);
-  border:1px solid rgba(255,255,255,0.075);
-  border-radius:18px;padding:16px 15px;margin-bottom:11px;
-  backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);
-  box-shadow:0 4px 28px rgba(0,0,0,0.25),inset 0 1px 0 rgba(255,255,255,0.06);
-  position:relative;overflow:hidden;
-}
-.vc-card::before{
-  content:'';position:absolute;top:0;left:0;right:0;height:1px;
-  background:linear-gradient(90deg,transparent,rgba(114,72,245,0.4),rgba(61,114,246,0.3),transparent);
+  background:rgba(255,255,255,0.042);
+  border:1px solid rgba(255,255,255,0.085);
+  border-radius:18px;padding:16px 15px;margin-bottom:12px;
+  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  box-shadow:0 4px 24px rgba(0,0,0,0.3),inset 0 1px 0 rgba(255,255,255,0.06);
 }
 .vc-clabel{
   font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;
-  color:rgba(114,72,245,0.7);margin-bottom:10px;
-  display:flex;align-items:center;gap:5px;
+  color:rgba(114,72,245,0.75);margin-bottom:11px;
+  display:flex;align-items:center;gap:6px;
 }
 .vc-clabel-dot{
   width:5px;height:5px;border-radius:50%;flex-shrink:0;
@@ -1556,216 +1549,174 @@ body.light #uploadPreviewPanel{background:rgba(240,244,255,0.96)}
 }
 /* url input */
 .vc-url-row{
-  display:flex;align-items:center;gap:7px;
-  background:rgba(255,255,255,0.04);border:1.5px solid rgba(255,255,255,0.09);
-  border-radius:13px;padding:3px 3px 3px 13px;
+  display:flex;align-items:center;gap:8px;
+  background:rgba(255,255,255,0.05);
+  border:1.5px solid rgba(255,255,255,0.1);
+  border-radius:12px;padding:3px 3px 3px 13px;
   transition:border-color 0.2s,box-shadow 0.2s;
 }
-.vc-url-row:focus-within{
-  border-color:rgba(114,72,245,0.6);
-  box-shadow:0 0 0 3px rgba(114,72,245,0.12);
-}
+.vc-url-row:focus-within{border-color:rgba(114,72,245,0.55);box-shadow:0 0 0 3px rgba(114,72,245,0.1);}
 .vc-url-in{
   flex:1;border:none;outline:none;background:transparent;
-  color:#fff;font-family:var(--F);font-size:13px;padding:11px 0;
-  min-width:0;
+  color:#fff;font-family:var(--F);font-size:12.5px;padding:10px 0;
 }
-.vc-url-in::placeholder{color:rgba(255,255,255,0.25);}
+.vc-url-in::placeholder{color:rgba(255,255,255,0.22);}
 .vc-paste{
-  width:40px;height:40px;border-radius:10px;border:none;flex-shrink:0;
-  background:rgba(114,72,245,0.18);cursor:pointer;
-  display:flex;align-items:center;justify-content:center;
-  transition:all 0.18s;color:rgba(170,140,255,0.9);
+  width:36px;height:36px;border-radius:9px;border:none;flex-shrink:0;
+  background:rgba(114,72,245,0.18);color:rgba(180,150,255,0.9);
+  display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background 0.18s;
 }
-.vc-paste:hover{background:rgba(114,72,245,0.35);color:#d4b8ff;}
-.vc-paste svg{width:15px;height:15px;stroke:currentColor;stroke-width:1.9;fill:none;}
-.vc-badge{
-  display:none;margin-top:8px;font-size:11px;font-weight:600;
-  padding:4px 11px;border-radius:20px;width:fit-content;
-  animation:msgIn 0.2s var(--ease);letter-spacing:0.3px;
-}
+.vc-paste:hover{background:rgba(114,72,245,0.35);}
+.vc-paste svg{width:14px;height:14px;stroke:currentColor;stroke-width:2;fill:none;}
+/* detect badge */
+.vc-badge{display:none;margin-top:8px;font-size:11px;font-weight:600;
+  padding:4px 12px;border-radius:20px;width:fit-content;animation:msgIn 0.2s var(--ease);}
 .vc-badge.on{display:inline-flex;align-items:center;gap:5px;}
-.vc-badge.tiktok{background:rgba(0,242,234,0.1);border:1px solid rgba(0,242,234,0.3);color:#00f2ea;}
-.vc-badge.youtube{background:rgba(255,0,0,0.1);border:1px solid rgba(255,0,0,0.3);color:#ff5555;}
-.vc-badge.instagram{background:rgba(225,48,108,0.1);border:1px solid rgba(225,48,108,0.3);color:#e1306c;}
-.vc-badge.twitter{background:rgba(29,161,242,0.1);border:1px solid rgba(29,161,242,0.3);color:#1da1f2;}
-.vc-badge.facebook{background:rgba(24,119,242,0.1);border:1px solid rgba(24,119,242,0.3);color:#4a8fe8;}
-.vc-badge.ok{background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);color:rgba(255,255,255,0.45);}
-/* format row */
-.vc-fmt-row{display:flex;gap:7px;margin-bottom:12px;}
+.vc-badge.tiktok{background:rgba(0,242,234,0.08);border:1px solid rgba(0,242,234,0.28);color:#00f2ea;}
+.vc-badge.youtube{background:rgba(255,68,68,0.08);border:1px solid rgba(255,68,68,0.28);color:#ff5555;}
+.vc-badge.instagram{background:rgba(225,48,108,0.08);border:1px solid rgba(225,48,108,0.28);color:#e1306c;}
+.vc-badge.twitter{background:rgba(200,200,200,0.08);border:1px solid rgba(200,200,200,0.2);color:#d0d0d0;}
+.vc-badge.facebook{background:rgba(74,143,232,0.08);border:1px solid rgba(74,143,232,0.28);color:#4a8fe8;}
+.vc-badge.ok{background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.14);color:rgba(255,255,255,0.5);}
+/* format */
+.vc-fmt-row{display:flex;gap:8px;margin-bottom:13px;}
 .vc-fmt{
-  flex:1;padding:10px 7px;border-radius:11px;
-  border:1.5px solid rgba(255,255,255,0.075);
-  background:rgba(255,255,255,0.025);
-  color:rgba(255,255,255,0.38);
-  font-family:var(--F);font-size:12px;font-weight:600;
-  cursor:pointer;transition:all 0.18s;
-  display:flex;align-items:center;justify-content:center;gap:7px;
+  flex:1;padding:10px 8px;border-radius:11px;border:1.5px solid rgba(255,255,255,0.08);
+  background:rgba(255,255,255,0.03);color:rgba(255,255,255,0.4);
+  font-family:var(--F);font-size:12px;font-weight:600;letter-spacing:0.3px;
+  cursor:pointer;transition:all 0.18s;display:flex;align-items:center;justify-content:center;gap:7px;
 }
+.vc-fmt svg{width:13px;height:13px;stroke:currentColor;stroke-width:2;fill:none;}
+.vc-fmt:hover{background:rgba(255,255,255,0.06);}
 .vc-fmt.on{
   background:rgba(61,114,246,0.18);border-color:rgba(61,114,246,0.5);
-  color:#8ab4f8;box-shadow:0 0 14px rgba(61,114,246,0.15);
+  color:#8ab4f8;box-shadow:0 0 12px rgba(61,114,246,0.15);
 }
-.vc-fmt:hover:not(.on){background:rgba(255,255,255,0.05);}
-.vc-fmt svg{width:13px;height:13px;stroke:currentColor;stroke-width:2;fill:none;}
 /* quality */
 .vc-qual-row{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;}
 .vc-q{
-  padding:10px 4px 8px;border-radius:12px;
-  border:1.5px solid rgba(255,255,255,0.07);
-  background:rgba(255,255,255,0.022);
-  color:rgba(255,255,255,0.35);
+  padding:9px 4px 8px;border-radius:11px;border:1.5px solid rgba(255,255,255,0.08);
+  background:rgba(255,255,255,0.025);color:rgba(255,255,255,0.35);
   font-family:var(--F);cursor:pointer;transition:all 0.18s;text-align:center;
-  display:flex;flex-direction:column;align-items:center;gap:3px;
+  display:flex;flex-direction:column;align-items:center;gap:2px;
 }
-.vc-q:hover{background:rgba(114,72,245,0.1);border-color:rgba(114,72,245,0.3);}
+.vc-q:hover{background:rgba(114,72,245,0.1);border-color:rgba(114,72,245,0.28);}
 .vc-q.on{
-  background:linear-gradient(150deg,rgba(114,72,245,0.25),rgba(61,114,246,0.18));
-  border-color:rgba(114,72,245,0.6);color:#d0b8ff;
-  box-shadow:0 0 16px rgba(114,72,245,0.2);
+  background:linear-gradient(160deg,rgba(114,72,245,0.24),rgba(61,114,246,0.16));
+  border-color:rgba(114,72,245,0.6);color:#c4a8ff;
+  box-shadow:0 0 14px rgba(114,72,245,0.2);
 }
-.vc-qi{font-size:14px;}
-.vc-ql{font-size:10px;font-weight:700;letter-spacing:0.5px;}
-.vc-qd{font-size:8px;opacity:0.45;font-weight:500;}
-/* main download btn */
+.vc-ql{font-size:9.5px;font-weight:800;letter-spacing:0.5px;}
+.vc-qd{font-size:8px;opacity:0.5;font-weight:500;}
+/* download button */
 .vc-dl-btn{
-  width:100%;padding:16px;border-radius:15px;border:none;
-  background:linear-gradient(135deg,#7248f5 0%,#3d72f6 55%,#00b4ff 100%);
-  color:#fff;font-family:var(--F);font-size:14px;font-weight:800;
-  letter-spacing:2px;cursor:pointer;position:relative;overflow:hidden;
-  transition:all 0.22s var(--ease);
-  box-shadow:0 6px 30px rgba(114,72,245,0.45);
-}
-.vc-dl-btn::before{
-  content:'';position:absolute;inset:0;
-  background:linear-gradient(135deg,rgba(255,255,255,0.18) 0%,transparent 55%);
-  pointer-events:none;
+  width:100%;padding:15px;border-radius:15px;border:none;
+  background:linear-gradient(135deg,#7248f5 0%,#4070f0 55%,#00b8d9 100%);
+  color:#fff;font-family:var(--F);font-size:14px;font-weight:700;letter-spacing:2px;
+  cursor:pointer;position:relative;overflow:hidden;margin-bottom:0;
+  transition:transform 0.18s,box-shadow 0.18s;
+  box-shadow:0 6px 28px rgba(114,72,245,0.45),0 2px 8px rgba(0,0,0,0.3);
 }
 .vc-dl-btn::after{
   content:'';position:absolute;inset:0;
-  background:linear-gradient(180deg,transparent 50%,rgba(0,0,0,0.1));
+  background:linear-gradient(135deg,rgba(255,255,255,0.18) 0%,transparent 50%);
   pointer-events:none;
 }
-.vc-dl-btn:hover:not(:disabled){
-  transform:translateY(-2px);
-  box-shadow:0 12px 40px rgba(114,72,245,0.6);
-}
+.vc-dl-btn:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 10px 36px rgba(114,72,245,0.6);}
 .vc-dl-btn:active:not(:disabled){transform:translateY(0);}
 .vc-dl-btn:disabled{opacity:0.3;cursor:not-allowed;transform:none;}
 /* progress */
 .vc-prog{
-  display:none;margin-top:12px;
-  background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);
+  display:none;margin-top:13px;
+  background:rgba(255,255,255,0.035);border:1px solid rgba(255,255,255,0.07);
   border-radius:15px;padding:15px;
 }
 .vc-prog.on{display:block;animation:msgIn 0.25s var(--ease);}
-.vc-prog-top{
-  display:flex;align-items:center;gap:7px;margin-bottom:10px;
-  font-size:11px;font-weight:600;color:rgba(255,255,255,0.45);letter-spacing:0.3px;
-}
-.vc-prog-dot{
-  width:7px;height:7px;border-radius:50%;flex-shrink:0;
-  background:#7248f5;animation:dotPulse 1.1s ease-in-out infinite;
-  box-shadow:0 0 8px rgba(114,72,245,0.7);
-}
-.vc-prog-track{height:3px;background:rgba(255,255,255,0.06);border-radius:2px;margin-bottom:12px;overflow:hidden;}
-.vc-prog-fill{
-  height:100%;border-radius:2px;width:0%;
-  background:linear-gradient(90deg,#7248f5,#3d72f6,#00b4ff);
-  transition:width 0.4s ease;box-shadow:0 0 10px rgba(114,72,245,0.55);
-}
-.vc-steps{display:flex;flex-direction:column;gap:6px;}
-.vc-step{
-  display:flex;align-items:center;gap:8px;
-  font-size:11.5px;color:rgba(255,255,255,0.3);transition:color 0.2s;
-}
+.vc-prog-top{display:flex;align-items:center;gap:7px;margin-bottom:10px;font-size:11px;color:rgba(255,255,255,0.5);}
+.vc-prog-dot{width:6px;height:6px;border-radius:50%;background:#7248f5;flex-shrink:0;animation:dotPulse 1s ease-in-out infinite;}
+.vc-prog-track{height:3px;background:rgba(255,255,255,0.07);border-radius:2px;overflow:hidden;margin-bottom:11px;}
+.vc-prog-fill{height:100%;border-radius:2px;width:0%;transition:width 0.4s ease;
+  background:linear-gradient(90deg,#7248f5,#4070f0,#00b8d9);box-shadow:0 0 8px rgba(114,72,245,0.6);}
+.vc-steps{display:flex;flex-direction:column;gap:5px;}
+.vc-step{display:flex;align-items:center;gap:8px;font-size:11.5px;color:rgba(255,255,255,0.28);transition:color 0.2s;}
 .vc-step.go{color:rgba(255,255,255,0.85);}
-.vc-step.ok{color:rgba(16,185,129,0.85);}
-.vc-step-d{
-  width:7px;height:7px;border-radius:50%;flex-shrink:0;
-  background:rgba(255,255,255,0.1);transition:all 0.25s;
-}
+.vc-step.ok{color:rgba(16,185,129,0.8);}
+.vc-step-d{width:6px;height:6px;border-radius:50%;flex-shrink:0;background:rgba(255,255,255,0.1);transition:all 0.22s;}
 .vc-step.go .vc-step-d{background:#7248f5;animation:dotPulse 1s ease-in-out infinite;box-shadow:0 0 8px rgba(114,72,245,0.7);}
-.vc-step.ok .vc-step-d{background:#10b981;animation:none;box-shadow:0 0 6px rgba(16,185,129,0.5);}
+.vc-step.ok .vc-step-d{background:#10b981;box-shadow:0 0 6px rgba(16,185,129,0.5);}
 /* error */
 .vc-err{
-  display:none;margin-top:11px;
-  background:rgba(240,68,68,0.07);border:1px solid rgba(240,68,68,0.22);
-  border-radius:13px;padding:13px 15px;
-  font-size:12.5px;color:#f87171;line-height:1.6;
+  display:none;margin-top:12px;
+  background:rgba(240,68,68,0.08);border:1px solid rgba(240,68,68,0.22);
+  border-radius:12px;padding:13px 15px;font-size:12px;color:#f87171;line-height:1.6;
 }
 .vc-err.on{display:block;animation:msgIn 0.25s var(--ease);}
 /* result */
 .vc-result{
-  display:none;margin-top:12px;
+  display:none;margin-top:13px;
   border-radius:18px;overflow:hidden;
   border:1px solid rgba(16,185,129,0.22);
-  background:rgba(16,185,129,0.048);
-  animation:msgIn 0.32s var(--ease);
+  animation:msgIn 0.3s var(--ease);
 }
 .vc-result.on{display:block;}
 .vc-result-head{
-  padding:13px 15px 11px;
-  border-bottom:1px solid rgba(255,255,255,0.05);
-  display:flex;align-items:center;gap:8px;
+  padding:12px 16px;
+  background:linear-gradient(135deg,rgba(16,185,129,0.15),rgba(16,185,129,0.08));
+  border-bottom:1px solid rgba(16,185,129,0.15);
+  display:flex;align-items:center;gap:8px;position:relative;overflow:hidden;
 }
 .vc-result-glow{
-  width:8px;height:8px;border-radius:50%;background:#10b981;flex-shrink:0;
-  box-shadow:0 0 10px rgba(16,185,129,0.8);animation:dotPulse 2s ease-in-out infinite;
+  position:absolute;left:-20px;top:50%;transform:translateY(-50%);
+  width:60px;height:60px;border-radius:50%;
+  background:rgba(16,185,129,0.3);filter:blur(20px);pointer-events:none;
 }
-.vc-result-ok{font-size:10px;font-weight:700;letter-spacing:1.5px;color:#6ee7b7;text-transform:uppercase;}
-.vc-result-body{padding:12px 15px 14px;}
+.vc-result-ok{font-size:11.5px;font-weight:700;letter-spacing:1px;color:#6ee7b7;position:relative;}
+.vc-result-body{padding:14px 15px;}
 .vc-result-thumb{
-  width:100%;max-height:165px;object-fit:cover;
-  border-radius:10px;margin-bottom:11px;
-  border:1px solid rgba(255,255,255,0.06);display:none;
+  width:100%;max-height:160px;object-fit:cover;border-radius:10px;
+  margin-bottom:11px;border:1px solid rgba(255,255,255,0.07);display:none;
 }
-.vc-result-title{font-size:13px;font-weight:700;color:#fff;line-height:1.45;margin-bottom:6px;}
-.vc-result-tags{
-  display:flex;flex-wrap:wrap;gap:5px;margin-bottom:13px;
-}
+.vc-result-title{font-size:13px;font-weight:700;color:#fff;margin-bottom:7px;line-height:1.45;}
+.vc-result-tags{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:12px;}
 .vc-result-tag{
-  font-size:10px;padding:2px 8px;border-radius:6px;
-  background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.09);
-  color:rgba(255,255,255,0.45);
+  font-size:10px;padding:2px 9px;border-radius:6px;
+  background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.09);color:rgba(255,255,255,0.5);
 }
-/* download rows */
+/* download link rows */
 .vc-links{display:flex;flex-direction:column;gap:7px;}
 .vc-link{
-  display:flex;align-items:center;gap:10px;
-  padding:11px 13px;border-radius:12px;
-  background:rgba(255,255,255,0.035);
-  border:1px solid rgba(255,255,255,0.075);
-  text-decoration:none;color:#fff;cursor:pointer;
-  transition:all 0.18s;
+  display:flex;align-items:center;gap:10px;padding:11px 13px;
+  border-radius:12px;background:rgba(255,255,255,0.038);
+  border:1px solid rgba(255,255,255,0.08);cursor:pointer;
+  transition:background 0.18s,border-color 0.18s,transform 0.15s;
+  user-select:none;
 }
-.vc-link:hover{
-  background:rgba(114,72,245,0.14);
-  border-color:rgba(114,72,245,0.4);
-  transform:translateY(-1px);
-}
+.vc-link:hover{background:rgba(114,72,245,0.1);border-color:rgba(114,72,245,0.3);transform:translateY(-1px);}
+.vc-link:active{transform:translateY(0);}
 .vc-link-ic{
   width:36px;height:36px;border-radius:10px;flex-shrink:0;
   display:flex;align-items:center;justify-content:center;
 }
 .vc-link-info{flex:1;min-width:0;}
-.vc-link-lbl{font-size:13px;font-weight:600;color:#fff;}
-.vc-link-sub{font-size:10px;color:rgba(255,255,255,0.35);margin-top:1px;}
-.vc-link-arr svg{width:16px;height:16px;fill:none;stroke:rgba(114,72,245,0.65);stroke-width:2.2;}
+.vc-link-lbl{font-size:12.5px;font-weight:600;color:#fff;}
+.vc-link-sub{font-size:10px;color:rgba(255,255,255,0.35);margin-top:2px;}
+.vc-link-arr svg{width:15px;height:15px;stroke:rgba(114,72,245,0.6);stroke-width:2.2;fill:none;}
 /* howto */
 .vc-howto{display:flex;flex-direction:column;gap:7px;}
 .vc-hs{
-  display:flex;align-items:flex-start;gap:10px;
-  padding:10px 12px;background:rgba(255,255,255,0.022);
-  border:1px solid rgba(255,255,255,0.055);border-radius:11px;
-  font-size:12px;color:rgba(255,255,255,0.38);line-height:1.55;
+  display:flex;align-items:flex-start;gap:10px;padding:9px 12px;
+  background:rgba(255,255,255,0.025);border:1px solid rgba(255,255,255,0.055);
+  border-radius:11px;font-size:11.5px;color:rgba(255,255,255,0.38);line-height:1.55;
 }
 .vc-hn{
   width:21px;height:21px;border-radius:7px;flex-shrink:0;margin-top:1px;
-  background:rgba(114,72,245,0.25);border:1px solid rgba(114,72,245,0.4);
+  background:linear-gradient(135deg,rgba(114,72,245,0.35),rgba(61,114,246,0.25));
+  border:1px solid rgba(114,72,245,0.4);
   display:flex;align-items:center;justify-content:center;
   font-size:10px;font-weight:800;color:#c4a8ff;
 }
+
+/* ================= MAINTENANCE ================= */
 
 /* ================= MAINTENANCE ================= */
 
@@ -2098,17 +2049,16 @@ line-height:1.8;
 
 <!-- MEDIA DOWNLOADER PAGE -->
 <div id="videoConverterPage">
-  <div id="vcBg"></div>
-  <div id="vcGrid"></div>
+  <div class="vcp-grid"></div>
+  <div class="vcp-sweep"></div>
   <svg style="position:absolute;width:0;height:0"><defs>
     <linearGradient id="vcG" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#c4a8ff"/><stop offset="100%" stop-color="#7aa8f7"/>
+      <stop offset="0%" stop-color="#d4b8ff"/><stop offset="100%" stop-color="#5ce0e6"/>
     </linearGradient>
   </defs></svg>
 
   <div class="vc-wrap">
 
-    <!-- Topbar -->
     <div class="vc-topbar">
       <div class="vc-back" onclick="closeVideoConverter()">
         <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
@@ -2117,49 +2067,45 @@ line-height:1.8;
       <span class="vc-topbar-badge">BETA</span>
     </div>
 
-    <!-- Hero -->
     <div class="vc-hero">
       <div class="vc-hero-ring">
         <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
       </div>
       <div class="vc-hero-h">MEDIA DOWNLOADER</div>
-      <div class="vc-hero-p">Download video & audio dari semua sosial media tanpa watermark</div>
+      <div class="vc-hero-p">Download video dan audio dari semua sosial media tanpa watermark</div>
     </div>
 
-    <!-- Platforms -->
     <div class="vc-sec-label">Platform yang didukung</div>
     <div class="vc-pills">
       <span class="vcp" style="color:#00f2ea;border-color:rgba(0,242,234,0.3);background:rgba(0,242,234,0.07);">TikTok</span>
-      <span class="vcp" style="color:#ff4444;border-color:rgba(255,68,68,0.3);background:rgba(255,68,68,0.07);">YouTube</span>
+      <span class="vcp" style="color:#ff5555;border-color:rgba(255,85,85,0.3);background:rgba(255,85,85,0.07);">YouTube</span>
       <span class="vcp" style="color:#e1306c;border-color:rgba(225,48,108,0.3);background:rgba(225,48,108,0.07);">Instagram</span>
-      <span class="vcp" style="color:#e8e8e8;border-color:rgba(255,255,255,0.2);background:rgba(255,255,255,0.05);">Twitter / X</span>
+      <span class="vcp" style="color:#d0d0d0;border-color:rgba(200,200,200,0.2);background:rgba(200,200,200,0.05);">Twitter / X</span>
       <span class="vcp" style="color:#4a8fe8;border-color:rgba(74,143,232,0.3);background:rgba(74,143,232,0.07);">Facebook</span>
       <span class="vcp" style="color:#f5d90a;border-color:rgba(245,217,10,0.3);background:rgba(245,217,10,0.07);">Snapchat</span>
       <span class="vcp" style="color:#ff4560;border-color:rgba(255,69,96,0.3);background:rgba(255,69,96,0.07);">Pinterest</span>
       <span class="vcp" style="color:#bf94ff;border-color:rgba(191,148,255,0.3);background:rgba(191,148,255,0.07);">Twitch</span>
       <span class="vcp" style="color:#1ab7ea;border-color:rgba(26,183,234,0.3);background:rgba(26,183,234,0.07);">Vimeo</span>
       <span class="vcp" style="color:#6ab0ff;border-color:rgba(106,176,255,0.3);background:rgba(106,176,255,0.07);">Dailymotion</span>
-      <span class="vcp" style="color:#ff5555;border-color:rgba(255,85,85,0.3);background:rgba(255,85,85,0.07);">YT Shorts</span>
-      <span class="vcp" style="color:rgba(255,255,255,0.35);border-color:rgba(255,255,255,0.1);background:rgba(255,255,255,0.03);">& Lainnya</span>
+      <span class="vcp" style="color:#ff5555;border-color:rgba(255,85,85,0.25);background:rgba(255,85,85,0.06);">YT Shorts</span>
+      <span class="vcp" style="color:rgba(255,255,255,0.28);border-color:rgba(255,255,255,0.1);background:rgba(255,255,255,0.03);">Lainnya</span>
     </div>
 
-    <!-- URL Input -->
     <div class="vc-card">
       <div class="vc-clabel"><div class="vc-clabel-dot"></div>Link Video</div>
       <div class="vc-url-row" id="vcUrlRow">
         <input class="vc-url-in" id="vcUrlInput" type="url"
-          placeholder="https://vt.tiktok.com/… atau https://youtu.be/…"
+          placeholder="https://vt.tiktok.com/  atau  https://youtu.be/..."
           autocomplete="off" spellcheck="false" oninput="vcDetectPlatform()">
-        <button class="vc-paste" onclick="vcPasteUrl()" title="Paste clipboard">
+        <button class="vc-paste" onclick="vcPasteUrl()" title="Paste">
           <svg viewBox="0 0 24 24"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/></svg>
         </button>
       </div>
       <div class="vc-badge" id="vcBadge"></div>
     </div>
 
-    <!-- Format + Quality -->
     <div class="vc-card">
-      <div class="vc-clabel"><div class="vc-clabel-dot"></div>Format & Kualitas</div>
+      <div class="vc-clabel"><div class="vc-clabel-dot"></div>Format</div>
       <div class="vc-fmt-row">
         <button class="vc-fmt on" id="vcFmtMp4" onclick="vcSetFormat('video')">
           <svg viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>MP4 Video
@@ -2168,33 +2114,19 @@ line-height:1.8;
           <svg viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>MP3 Audio
         </button>
       </div>
+      <div class="vc-clabel" style="margin-top:2px"><div class="vc-clabel-dot"></div>Kualitas</div>
       <div class="vc-qual-row" id="vcQualRow">
-        <button class="vc-q on" id="vcQBest" onclick="vcSetQuality('best')">
-          <span class="vc-qi">✦</span><span class="vc-ql">BEST</span><span class="vc-qd">Terbaik</span>
-        </button>
-        <button class="vc-q" id="vcQVideo" onclick="vcSetQuality('video')">
-          <span class="vc-qi">◈</span><span class="vc-ql">HD</span><span class="vc-qd">720p</span>
-        </button>
-        <button class="vc-q" id="vcQ480" onclick="vcSetQuality('480')">
-          <span class="vc-qi">◇</span><span class="vc-ql">NORMAL</span><span class="vc-qd">480p</span>
-        </button>
-        <button class="vc-q" id="vcQ360" onclick="vcSetQuality('360')">
-          <span class="vc-qi">○</span><span class="vc-ql">LOW</span><span class="vc-qd">360p</span>
-        </button>
+        <button class="vc-q on" id="vcQBest"  onclick="vcSetQuality('best')"><span class="vc-ql">BEST</span><span class="vc-qd">Terbaik</span></button>
+        <button class="vc-q"    id="vcQVideo" onclick="vcSetQuality('video')"><span class="vc-ql">HD</span><span class="vc-qd">720p</span></button>
+        <button class="vc-q"    id="vcQ480"   onclick="vcSetQuality('480')"><span class="vc-ql">NORMAL</span><span class="vc-qd">480p</span></button>
+        <button class="vc-q"    id="vcQ360"   onclick="vcSetQuality('360')"><span class="vc-ql">LOW</span><span class="vc-qd">360p</span></button>
       </div>
     </div>
 
-    <!-- Download button -->
-    <button class="vc-dl-btn" id="vcConvertBtn" onclick="vcStartConvert()" disabled>
-      ↓ &nbsp;DOWNLOAD SEKARANG
-    </button>
+    <button class="vc-dl-btn" id="vcConvertBtn" onclick="vcStartConvert()" disabled>DOWNLOAD SEKARANG</button>
 
-    <!-- Progress -->
     <div class="vc-prog" id="vcProg">
-      <div class="vc-prog-top">
-        <div class="vc-prog-dot"></div>
-        <span id="vcProgLabel">Memproses…</span>
-      </div>
+      <div class="vc-prog-top"><div class="vc-prog-dot"></div><span id="vcProgLabel">Memproses...</span></div>
       <div class="vc-prog-track"><div class="vc-prog-fill" id="vcProgFill"></div></div>
       <div class="vc-steps">
         <div class="vc-step" id="vs1"><div class="vc-step-d"></div>Menganalisis URL</div>
@@ -2204,34 +2136,31 @@ line-height:1.8;
       </div>
     </div>
 
-    <!-- Error -->
     <div class="vc-err" id="vcErr"></div>
 
-    <!-- Result -->
     <div class="vc-result" id="vcResult">
       <div class="vc-result-head">
         <div class="vc-result-glow"></div>
-        <div class="vc-result-ok">✓ &nbsp;Berhasil — Siap Download</div>
+        <div class="vc-result-ok">Berhasil — Siap Download</div>
       </div>
       <div class="vc-result-body">
         <img class="vc-result-thumb" id="vcThumb" src="" alt="">
         <div class="vc-result-title" id="vcTitle"></div>
-        <div class="vc-result-tags" id="vcTags"></div>
-        <div class="vc-links" id="vcLinks"></div>
+        <div class="vc-result-tags"  id="vcTags"></div>
+        <div class="vc-links"        id="vcLinks"></div>
       </div>
     </div>
 
-    <!-- Howto -->
     <div class="vc-card" style="margin-top:14px">
       <div class="vc-clabel"><div class="vc-clabel-dot"></div>Cara Pakai</div>
       <div class="vc-howto">
-        <div class="vc-hs"><div class="vc-hn">1</div>Copy link video dari TikTok, YouTube, Instagram, dan sosmed lainnya</div>
-        <div class="vc-hs"><div class="vc-hn">2</div>Paste link di atas, pilih format MP4 / MP3 dan kualitas yang diinginkan</div>
-        <div class="vc-hs"><div class="vc-hn">3</div>Tap "Download Sekarang" — tunggu sebentar lalu tap tombol unduh yang muncul</div>
+        <div class="vc-hs"><div class="vc-hn">1</div>Copy link video dari TikTok, YouTube, Instagram, atau sosmed lainnya</div>
+        <div class="vc-hs"><div class="vc-hn">2</div>Paste link di atas, pilih format MP4 atau MP3 dan kualitas yang diinginkan</div>
+        <div class="vc-hs"><div class="vc-hn">3</div>Tap Download, tunggu sebentar lalu tap tombol unduh yang muncul</div>
       </div>
     </div>
 
-  </div><!-- /vc-wrap -->
+  </div>
 </div>
 
 <!-- FULLSCREEN PREVIEW OVERLAY -->
@@ -5304,52 +5233,45 @@ function startNameCanvas(){
 }
 
 /* ════════════════════════════════════════════════════════
-   MEDIA DOWNLOADER  v4
-   Step 1: POST /api/download/info  → title, thumbnail, duration, formats[]
-   Step 2: POST /api/download/video → downloadUrl, fileName, size
+   MEDIA DOWNLOADER  v5
+   API: cobalt.tools (free, no key, unlimited)
+   Endpoint: POST https://api.cobalt.tools/
+   Fallback: allorigins proxy if CORS blocked
    ════════════════════════════════════════════════════════ */
-const VC_KEY = "axka_48b3b63e4d914b10800f679770ee73bf";
-const VC_URL = "https://webtoapk2-web2apk.up.railway.app";
+const _VC = {
+  api: "https://api.cobalt.tools/",
+  fmt: "video",   // "video" | "mp3"
+  qual: "1080",   // "max" | "1080" | "720" | "480" | "360"
+  ctrl: null
+};
 
-let _vcFmt  = "video";
-let _vcQual = "best";
-let _vcCtrl = null;
+const $ = id => document.getElementById(id);
 
-const $  = id => document.getElementById(id);
-
-/* ── open — slide in from nowhere, page stays fixed ── */
+/* ── OPEN — smooth slide in, no animation conflict ── */
 function openVideoConverter(){
   const p = $("videoConverterPage");
-  p.classList.remove("vc-closing");
-  p.style.opacity   = "0";
-  p.style.transform = "translateY(10px)";
-  p.style.display   = "block";
-  /* force reflow then animate in */
+  p.style.cssText = "display:block;opacity:0;transform:translateY(12px);transition:opacity 0.25s ease,transform 0.25s ease;";
   void p.offsetHeight;
-  p.style.transition = "opacity 0.25s ease, transform 0.25s ease";
-  p.style.opacity    = "1";
-  p.style.transform  = "translateY(0)";
-  p.scrollTop        = 0;
+  p.style.opacity = "1";
+  p.style.transform = "translateY(0)";
+  p.scrollTop = 0;
 }
 
-/* ── close — slide out, then hide — NEVER triggers splOut ── */
+/* ── CLOSE — slide out, hide, NO splOut involved ── */
 function closeVideoConverter(){
   const p = $("videoConverterPage");
-  p.style.transition = "opacity 0.2s ease, transform 0.2s ease";
-  p.style.opacity    = "0";
-  p.style.transform  = "translateY(8px)";
-  if(_vcCtrl){ _vcCtrl.abort(); _vcCtrl = null; }
+  p.style.transition = "opacity 0.2s ease,transform 0.2s ease";
+  p.style.opacity = "0";
+  p.style.transform = "translateY(10px)";
+  if(_VC.ctrl){ _VC.ctrl.abort(); _VC.ctrl = null; }
   setTimeout(()=>{
-    p.style.display    = "none";
-    p.style.transition = "";
-    p.style.opacity    = "";
-    p.style.transform  = "";
+    p.style.cssText = "display:none;";
   }, 220);
 }
 
-/* ── format toggle ── */
+/* ── FORMAT ── */
 function vcSetFormat(f){
-  _vcFmt = f;
+  _VC.fmt = f;
   $("vcFmtMp4").classList.toggle("on", f==="video");
   $("vcFmtMp3").classList.toggle("on", f==="mp3");
   const qr = $("vcQualRow");
@@ -5357,36 +5279,36 @@ function vcSetFormat(f){
   qr.style.pointerEvents = f==="mp3" ? "none" : "";
 }
 
-/* ── quality ── */
+/* ── QUALITY ── */
 function vcSetQuality(q){
-  _vcQual = q;
+  _VC.qual = q;
   ["vcQBest","vcQVideo","vcQ480","vcQ360"].forEach(id=>{
     const el=$(id); if(el) el.classList.remove("on");
   });
-  const map = {best:"vcQBest",video:"vcQVideo","480":"vcQ480","360":"vcQ360"};
-  const el = $(map[q]); if(el) el.classList.add("on");
+  const m = {best:"vcQBest",video:"vcQVideo","480":"vcQ480","360":"vcQ360"};
+  const el = $(m[q]); if(el) el.classList.add("on");
 }
 
-/* ── detect platform ── */
+/* ── DETECT PLATFORM ── */
 function vcDetectPlatform(){
   const raw = ($("vcUrlInput").value||"").trim();
   const badge = $("vcBadge"), btn = $("vcConvertBtn");
   badge.className = "vc-badge"; badge.textContent = "";
   if(!raw){ btn.disabled=true; return; }
   let plat="", cls="ok";
-  if(/tiktok\.com/i.test(raw))               { plat="TikTok";    cls="tiktok";    }
-  else if(/youtube\.com|youtu\.be/i.test(raw)){ plat="YouTube";   cls="youtube";   }
-  else if(/instagram\.com/i.test(raw))        { plat="Instagram"; cls="instagram"; }
-  else if(/twitter\.com|x\.com/i.test(raw))   { plat="Twitter/X"; cls="twitter";   }
-  else if(/facebook\.com|fb\.com/i.test(raw)) { plat="Facebook";  cls="facebook";  }
-  else if(/snapchat\.com/i.test(raw))         { plat="Snapchat";  }
-  else if(/pinterest\.com/i.test(raw))        { plat="Pinterest"; }
-  else if(/vimeo\.com/i.test(raw))            { plat="Vimeo";     }
-  else if(/twitch\.tv/i.test(raw))            { plat="Twitch";    }
-  else if(/dailymotion\.com/i.test(raw))      { plat="Dailymotion"; }
+  if(/tiktok\.com/i.test(raw))                {plat="TikTok";     cls="tiktok";   }
+  else if(/youtube\.com|youtu\.be/i.test(raw)){plat="YouTube";    cls="youtube";  }
+  else if(/instagram\.com/i.test(raw))         {plat="Instagram";  cls="instagram";}
+  else if(/twitter\.com|x\.com/i.test(raw))   {plat="Twitter / X";cls="twitter";  }
+  else if(/facebook\.com|fb\.com/i.test(raw)) {plat="Facebook";   cls="facebook"; }
+  else if(/snapchat\.com/i.test(raw))          {plat="Snapchat";                   }
+  else if(/pinterest\.com/i.test(raw))         {plat="Pinterest";                  }
+  else if(/vimeo\.com/i.test(raw))             {plat="Vimeo";                      }
+  else if(/twitch\.tv/i.test(raw))             {plat="Twitch";                     }
+  else if(/dailymotion\.com/i.test(raw))       {plat="Dailymotion";                }
   if(raw.startsWith("http")){
     badge.className = "vc-badge on "+cls;
-    badge.textContent = plat ? "✦  "+plat+" terdeteksi" : "🔗  Link valid";
+    badge.textContent = plat ? plat+" terdeteksi" : "Link valid";
     btn.disabled = false;
   } else { btn.disabled = true; }
 }
@@ -5398,49 +5320,32 @@ async function vcPasteUrl(){
   }catch(e){ $("vcUrlInput").focus(); }
 }
 
-/* ── progress ── */
+/* ── PROGRESS HELPERS ── */
 function _vcProg(on){
-  $("vcProg").classList.toggle("on", on);
+  $("vcProg").classList.toggle("on",on);
   $("vcConvertBtn").disabled = on;
   $("vcUrlInput").disabled   = on;
 }
-function _vcStep(n, txt){
+function _vcStep(n,txt){
   ["vs1","vs2","vs3","vs4"].forEach((id,i)=>{
     const el=$(id); if(!el) return;
-    el.className = "vc-step"+(i<n-1?" ok":i===n-1?" go":"");
+    el.className="vc-step"+(i<n-1?" ok":i===n-1?" go":"");
   });
-  $("vcProgFill").style.width = ({1:10,2:34,3:64,4:88}[n]||10)+"%";
-  if(txt) $("vcProgLabel").textContent = txt;
+  $("vcProgFill").style.width=({1:10,2:36,3:65,4:88}[n]||8)+"%";
+  if(txt) $("vcProgLabel").textContent=txt;
 }
 function _vcErr(msg){
-  const e = $("vcErr");
-  e.innerHTML = "⚠️ &nbsp;"+msg;
-  e.classList.add("on");
+  $("vcErr").innerHTML=msg; $("vcErr").classList.add("on");
   $("vcResult").classList.remove("on");
 }
 function _vcClearErr(){ $("vcErr").classList.remove("on"); }
 
-/* ── POST helper ── */
-async function _vcPost(path, body, sig){
-  const res = await fetch(VC_URL+path,{
-    method:"POST",
-    headers:{"Content-Type":"application/json","X-API-Key":VC_KEY},
-    body:JSON.stringify(body),
-    signal:sig
-  });
-  let data;
-  try{ data = await res.json(); }
-  catch(e){ throw new Error("Respons server tidak valid (HTTP "+res.status+")"); }
-  if(!res.ok || data.success===false)
-    throw new Error(data.message||data.error||"Server error "+res.status);
-  return data;
-}
-
-/* ══════════════════════════════════════════
-   MAIN: 2-step flow
-   Step 1 /api/download/info  → meta
-   Step 2 /api/download/video → link
-══════════════════════════════════════════ */
+/* ══════════════════════════════════════════════════════
+   COBALT.TOOLS API — free, no key needed
+   POST https://api.cobalt.tools/
+   Body: { url, videoQuality, isAudioOnly, filenameStyle }
+   Response: { status, url } or { status, picker[] }
+══════════════════════════════════════════════════════ */
 async function vcStartConvert(){
   const rawUrl = ($("vcUrlInput").value||"").trim();
   if(!rawUrl) return;
@@ -5448,95 +5353,131 @@ async function vcStartConvert(){
   _vcClearErr();
   $("vcResult").classList.remove("on");
   _vcProg(true);
-  _vcStep(1,"Menganalisis URL…");
+  _vcStep(1,"Menganalisis URL...");
 
-  if(_vcCtrl) _vcCtrl.abort();
-  _vcCtrl = new AbortController();
-  const sig = _vcCtrl.signal;
+  if(_VC.ctrl) _VC.ctrl.abort();
+  _VC.ctrl = new AbortController();
+  const sig = _VC.ctrl.signal;
+
+  // map quality selector to cobalt videoQuality
+  const qualMap = {best:"max",video:"720","480":"480","360":"360"};
+  const videoQuality = qualMap[_VC.qual] || "max";
+  const isAudioOnly  = _VC.fmt === "mp3";
+
+  const body = {
+    url: rawUrl,
+    videoQuality,
+    isAudioOnly,
+    isAudioMuted: false,
+    disableMetadata: false,
+    filenameStyle: "basic",
+    downloadMode: isAudioOnly ? "audio" : "auto"
+  };
 
   try{
-    /* Step 1: info */
-    _vcStep(2,"Mengambil info video…");
-    const info = await _vcPost("/api/download/info",{url:rawUrl},sig);
+    _vcStep(2,"Menghubungi server...");
 
-    /* Step 2: download link */
-    _vcStep(3,"Memproses & konversi…");
-    const quality = _vcFmt==="mp3" ? "mp3" : _vcQual;
-    const dl = await _vcPost("/api/download/video",{url:rawUrl,quality},sig);
+    let data = null;
 
-    _vcStep(4,"Menyiapkan link…");
-    await new Promise(r=>setTimeout(r,260));
-    $("vcProgFill").style.width = "100%";
-    await new Promise(r=>setTimeout(r,160));
+    /* ── Try A: cobalt.tools direct ── */
+    try{
+      const res = await fetch(_VC.api,{
+        method:"POST",
+        headers:{"Content-Type":"application/json","Accept":"application/json"},
+        body:JSON.stringify(body),
+        signal:sig
+      });
+      if(res.ok) data = await res.json();
+    }catch(e1){ if(e1.name==="AbortError") throw e1; }
 
+    /* ── Try B: allorigins CORS proxy ── */
+    if(!data){
+      try{
+        const proxyUrl = "https://api.allorigins.win/raw?url="+encodeURIComponent(_VC.api);
+        const res2 = await fetch(proxyUrl,{
+          method:"POST",
+          headers:{"Content-Type":"application/json","Accept":"application/json"},
+          body:JSON.stringify(body),
+          signal:sig
+        });
+        if(res2.ok) data = await res2.json();
+      }catch(e2){ if(e2.name==="AbortError") throw e2; }
+    }
+
+    /* ── Try C: corsproxy.io ── */
+    if(!data){
+      try{
+        const res3 = await fetch("https://corsproxy.io/?url="+encodeURIComponent(_VC.api),{
+          method:"POST",
+          headers:{"Content-Type":"application/json","Accept":"application/json"},
+          body:JSON.stringify(body),
+          signal:sig
+        });
+        if(res3.ok) data = await res3.json();
+      }catch(e3){ if(e3.name==="AbortError") throw e3; }
+    }
+
+    if(!data) throw new Error("Semua server tidak merespons. Coba lagi nanti.");
+
+    _vcStep(3,"Memproses video...");
+
+    // cobalt response: status = "stream"|"redirect"|"tunnel"|"picker"|"error"
+    if(data.status==="error"){
+      throw new Error(data.error?.code || data.error || "Server menolak permintaan ini.");
+    }
+
+    _vcStep(4,"Menyiapkan link...");
+    await new Promise(r=>setTimeout(r,200));
+    $("vcProgFill").style.width="100%";
+    await new Promise(r=>setTimeout(r,150));
     _vcProg(false);
-    _vcRender(info, dl);
+
+    // extract download URLs
+    let urls = [];
+    if(data.url){
+      urls = [{url:data.url, label: isAudioOnly?"MP3 Audio":"MP4 Video", isAudio:isAudioOnly}];
+    } else if(Array.isArray(data.picker)){
+      data.picker.forEach((item,i)=>{
+        if(item.url) urls.push({url:item.url, label:item.type||"Video "+(i+1), isAudio:false});
+      });
+    }
+
+    if(!urls.length) throw new Error("Tidak ada link yang dikembalikan server.");
+
+    _vcRender(urls, rawUrl);
 
   }catch(e){
     if(e.name==="AbortError") return;
     _vcProg(false);
-    _vcErr(e.message||"Gagal. Pastikan link valid dan coba lagi.");
+    _vcErr("Gagal: "+(e.message||"Coba lagi dengan link berbeda."));
   }
 }
 
-/* ══════════════════════════════════════════
-   RENDER
-══════════════════════════════════════════ */
-function _vcRender(info, dl){
-  const vtitle = info.title||info.video_title||"Video";
-  const vthumb = info.thumbnail||info.thumb||info.cover||"";
-  const vdur   = info.duration ? _vcSec(info.duration) : "";
+/* ── RENDER RESULT ── */
+function _vcRender(urls, srcUrl){
+  // try to get a clean title from URL
+  let title = "Video";
+  try{
+    const u = new URL(srcUrl);
+    const seg = u.pathname.split("/").filter(Boolean);
+    if(seg.length) title = decodeURIComponent(seg[seg.length-1]).replace(/[-_]/g," ").replace(/\.\w+$/,"");
+  }catch(_){}
 
-  const dlUrl  = dl.downloadUrl||dl.download_url||dl.url||dl.link||"";
-  const fname  = (dl.fileName||dl.filename||dl.name||"video").replace(/\.(mp4|mp3)$/i,"");
-  const fsize  = dl.size ? _vcBytes(dl.size) : "";
-
-  $("vcTitle").textContent = vtitle||"Video siap download";
-
-  let tags = "";
-  if(vdur)  tags += `<span class="vc-result-tag">⏱ ${vdur}</span>`;
-  if(fsize) tags += `<span class="vc-result-tag">◈ ${fsize}</span>`;
-  const qlbl = _vcFmt==="mp3"?"MP3":_vcQual==="best"?"Best Quality":_vcQual==="video"?"HD":_vcQual+"p";
-  tags += `<span class="vc-result-tag">${qlbl}</span>`;
-  $("vcTags").innerHTML = tags;
-
-  const th = $("vcThumb");
-  if(vthumb){
-    th.src = vthumb; th.style.display="block";
-    th.onerror = ()=>{ th.style.display="none"; };
-  } else { th.style.display="none"; }
+  $("vcTitle").textContent = title || "Video siap download";
+  $("vcTags").innerHTML = `<span class="vc-result-tag">${_VC.fmt==="mp3"?"MP3 Audio":"MP4 Video"}</span>
+    <span class="vc-result-tag">${_VC.qual==="best"?"Best Quality":_VC.qual==="video"?"HD":_VC.qual+"p"}</span>`;
+  $("vcThumb").style.display = "none";
 
   const links = $("vcLinks");
   links.innerHTML = "";
-
-  if(dlUrl){
-    const isAudio = _vcFmt==="mp3" || /\.mp3(\?|$)/i.test(dlUrl);
-    links.appendChild(_vcRow(dlUrl, (isAudio?"MP3 Audio":"MP4 Video")+" — "+qlbl, fsize, isAudio, fname));
-  }
-
-  /* extra formats from API if returned */
-  if(Array.isArray(dl.downloads)&&dl.downloads.length){
-    dl.downloads.forEach(item=>{
-      const u = item.url||item.link||"";
-      if(!u||u===dlUrl) return;
-      const lbl = item.quality||item.label||item.format||"Download";
-      const sz  = item.size ? _vcBytes(item.size) : "";
-      const aud = /mp3|audio/i.test(item.format||item.type||"");
-      links.appendChild(_vcRow(u, lbl, sz, aud, fname));
-    });
-  }
-
-  if(!links.children.length){
-    links.innerHTML = `<div style="font-size:12px;color:rgba(255,255,255,0.28);padding:14px;text-align:center;line-height:1.7">
-      Link tidak tersedia dari server.<br>Coba format atau kualitas berbeda.</div>`;
-  }
+  urls.forEach(item => links.appendChild(_vcRow(item.url, item.label, "", item.isAudio)));
 
   $("vcResult").classList.add("on");
   setTimeout(()=>$("vcResult").scrollIntoView({behavior:"smooth",block:"nearest"}),90);
 }
 
-/* ── Download row — blob method only, NO window.open (prevents page navigation) ── */
-function _vcRow(url, label, size, isAudio, fname){
+/* ── DOWNLOAD ROW — bulletproof, 3 methods, no navigation ── */
+function _vcRow(url, label, size, isAudio){
   const div = document.createElement("div");
   div.className = "vc-link";
   const bg  = isAudio ? "rgba(114,72,245,0.22)" : "rgba(61,114,246,0.22)";
@@ -5544,97 +5485,72 @@ function _vcRow(url, label, size, isAudio, fname){
   const ico = isAudio
     ? `<svg viewBox="0 0 24 24" fill="none" stroke="${clr}" stroke-width="2" style="width:17px;height:17px"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>`
     : `<svg viewBox="0 0 24 24" fill="none" stroke="${clr}" stroke-width="2" style="width:17px;height:17px"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>`;
+  const ext  = isAudio ? ".mp3" : ".mp4";
+  const uid  = "vs"+Math.random().toString(36).slice(2,8);
 
-  const subId = "vcsub_"+Math.random().toString(36).slice(2,8);
   div.innerHTML = `
     <div class="vc-link-ic" style="background:${bg};border:1px solid ${clr}55">${ico}</div>
     <div class="vc-link-info">
       <div class="vc-link-lbl">${label}</div>
-      <div class="vc-link-sub" id="${subId}">${size?size+" · ":""}Tap untuk download ↓</div>
+      <div class="vc-link-sub" id="${uid}">Tap untuk download</div>
     </div>
-    <div class="vc-link-arr">
-      <svg viewBox="0 0 24 24" fill="none" stroke="${clr}" stroke-width="2.2" style="width:16px;height:16px">
-        <line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/>
-      </svg>
-    </div>`;
-
-  const ext  = isAudio ? ".mp3" : ".mp4";
-  const file = fname + ext;
+    <div class="vc-link-arr"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg></div>`;
 
   div.addEventListener("click", async ()=>{
-    const sub = document.getElementById(subId);
     if(div.dataset.busy==="1") return;
     div.dataset.busy = "1";
-    div.style.opacity = "0.6";
-    sub.textContent = "⏳ Memulai download…";
+    const sub = document.getElementById(uid);
+    div.style.opacity = "0.55";
+    sub.textContent = "Memulai download...";
 
-    /* ── Method A: fetch → blob → object URL → <a download>
-          This triggers the native download notification bar
-          and STAYS on the current page — no navigation ── */
+    const fname = "download"+ext;
+    let done = false;
+
+    /* Method 1: fetch blob → createObjectURL → <a download>
+       Triggers native download bar, page stays put */
     try{
-      const res = await fetch(url, {mode:"cors"});
-      if(res.ok){
-        const blob = await res.blob();
-        const objUrl = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = objUrl;
-        a.download = file;
-        a.style.display = "none";
-        document.body.appendChild(a);
-        a.click();
-        setTimeout(()=>{ document.body.removeChild(a); URL.revokeObjectURL(objUrl); }, 2000);
-        sub.textContent = "✅ Download dimulai!";
-        div.style.opacity = "1";
-        div.dataset.busy  = "0";
-        return;
+      const r = await fetch(url, {mode:"cors"});
+      if(r.ok){
+        const blob = await r.blob();
+        const obj  = URL.createObjectURL(blob);
+        const a    = Object.assign(document.createElement("a"),{href:obj,download:fname});
+        a.style.display="none";
+        document.body.appendChild(a); a.click();
+        setTimeout(()=>{ document.body.removeChild(a); URL.revokeObjectURL(obj); },3000);
+        sub.textContent = "Download dimulai";
+        div.style.opacity="1"; div.dataset.busy="0"; done=true;
       }
-    }catch(blobErr){}
+    }catch(_){}
 
-    /* ── Method B: hidden <a download> direct link (same-origin / permissive CORS) ── */
-    try{
-      const a = document.createElement("a");
-      a.href = url; a.download = file;
-      a.style.display = "none";
-      document.body.appendChild(a);
-      a.click();
-      setTimeout(()=>document.body.removeChild(a), 500);
-      sub.textContent = "✅ Download dimulai!";
-      div.style.opacity = "1";
-      div.dataset.busy  = "0";
-      return;
-    }catch(dlErr){}
-
-    /* ── Method C: iframe trick — loads URL in hidden iframe, no navigation ── */
-    try{
-      const iframe = document.createElement("iframe");
-      iframe.style.cssText = "position:fixed;top:-9999px;left:-9999px;width:1px;height:1px;opacity:0;";
-      iframe.src = url;
-      document.body.appendChild(iframe);
-      setTimeout(()=>{ if(iframe.parentNode) document.body.removeChild(iframe); }, 5000);
-      sub.textContent = "✅ Download dimulai! Cek notifikasi.";
-    }catch(ifErr){
-      sub.textContent = "⚠️ Gagal. Buka link manual.";
+    /* Method 2: hidden anchor direct download */
+    if(!done){
+      try{
+        const a = Object.assign(document.createElement("a"),{href:url,download:fname});
+        a.style.display="none";
+        document.body.appendChild(a); a.click();
+        setTimeout(()=>document.body.removeChild(a),500);
+        sub.textContent = "Download dimulai";
+        div.style.opacity="1"; div.dataset.busy="0"; done=true;
+      }catch(_){}
     }
-    div.style.opacity = "1";
-    div.dataset.busy  = "0";
+
+    /* Method 3: hidden iframe (last resort — no page navigation) */
+    if(!done){
+      try{
+        const fr = document.createElement("iframe");
+        fr.style.cssText="position:fixed;top:-9999px;left:-9999px;width:1px;height:1px;opacity:0;pointer-events:none;";
+        fr.src = url;
+        document.body.appendChild(fr);
+        setTimeout(()=>{ try{document.body.removeChild(fr);}catch(_){} },6000);
+        sub.textContent = "Download dimulai";
+      }catch(_){
+        sub.textContent = "Gagal. Coba buka link manual.";
+      }
+      div.style.opacity="1"; div.dataset.busy="0";
+    }
   });
 
   return div;
-}
-
-/* ── helpers ── */
-function _vcBytes(b){
-  if(!b||isNaN(b)) return "";
-  b = +b;
-  if(b<1024)        return b+" B";
-  if(b<1048576)     return (b/1024).toFixed(1)+" KB";
-  if(b<1073741824)  return (b/1048576).toFixed(1)+" MB";
-  return (b/1073741824).toFixed(2)+" GB";
-}
-function _vcSec(s){
-  s = +s; if(!s) return "";
-  const m = Math.floor(s/60), sec = s%60;
-  return m+":"+(sec<10?"0":"")+sec;
 }
 
 </script>
