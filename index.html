@@ -1431,11 +1431,16 @@ body.light #uploadPreviewPanel{background:rgba(240,244,255,0.96)}
    ============================ */
 #videoConverterPage{
   position:fixed;inset:0;z-index:100001;
-  overflow-y:auto;display:none;
-  background:#06080f;
+  overflow-y:auto;-webkit-overflow-scrolling:touch;
+  display:none;background:#06080f;
+  /* NO animation on the page itself — prevents intro flash */
 }
-#videoConverterPage.show{display:block}
-#videoConverterPage.out{animation:splOut 0.25s var(--ease) forwards}
+#videoConverterPage.show{display:block;}
+#videoConverterPage.vc-closing{
+  opacity:0;transform:translateY(8px);
+  transition:opacity 0.22s ease,transform 0.22s ease;
+  pointer-events:none;
+}
 #vcBg{
   position:fixed;inset:0;pointer-events:none;z-index:0;
   background:
@@ -1516,29 +1521,17 @@ body.light #uploadPreviewPanel{background:rgba(240,244,255,0.96)}
   content:'';width:14px;height:1px;
   background:linear-gradient(90deg,rgba(114,72,245,0.7),transparent);
 }
-.vc-plat-grid{
-  display:grid;grid-template-columns:repeat(4,1fr);gap:6px;
+/* pill tags — replaces old grid */
+.vc-pills{
+  display:flex;flex-wrap:wrap;gap:7px;
   margin-bottom:16px;
 }
-.vp{
-  display:flex;flex-direction:column;align-items:center;gap:5px;
-  padding:10px 5px 8px;border-radius:14px;
-  background:rgba(255,255,255,0.028);
-  border:1px solid rgba(255,255,255,0.065);
-  cursor:default;transition:transform 0.18s,background 0.18s,border-color 0.18s;
-  position:relative;overflow:hidden;
+.vcp{
+  display:inline-flex;align-items:center;
+  padding:5px 12px;border-radius:20px;border:1px solid;
+  font-size:11px;font-weight:700;letter-spacing:0.3px;
+  cursor:default;user-select:none;
 }
-.vp::before{
-  content:'';position:absolute;inset:0;border-radius:inherit;
-  background:linear-gradient(135deg,rgba(255,255,255,0.06) 0%,transparent 60%);
-  pointer-events:none;
-}
-.vp:hover{transform:translateY(-3px);background:rgba(255,255,255,0.055);border-color:rgba(255,255,255,0.12);}
-.vp-icon{
-  width:34px;height:34px;border-radius:10px;
-  display:flex;align-items:center;justify-content:center;flex-shrink:0;
-}
-.vp-name{font-size:9px;font-weight:700;letter-spacing:0.2px;text-align:center;line-height:1.2;}
 /* card */
 .vc-card{
   background:rgba(255,255,255,0.032);
@@ -2135,105 +2128,20 @@ line-height:1.8;
 
     <!-- Platforms -->
     <div class="vc-sec-label">Platform yang didukung</div>
-    <div class="vc-plat-grid">
-
-      <!-- TikTok -->
-      <div class="vp">
-        <div class="vp-icon" style="background:#010101;border:1px solid rgba(0,242,234,0.25);">
-          <svg viewBox="0 0 32 32" width="20" height="20"><path d="M27.2 7.36a8.02 8.02 0 0 1-4.93-1.66A8.07 8.07 0 0 1 19.15 0h-5.3v21.98a4.25 4.25 0 0 1-4.24 3.84 4.25 4.25 0 0 1-4.25-4.25 4.25 4.25 0 0 1 4.25-4.24c.42 0 .82.06 1.2.16v-5.4a9.56 9.56 0 0 0-1.2-.07A9.61 9.61 0 0 0 0 21.57 9.61 9.61 0 0 0 9.61 31.2a9.61 9.61 0 0 0 9.61-9.63V10.78a13.2 13.2 0 0 0 7.98 2.67V8.14a8.1 8.1 0 0 1-1.02 0z" fill="#ff0050"/><path d="M26.18 6.9a8.02 8.02 0 0 1-3.9-1.2A8.07 8.07 0 0 1 19.15 0h-5.3v21.98a4.25 4.25 0 0 1-4.24 3.84 4.25 4.25 0 0 1-3.83-2.43 4.25 4.25 0 0 0 7.87-2.27V1.18h4.26a8.07 8.07 0 0 0 3.13 5.7 8.02 8.02 0 0 0 4.93 1.66v-.1a8.1 8.1 0 0 1-1.02.45z" fill="#ff0050" opacity=".5"/><path d="M27.2 8.45v-1.1a8.02 8.02 0 0 1-4.93-1.65A8.07 8.07 0 0 1 19.15 0h-1.04a8.07 8.07 0 0 0 3.16 5.72 8.02 8.02 0 0 0 4.93 1.65 8.1 8.1 0 0 0 1.02-.06v1.14zM9.61 16.7c-.42 0-.82.06-1.2.16V11.4a9.56 9.56 0 0 1 1.2-.07 9.6 9.6 0 0 1 8.05 4.38v-4.93A9.56 9.56 0 0 0 9.61 7.5a9.61 9.61 0 0 0-9.6 9.6 9.61 9.61 0 0 0 9.6 9.6 9.61 9.61 0 0 0 9.61-9.62v-5.7a13.2 13.2 0 0 1-7.98-2.67v5.31A4.25 4.25 0 0 0 9.61 16.7z" fill="#00f2ea"/></svg>
-        </div>
-        <div class="vp-name" style="color:#00f2ea;">TikTok</div>
-      </div>
-
-      <!-- YouTube -->
-      <div class="vp">
-        <div class="vp-icon" style="background:#ff0000;border:1px solid rgba(255,0,0,0.3);">
-          <svg viewBox="0 0 24 24" width="20" height="20"><path d="M23.5 6.19a3.02 3.02 0 0 0-2.12-2.14C19.54 3.6 12 3.6 12 3.6s-7.54 0-9.38.47A3.02 3.02 0 0 0 .5 6.19 31.6 31.6 0 0 0 0 12a31.6 31.6 0 0 0 .5 5.81 3.02 3.02 0 0 0 2.12 2.14C4.46 20.4 12 20.4 12 20.4s7.54 0 9.38-.47a3.02 3.02 0 0 0 2.12-2.12A31.6 31.6 0 0 0 24 12a31.6 31.6 0 0 0-.5-5.81z" fill="#fff" opacity=".9"/><polygon points="9.75 15.02 15.5 12 9.75 8.98 9.75 15.02" fill="#ff0000"/></svg>
-        </div>
-        <div class="vp-name" style="color:#ff4444;">YouTube</div>
-      </div>
-
-      <!-- Instagram -->
-      <div class="vp">
-        <div class="vp-icon" style="background:linear-gradient(135deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888);border:1px solid rgba(225,48,108,0.3);">
-          <svg viewBox="0 0 24 24" width="20" height="20" fill="none"><rect x="2" y="2" width="20" height="20" rx="5.5" stroke="#fff" stroke-width="1.8"/><circle cx="12" cy="12" r="4.5" stroke="#fff" stroke-width="1.8"/><circle cx="17.5" cy="6.5" r="1.2" fill="#fff"/></svg>
-        </div>
-        <div class="vp-name" style="color:#e1306c;">Instagram</div>
-      </div>
-
-      <!-- X / Twitter -->
-      <div class="vp">
-        <div class="vp-icon" style="background:#000;border:1px solid rgba(255,255,255,0.18);">
-          <svg viewBox="0 0 24 24" width="18" height="18"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" fill="#fff"/></svg>
-        </div>
-        <div class="vp-name" style="color:rgba(255,255,255,0.7);">Twitter / X</div>
-      </div>
-
-      <!-- Facebook -->
-      <div class="vp">
-        <div class="vp-icon" style="background:#1877f2;border:1px solid rgba(24,119,242,0.4);">
-          <svg viewBox="0 0 24 24" width="20" height="20"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" fill="#fff"/></svg>
-        </div>
-        <div class="vp-name" style="color:#4a8fe8;">Facebook</div>
-      </div>
-
-      <!-- Snapchat -->
-      <div class="vp">
-        <div class="vp-icon" style="background:#fffc00;border:1px solid rgba(255,252,0,0.4);">
-          <svg viewBox="0 0 24 24" width="19" height="19"><path d="M12 2C8.5 2 6.5 3.5 6.5 7v1.2c-.4.1-.8.2-1.1.2-.3 0-.5-.1-.7-.2-.2-.2-.3-.4-.3-.6 0-.4.2-.7.6-1 .3-.2.7-.4 1.1-.4a4.5 4.5 0 0 0-1.6-3C3.2 2.1 1.5.5 1.5.5s.5 2.5 1 3.9A4.7 4.7 0 0 0 1 7.6c0 .4.1.7.3.9.4.4 1 .5 1.7.5.3 0 .6 0 .8-.1v.8c0 3 2.1 5.1 5 5.9-.3.3-.6.6-1 .7-.6.2-1.3.3-2 .3a5 5 0 0 1-1.7-.3 1 1 0 0 0-.4-.1.5.5 0 0 0-.5.5c0 .8.7 1.2 1.8 1.4.5.1 1 .2 1.6.2.2 1 .8 2 2.2 2.3C7.4 22 9.5 22.5 12 22.5s4.6-.5 5.2-1.2c1.4-.3 2-.9 2-1.6a.5.5 0 0 0-.4-.5 1 1 0 0 0-.4.1c-.5.2-1 .3-1.6.3-.7 0-1.4-.1-2-.3-.4-.1-.7-.4-1-.7 2.9-.8 5-2.9 5-5.9v-.8c.3.1.6.1.9.1.7 0 1.3-.1 1.7-.5.2-.2.3-.5.3-.9a4.7 4.7 0 0 0-1.5-3.2c.4-1.4 1-3.9 1-3.9s-1.7 1.6-3 2.7a4.5 4.5 0 0 0-1.6 3c.4 0 .7.2 1.1.4.4.3.6.6.6 1 0 .2-.1.4-.3.6-.2.1-.4.2-.7.2-.3 0-.7-.1-1.1-.2V7C17.5 3.5 15.5 2 12 2z" fill="#000"/></svg>
-        </div>
-        <div class="vp-name" style="color:#f5d90a;">Snapchat</div>
-      </div>
-
-      <!-- Pinterest -->
-      <div class="vp">
-        <div class="vp-icon" style="background:#e60023;border:1px solid rgba(230,0,35,0.4);">
-          <svg viewBox="0 0 24 24" width="20" height="20"><path d="M12 0C5.373 0 0 5.373 0 12c0 5.084 3.163 9.426 7.627 11.174-.105-.949-.2-2.405.042-3.441.218-.937 1.407-5.965 1.407-5.965s-.359-.719-.359-1.782c0-1.668.967-2.914 2.171-2.914 1.023 0 1.518.769 1.518 1.69 0 1.029-.655 2.568-.994 3.995-.283 1.194.599 2.169 1.777 2.169 2.133 0 3.772-2.249 3.772-5.495 0-2.873-2.064-4.882-5.012-4.882-3.414 0-5.418 2.561-5.418 5.207 0 1.031.397 2.138.893 2.738a.36.36 0 0 1 .083.345l-.333 1.36c-.053.22-.174.267-.402.161-1.499-.698-2.436-2.889-2.436-4.649 0-3.785 2.75-7.262 7.929-7.262 4.163 0 7.398 2.967 7.398 6.931 0 4.136-2.607 7.464-6.227 7.464-1.216 0-2.359-.632-2.75-1.378l-.748 2.853c-.271 1.043-1.002 2.35-1.492 3.146C9.57 23.812 10.763 24 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0z" fill="#fff"/></svg>
-        </div>
-        <div class="vp-name" style="color:#ff4560;">Pinterest</div>
-      </div>
-
-      <!-- Twitch -->
-      <div class="vp">
-        <div class="vp-icon" style="background:#9146ff;border:1px solid rgba(145,70,255,0.4);">
-          <svg viewBox="0 0 24 24" width="19" height="19"><path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714z" fill="#fff"/></svg>
-        </div>
-        <div class="vp-name" style="color:#bf94ff;">Twitch</div>
-      </div>
-
-      <!-- Vimeo -->
-      <div class="vp">
-        <div class="vp-icon" style="background:#1ab7ea;border:1px solid rgba(26,183,234,0.35);">
-          <svg viewBox="0 0 24 24" width="19" height="19"><path d="M23.977 6.416c-.105 2.338-1.739 5.543-4.894 9.609-3.268 4.247-6.026 6.37-8.29 6.37-1.409 0-2.578-1.294-3.553-3.881L5.322 12.37C4.603 9.783 3.834 8.489 3.01 8.489c-.169 0-.752.353-1.753 1.055L0 8.138c1.105-.971 2.19-1.944 3.25-2.916C4.897 3.71 6.112 2.955 6.91 2.88c1.849-.171 2.986.997 3.388 3.48.45 2.748.763 4.466.957 5.152.527 2.405 1.105 3.607 1.737 3.607.489 0 1.232-.756 2.198-2.265 1.415-2.035 2.166-3.583 2.255-4.642.2-1.718-.495-2.578-2.085-2.578-.742 0-1.508.169-2.302.507 1.527-4.99 4.444-7.418 8.752-7.28 3.189.086 4.692 2.159 4.507 6.155z" fill="#fff"/></svg>
-        </div>
-        <div class="vp-name" style="color:#1ab7ea;">Vimeo</div>
-      </div>
-
-      <!-- Dailymotion -->
-      <div class="vp">
-        <div class="vp-icon" style="background:#0062ff;border:1px solid rgba(0,98,255,0.4);">
-          <svg viewBox="0 0 24 24" width="19" height="19"><path d="M22.547 9.17a7.235 7.235 0 0 0-4.637-4.584 7.286 7.286 0 0 0-2.184-.33 7.23 7.23 0 0 0-3.58.954V0h-3.637v23.973h3.532v-.856a7.21 7.21 0 0 0 3.685 1.01c4.012 0 7.268-3.21 7.27-7.166a7.15 7.15 0 0 0-.449-2.79zm-6.82 4.957a3.619 3.619 0 0 1-3.58-3.168v-.906a3.617 3.617 0 1 1 3.58 4.074z" fill="#fff"/></svg>
-        </div>
-        <div class="vp-name" style="color:#6ab0ff;">Dailymotion</div>
-      </div>
-
-      <!-- YouTube Shorts -->
-      <div class="vp">
-        <div class="vp-icon" style="background:#111;border:1px solid rgba(255,0,0,0.25);">
-          <svg viewBox="0 0 24 24" width="20" height="20"><path d="M10 14.65v-5.3L15 12zm7.77-4.33c-.77-.32-1.2-.5-1.2-.5L18 9.06c1.84-.96 2.53-3.23 1.56-5.06s-3.24-2.53-5.07-1.56L6 6.94c-1.29.68-2.07 2.04-2 3.49.07 1.45.93 2.73 2.28 3.3.28.12.571.21.879.27l-1.01 1.88c-1.07-.23-2.09-.78-2.9-1.62C1.57 12.45 1 10.33 1.81 8.37c.8-1.96 2.6-3.28 4.6-3.44L9 3.63c2.04-1.06 4.56-.27 5.63 1.78.07.13.13.27.18.4l1.99-.98c1.84-.96 4.11-.24 5.07 1.6.96 1.84.23 4.11-1.1 5.9z" fill="#ff0000"/><path d="M10 14.65v-5.3L15 12z" fill="#fff"/></svg>
-        </div>
-        <div class="vp-name" style="color:#ff5555;">YT Shorts</div>
-      </div>
-
-      <!-- More -->
-      <div class="vp">
-        <div class="vp-icon" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);">
-          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="2"><circle cx="5" cy="12" r="1.5" fill="rgba(255,255,255,0.3)"/><circle cx="12" cy="12" r="1.5" fill="rgba(255,255,255,0.3)"/><circle cx="19" cy="12" r="1.5" fill="rgba(255,255,255,0.3)"/></svg>
-        </div>
-        <div class="vp-name" style="color:rgba(255,255,255,0.28);">& Lainnya</div>
-      </div>
-
-    </div><!-- /vc-plat-grid -->
+    <div class="vc-pills">
+      <span class="vcp" style="color:#00f2ea;border-color:rgba(0,242,234,0.3);background:rgba(0,242,234,0.07);">TikTok</span>
+      <span class="vcp" style="color:#ff4444;border-color:rgba(255,68,68,0.3);background:rgba(255,68,68,0.07);">YouTube</span>
+      <span class="vcp" style="color:#e1306c;border-color:rgba(225,48,108,0.3);background:rgba(225,48,108,0.07);">Instagram</span>
+      <span class="vcp" style="color:#e8e8e8;border-color:rgba(255,255,255,0.2);background:rgba(255,255,255,0.05);">Twitter / X</span>
+      <span class="vcp" style="color:#4a8fe8;border-color:rgba(74,143,232,0.3);background:rgba(74,143,232,0.07);">Facebook</span>
+      <span class="vcp" style="color:#f5d90a;border-color:rgba(245,217,10,0.3);background:rgba(245,217,10,0.07);">Snapchat</span>
+      <span class="vcp" style="color:#ff4560;border-color:rgba(255,69,96,0.3);background:rgba(255,69,96,0.07);">Pinterest</span>
+      <span class="vcp" style="color:#bf94ff;border-color:rgba(191,148,255,0.3);background:rgba(191,148,255,0.07);">Twitch</span>
+      <span class="vcp" style="color:#1ab7ea;border-color:rgba(26,183,234,0.3);background:rgba(26,183,234,0.07);">Vimeo</span>
+      <span class="vcp" style="color:#6ab0ff;border-color:rgba(106,176,255,0.3);background:rgba(106,176,255,0.07);">Dailymotion</span>
+      <span class="vcp" style="color:#ff5555;border-color:rgba(255,85,85,0.3);background:rgba(255,85,85,0.07);">YT Shorts</span>
+      <span class="vcp" style="color:rgba(255,255,255,0.35);border-color:rgba(255,255,255,0.1);background:rgba(255,255,255,0.03);">& Lainnya</span>
+    </div>
 
     <!-- URL Input -->
     <div class="vc-card">
@@ -5396,100 +5304,117 @@ function startNameCanvas(){
 }
 
 /* ════════════════════════════════════════════════════════
-   MEDIA DOWNLOADER  v3
+   MEDIA DOWNLOADER  v4
    Step 1: POST /api/download/info  → title, thumbnail, duration, formats[]
    Step 2: POST /api/download/video → downloadUrl, fileName, size
    ════════════════════════════════════════════════════════ */
 const VC_KEY = "axka_48b3b63e4d914b10800f679770ee73bf";
 const VC_URL = "https://webtoapk2-web2apk.up.railway.app";
 
-let _vcFmt  = "video";   // "video" | "mp3"
-let _vcQual = "best";    // "best"  | "video" | "mp3"
+let _vcFmt  = "video";
+let _vcQual = "best";
 let _vcCtrl = null;
-let _vcInfo = null;      // cached /info response
 
-const $ = id => document.getElementById(id);
+const $  = id => document.getElementById(id);
 
-/* ── open / close ── */
+/* ── open — slide in from nowhere, page stays fixed ── */
 function openVideoConverter(){
-  const p=$("videoConverterPage");
-  p.style.display="block";
-  requestAnimationFrame(()=>{ p.classList.remove("out"); p.classList.add("show"); });
-  p.scrollTop=0;
+  const p = $("videoConverterPage");
+  p.classList.remove("vc-closing");
+  p.style.opacity   = "0";
+  p.style.transform = "translateY(10px)";
+  p.style.display   = "block";
+  /* force reflow then animate in */
+  void p.offsetHeight;
+  p.style.transition = "opacity 0.25s ease, transform 0.25s ease";
+  p.style.opacity    = "1";
+  p.style.transform  = "translateY(0)";
+  p.scrollTop        = 0;
 }
+
+/* ── close — slide out, then hide — NEVER triggers splOut ── */
 function closeVideoConverter(){
-  const p=$("videoConverterPage");
-  p.classList.add("out");
-  setTimeout(()=>{ p.style.display="none"; p.classList.remove("show","out"); },270);
-  if(_vcCtrl){ _vcCtrl.abort(); _vcCtrl=null; }
+  const p = $("videoConverterPage");
+  p.style.transition = "opacity 0.2s ease, transform 0.2s ease";
+  p.style.opacity    = "0";
+  p.style.transform  = "translateY(8px)";
+  if(_vcCtrl){ _vcCtrl.abort(); _vcCtrl = null; }
+  setTimeout(()=>{
+    p.style.display    = "none";
+    p.style.transition = "";
+    p.style.opacity    = "";
+    p.style.transform  = "";
+  }, 220);
 }
 
 /* ── format toggle ── */
 function vcSetFormat(f){
-  _vcFmt=f;
-  $("vcFmtMp4").classList.toggle("on",f==="video");
-  $("vcFmtMp3").classList.toggle("on",f==="mp3");
-  const qr=$("vcQualRow");
-  if(f==="mp3"){ qr.style.opacity="0.3"; qr.style.pointerEvents="none"; }
-  else          { qr.style.opacity="";   qr.style.pointerEvents="";    }
+  _vcFmt = f;
+  $("vcFmtMp4").classList.toggle("on", f==="video");
+  $("vcFmtMp3").classList.toggle("on", f==="mp3");
+  const qr = $("vcQualRow");
+  qr.style.opacity = f==="mp3" ? "0.28" : "";
+  qr.style.pointerEvents = f==="mp3" ? "none" : "";
 }
 
-/* ── quality buttons ── */
+/* ── quality ── */
 function vcSetQuality(q){
-  _vcQual=q;
+  _vcQual = q;
   ["vcQBest","vcQVideo","vcQ480","vcQ360"].forEach(id=>{
     const el=$(id); if(el) el.classList.remove("on");
   });
-  const map={best:"vcQBest",video:"vcQVideo","480":"vcQ480","360":"vcQ360"};
-  const el=$(map[q]); if(el) el.classList.add("on");
+  const map = {best:"vcQBest",video:"vcQVideo","480":"vcQ480","360":"vcQ360"};
+  const el = $(map[q]); if(el) el.classList.add("on");
 }
 
 /* ── detect platform ── */
 function vcDetectPlatform(){
-  const raw=($("vcUrlInput").value||"").trim();
-  const badge=$("vcBadge"), btn=$("vcConvertBtn");
-  badge.className="vc-badge"; badge.textContent="";
+  const raw = ($("vcUrlInput").value||"").trim();
+  const badge = $("vcBadge"), btn = $("vcConvertBtn");
+  badge.className = "vc-badge"; badge.textContent = "";
   if(!raw){ btn.disabled=true; return; }
-  let plat="",cls="ok";
-  if(/tiktok\.com/i.test(raw))               {plat="TikTok";    cls="tiktok";   }
-  else if(/youtube\.com|youtu\.be/i.test(raw)){plat="YouTube";   cls="youtube";  }
-  else if(/instagram\.com/i.test(raw))        {plat="Instagram"; cls="instagram";}
-  else if(/twitter\.com|x\.com/i.test(raw))   {plat="Twitter/X"; cls="twitter";  }
-  else if(/facebook\.com|fb\.com/i.test(raw)) {plat="Facebook";  cls="facebook"; }
-  else if(/snapchat\.com/i.test(raw))         {plat="Snapchat";                  }
-  else if(/pinterest\.com/i.test(raw))        {plat="Pinterest";                 }
-  else if(/vimeo\.com/i.test(raw))            {plat="Vimeo";                     }
-  else if(/twitch\.tv/i.test(raw))            {plat="Twitch";                    }
-  else if(/dailymotion\.com/i.test(raw))      {plat="Dailymotion";               }
+  let plat="", cls="ok";
+  if(/tiktok\.com/i.test(raw))               { plat="TikTok";    cls="tiktok";    }
+  else if(/youtube\.com|youtu\.be/i.test(raw)){ plat="YouTube";   cls="youtube";   }
+  else if(/instagram\.com/i.test(raw))        { plat="Instagram"; cls="instagram"; }
+  else if(/twitter\.com|x\.com/i.test(raw))   { plat="Twitter/X"; cls="twitter";   }
+  else if(/facebook\.com|fb\.com/i.test(raw)) { plat="Facebook";  cls="facebook";  }
+  else if(/snapchat\.com/i.test(raw))         { plat="Snapchat";  }
+  else if(/pinterest\.com/i.test(raw))        { plat="Pinterest"; }
+  else if(/vimeo\.com/i.test(raw))            { plat="Vimeo";     }
+  else if(/twitch\.tv/i.test(raw))            { plat="Twitch";    }
+  else if(/dailymotion\.com/i.test(raw))      { plat="Dailymotion"; }
   if(raw.startsWith("http")){
-    badge.className="vc-badge on "+cls;
-    badge.textContent=plat?"✦  "+plat+" terdeteksi":"🔗  Link valid";
-    btn.disabled=false;
-  } else { btn.disabled=true; }
+    badge.className = "vc-badge on "+cls;
+    badge.textContent = plat ? "✦  "+plat+" terdeteksi" : "🔗  Link valid";
+    btn.disabled = false;
+  } else { btn.disabled = true; }
 }
 
 async function vcPasteUrl(){
-  try{ const t=await navigator.clipboard.readText(); $("vcUrlInput").value=t; vcDetectPlatform(); }
-  catch(e){ $("vcUrlInput").focus(); }
+  try{
+    const t = await navigator.clipboard.readText();
+    $("vcUrlInput").value = t; vcDetectPlatform();
+  }catch(e){ $("vcUrlInput").focus(); }
 }
 
 /* ── progress ── */
 function _vcProg(on){
-  $("vcProg").classList.toggle("on",on);
-  $("vcConvertBtn").disabled=on;
-  $("vcUrlInput").disabled=on;
+  $("vcProg").classList.toggle("on", on);
+  $("vcConvertBtn").disabled = on;
+  $("vcUrlInput").disabled   = on;
 }
-function _vcStep(n,txt){
+function _vcStep(n, txt){
   ["vs1","vs2","vs3","vs4"].forEach((id,i)=>{
-    const el=$(id); if(!el)return;
-    el.className="vc-step"+(i<n-1?" ok":i===n-1?" go":"");
+    const el=$(id); if(!el) return;
+    el.className = "vc-step"+(i<n-1?" ok":i===n-1?" go":"");
   });
-  $("vcProgFill").style.width=({1:10,2:35,3:65,4:90}[n]||10)+"%";
-  if(txt) $("vcProgLabel").textContent=txt;
+  $("vcProgFill").style.width = ({1:10,2:34,3:64,4:88}[n]||10)+"%";
+  if(txt) $("vcProgLabel").textContent = txt;
 }
 function _vcErr(msg){
-  const e=$("vcErr");
-  e.innerHTML="⚠️ &nbsp;"+msg;
+  const e = $("vcErr");
+  e.innerHTML = "⚠️ &nbsp;"+msg;
   e.classList.add("on");
   $("vcResult").classList.remove("on");
 }
@@ -5497,141 +5422,135 @@ function _vcClearErr(){ $("vcErr").classList.remove("on"); }
 
 /* ── POST helper ── */
 async function _vcPost(path, body, sig){
-  const res=await fetch(VC_URL+path,{
+  const res = await fetch(VC_URL+path,{
     method:"POST",
     headers:{"Content-Type":"application/json","X-API-Key":VC_KEY},
     body:JSON.stringify(body),
     signal:sig
   });
   let data;
-  try{ data=await res.json(); }
+  try{ data = await res.json(); }
   catch(e){ throw new Error("Respons server tidak valid (HTTP "+res.status+")"); }
-  if(!res.ok||data.success===false)
+  if(!res.ok || data.success===false)
     throw new Error(data.message||data.error||"Server error "+res.status);
   return data;
 }
 
 /* ══════════════════════════════════════════
    MAIN: 2-step flow
-   Step 1 — /api/download/info   (get meta)
-   Step 2 — /api/download/video  (get link)
+   Step 1 /api/download/info  → meta
+   Step 2 /api/download/video → link
 ══════════════════════════════════════════ */
 async function vcStartConvert(){
-  const rawUrl=($("vcUrlInput").value||"").trim();
-  if(!rawUrl)return;
+  const rawUrl = ($("vcUrlInput").value||"").trim();
+  if(!rawUrl) return;
 
   _vcClearErr();
   $("vcResult").classList.remove("on");
-  _vcInfo=null;
   _vcProg(true);
   _vcStep(1,"Menganalisis URL…");
 
-  if(_vcCtrl)_vcCtrl.abort();
-  _vcCtrl=new AbortController();
-  const sig=_vcCtrl.signal;
+  if(_vcCtrl) _vcCtrl.abort();
+  _vcCtrl = new AbortController();
+  const sig = _vcCtrl.signal;
 
   try{
-    /* ── Step 1: GET VIDEO INFO ── */
+    /* Step 1: info */
     _vcStep(2,"Mengambil info video…");
-    const info=await _vcPost("/api/download/info",{url:rawUrl},sig);
-    _vcInfo=info;
+    const info = await _vcPost("/api/download/info",{url:rawUrl},sig);
 
-    /* ── Step 2: GET DOWNLOAD LINK ── */
+    /* Step 2: download link */
     _vcStep(3,"Memproses & konversi…");
-    const quality=_vcFmt==="mp3"?"mp3":_vcQual;
-    const dl=await _vcPost("/api/download/video",{url:rawUrl,quality},sig);
+    const quality = _vcFmt==="mp3" ? "mp3" : _vcQual;
+    const dl = await _vcPost("/api/download/video",{url:rawUrl,quality},sig);
 
     _vcStep(4,"Menyiapkan link…");
-    await new Promise(r=>setTimeout(r,280));
-    $("vcProgFill").style.width="100%";
-    await new Promise(r=>setTimeout(r,180));
+    await new Promise(r=>setTimeout(r,260));
+    $("vcProgFill").style.width = "100%";
+    await new Promise(r=>setTimeout(r,160));
 
     _vcProg(false);
-    _vcRender(info, dl, rawUrl);
+    _vcRender(info, dl);
 
   }catch(e){
-    if(e.name==="AbortError")return;
+    if(e.name==="AbortError") return;
     _vcProg(false);
     _vcErr(e.message||"Gagal. Pastikan link valid dan coba lagi.");
   }
 }
 
 /* ══════════════════════════════════════════
-   RENDER RESULT — uses info + dl data
+   RENDER
 ══════════════════════════════════════════ */
-function _vcRender(info, dl, srcUrl){
-  /* from /info */
+function _vcRender(info, dl){
   const vtitle = info.title||info.video_title||"Video";
   const vthumb = info.thumbnail||info.thumb||info.cover||"";
-  const vdur   = info.duration  ? _vcSec(info.duration) : "";
-  const vfmts  = Array.isArray(info.formats) ? info.formats : [];
+  const vdur   = info.duration ? _vcSec(info.duration) : "";
 
-  /* from /download/video */
   const dlUrl  = dl.downloadUrl||dl.download_url||dl.url||dl.link||"";
-  const fname  = dl.fileName||dl.filename||dl.name||"video";
+  const fname  = (dl.fileName||dl.filename||dl.name||"video").replace(/\.(mp4|mp3)$/i,"");
   const fsize  = dl.size ? _vcBytes(dl.size) : "";
 
-  /* title */
-  $("vcTitle").textContent=vtitle||"Video siap download";
+  $("vcTitle").textContent = vtitle||"Video siap download";
 
-  /* tags */
-  let tags="";
-  if(vdur)   tags+=`<span class="vc-result-tag">⏱ ${vdur}</span>`;
-  if(fsize)  tags+=`<span class="vc-result-tag">◈ ${fsize}</span>`;
-  const qlbl=_vcFmt==="mp3"?"MP3 Audio":_vcQual==="best"?"Best Quality":_vcQual==="video"?"HD":_vcQual+"p";
-  tags+=`<span class="vc-result-tag">${qlbl}</span>`;
-  $("vcTags").innerHTML=tags;
+  let tags = "";
+  if(vdur)  tags += `<span class="vc-result-tag">⏱ ${vdur}</span>`;
+  if(fsize) tags += `<span class="vc-result-tag">◈ ${fsize}</span>`;
+  const qlbl = _vcFmt==="mp3"?"MP3":_vcQual==="best"?"Best Quality":_vcQual==="video"?"HD":_vcQual+"p";
+  tags += `<span class="vc-result-tag">${qlbl}</span>`;
+  $("vcTags").innerHTML = tags;
 
-  /* thumbnail */
-  const th=$("vcThumb");
-  if(vthumb){th.src=vthumb;th.style.display="block";th.onerror=()=>th.style.display="none";}
-  else th.style.display="none";
+  const th = $("vcThumb");
+  if(vthumb){
+    th.src = vthumb; th.style.display="block";
+    th.onerror = ()=>{ th.style.display="none"; };
+  } else { th.style.display="none"; }
 
-  /* build download rows */
-  const links=$("vcLinks");
-  links.innerHTML="";
+  const links = $("vcLinks");
+  links.innerHTML = "";
 
   if(dlUrl){
-    const isAudio=_vcFmt==="mp3"||/\.mp3(\?|$)/i.test(dlUrl);
-    const lbl=isAudio?"MP3 Audio — "+qlbl:"MP4 Video — "+qlbl;
-    links.appendChild(_vcRow(dlUrl,lbl,fsize,isAudio,fname));
+    const isAudio = _vcFmt==="mp3" || /\.mp3(\?|$)/i.test(dlUrl);
+    links.appendChild(_vcRow(dlUrl, (isAudio?"MP3 Audio":"MP4 Video")+" — "+qlbl, fsize, isAudio, fname));
   }
 
-  /* if API returned formats array with URLs, show extras */
+  /* extra formats from API if returned */
   if(Array.isArray(dl.downloads)&&dl.downloads.length){
     dl.downloads.forEach(item=>{
-      const u=item.url||item.link||""; if(!u||u===dlUrl)return;
-      const lbl2=item.quality||item.label||item.format||"Download";
-      const sz2=item.size?_vcBytes(item.size):"";
-      const aud=/mp3|audio/i.test(item.format||item.type||"");
-      links.appendChild(_vcRow(u,lbl2,sz2,aud,fname));
+      const u = item.url||item.link||"";
+      if(!u||u===dlUrl) return;
+      const lbl = item.quality||item.label||item.format||"Download";
+      const sz  = item.size ? _vcBytes(item.size) : "";
+      const aud = /mp3|audio/i.test(item.format||item.type||"");
+      links.appendChild(_vcRow(u, lbl, sz, aud, fname));
     });
   }
 
   if(!links.children.length){
-    links.innerHTML=`<div style="font-size:12px;color:rgba(255,255,255,0.28);padding:14px;text-align:center;line-height:1.7">
-      Link tidak tersedia.<br>Coba format atau kualitas lain.</div>`;
+    links.innerHTML = `<div style="font-size:12px;color:rgba(255,255,255,0.28);padding:14px;text-align:center;line-height:1.7">
+      Link tidak tersedia dari server.<br>Coba format atau kualitas berbeda.</div>`;
   }
 
   $("vcResult").classList.add("on");
   setTimeout(()=>$("vcResult").scrollIntoView({behavior:"smooth",block:"nearest"}),90);
 }
 
-/* ── Build one download row ── */
+/* ── Download row — blob method only, NO window.open (prevents page navigation) ── */
 function _vcRow(url, label, size, isAudio, fname){
-  const div=document.createElement("div");
-  div.className="vc-link";
-  const bg =isAudio?"rgba(114,72,245,0.22)":"rgba(61,114,246,0.22)";
-  const clr=isAudio?"#c4a8ff":"#8ab4f8";
-  const ico=isAudio
-    ?`<svg viewBox="0 0 24 24" fill="none" stroke="${clr}" stroke-width="2" style="width:17px;height:17px"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>`
-    :`<svg viewBox="0 0 24 24" fill="none" stroke="${clr}" stroke-width="2" style="width:17px;height:17px"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>`;
+  const div = document.createElement("div");
+  div.className = "vc-link";
+  const bg  = isAudio ? "rgba(114,72,245,0.22)" : "rgba(61,114,246,0.22)";
+  const clr = isAudio ? "#c4a8ff" : "#8ab4f8";
+  const ico = isAudio
+    ? `<svg viewBox="0 0 24 24" fill="none" stroke="${clr}" stroke-width="2" style="width:17px;height:17px"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>`
+    : `<svg viewBox="0 0 24 24" fill="none" stroke="${clr}" stroke-width="2" style="width:17px;height:17px"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>`;
 
-  div.innerHTML=`
+  const subId = "vcsub_"+Math.random().toString(36).slice(2,8);
+  div.innerHTML = `
     <div class="vc-link-ic" style="background:${bg};border:1px solid ${clr}55">${ico}</div>
     <div class="vc-link-info">
       <div class="vc-link-lbl">${label}</div>
-      <div class="vc-link-sub">${size?size+" · ":""}Tap untuk download ↓</div>
+      <div class="vc-link-sub" id="${subId}">${size?size+" · ":""}Tap untuk download ↓</div>
     </div>
     <div class="vc-link-arr">
       <svg viewBox="0 0 24 24" fill="none" stroke="${clr}" stroke-width="2.2" style="width:16px;height:16px">
@@ -5639,39 +5558,65 @@ function _vcRow(url, label, size, isAudio, fname){
       </svg>
     </div>`;
 
-  div.addEventListener("click", async ()=>{
-    /* visual feedback */
-    div.style.opacity="0.6";
-    div.querySelector(".vc-link-sub").textContent="Memulai download…";
+  const ext  = isAudio ? ".mp3" : ".mp4";
+  const file = fname + ext;
 
-    /* Method 1: fetch → blob → object URL → <a download>
-       Works for cross-origin when server allows CORS */
+  div.addEventListener("click", async ()=>{
+    const sub = document.getElementById(subId);
+    if(div.dataset.busy==="1") return;
+    div.dataset.busy = "1";
+    div.style.opacity = "0.6";
+    sub.textContent = "⏳ Memulai download…";
+
+    /* ── Method A: fetch → blob → object URL → <a download>
+          This triggers the native download notification bar
+          and STAYS on the current page — no navigation ── */
     try{
-      const r=await fetch(url);
-      if(r.ok){
-        const blob=await r.blob();
-        const ob=URL.createObjectURL(blob);
-        const a=document.createElement("a");
-        a.href=ob; a.download=fname+(isAudio?".mp3":".mp4");
-        document.body.appendChild(a); a.click();
-        setTimeout(()=>{ document.body.removeChild(a); URL.revokeObjectURL(ob); },1000);
-        div.style.opacity=""; div.querySelector(".vc-link-sub").textContent=(size?size+" · ":"")+"✓ Download dimulai!";
+      const res = await fetch(url, {mode:"cors"});
+      if(res.ok){
+        const blob = await res.blob();
+        const objUrl = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = objUrl;
+        a.download = file;
+        a.style.display = "none";
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(()=>{ document.body.removeChild(a); URL.revokeObjectURL(objUrl); }, 2000);
+        sub.textContent = "✅ Download dimulai!";
+        div.style.opacity = "1";
+        div.dataset.busy  = "0";
         return;
       }
-    }catch(_){}
+    }catch(blobErr){}
 
-    /* Method 2: direct <a download> (same-origin) */
-    const a=document.createElement("a");
-    a.href=url; a.download=fname+(isAudio?".mp3":".mp4");
-    a.rel="noopener noreferrer";
-    document.body.appendChild(a); a.click();
-    setTimeout(()=>document.body.removeChild(a),200);
+    /* ── Method B: hidden <a download> direct link (same-origin / permissive CORS) ── */
+    try{
+      const a = document.createElement("a");
+      a.href = url; a.download = file;
+      a.style.display = "none";
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(()=>document.body.removeChild(a), 500);
+      sub.textContent = "✅ Download dimulai!";
+      div.style.opacity = "1";
+      div.dataset.busy  = "0";
+      return;
+    }catch(dlErr){}
 
-    /* Method 3: new tab fallback (cross-origin) */
-    window.open(url,"_blank","noopener,noreferrer");
-
-    div.style.opacity="";
-    div.querySelector(".vc-link-sub").textContent=(size?size+" · ":"")+"✓ Download dimulai!";
+    /* ── Method C: iframe trick — loads URL in hidden iframe, no navigation ── */
+    try{
+      const iframe = document.createElement("iframe");
+      iframe.style.cssText = "position:fixed;top:-9999px;left:-9999px;width:1px;height:1px;opacity:0;";
+      iframe.src = url;
+      document.body.appendChild(iframe);
+      setTimeout(()=>{ if(iframe.parentNode) document.body.removeChild(iframe); }, 5000);
+      sub.textContent = "✅ Download dimulai! Cek notifikasi.";
+    }catch(ifErr){
+      sub.textContent = "⚠️ Gagal. Buka link manual.";
+    }
+    div.style.opacity = "1";
+    div.dataset.busy  = "0";
   });
 
   return div;
@@ -5679,16 +5624,16 @@ function _vcRow(url, label, size, isAudio, fname){
 
 /* ── helpers ── */
 function _vcBytes(b){
-  if(!b||isNaN(b))return"";
-  b=+b;
-  if(b<1024)return b+" B";
-  if(b<1048576)return(b/1024).toFixed(1)+" KB";
-  if(b<1073741824)return(b/1048576).toFixed(1)+" MB";
-  return(b/1073741824).toFixed(2)+" GB";
+  if(!b||isNaN(b)) return "";
+  b = +b;
+  if(b<1024)        return b+" B";
+  if(b<1048576)     return (b/1024).toFixed(1)+" KB";
+  if(b<1073741824)  return (b/1048576).toFixed(1)+" MB";
+  return (b/1073741824).toFixed(2)+" GB";
 }
 function _vcSec(s){
-  s=+s; if(!s)return"";
-  const m=Math.floor(s/60), sec=s%60;
+  s = +s; if(!s) return "";
+  const m = Math.floor(s/60), sec = s%60;
   return m+":"+(sec<10?"0":"")+sec;
 }
 
