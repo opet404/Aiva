@@ -1,97 +1,83 @@
-"""
-/api/info.py
-POST { "url": "..." }
-GET  ?url=...
-
-Returns video metadata: title, thumbnail, duration, formats available
-"""
-
 import json
 import subprocess
 import os
 from http.server import BaseHTTPRequestHandler
 from urllib.parse import urlparse, parse_qs
 
-def get_ytdlp_path():
-    for p in ["/var/task/yt-dlp", "/usr/local/bin/yt-dlp", "/usr/bin/yt-dlp"]:
-        if os.path.exists(p):
+
+def _cors(h):
+    h["Access-Control-Allow-Origin"]  = "*"
+    h["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
+    h["Access-Control-Allow-Headers"] = "Content-Type"
+
+
+def _ytdlp():
+    for p in ["/var/task/bin/yt-dlp", "/tmp/yt-dlp", "/usr/local/bin/yt-dlp"]:
+        if os.path.isfile(p):
             return p
     return "yt-dlp"
 
-def cors_headers():
+
+def _run(url):
+    p = subprocess.run(
+        [_ytdlp(), "--dump-json", "--no-playlist", "--no-warnings",
+         "--no-check-certificates", "--no-cache-dir", url],
+        capture_output=True, text=True, timeout=20
+    )
+    if p.returncode != 0:
+        lines = (p.stderr or "").strip().splitlines()
+        raise RuntimeError(lines[-1] if lines else "yt-dlp failed")
+
+    d = json.loads(p.stdout)
+    heights = sorted(set(
+        f["height"] for f in d.get("formats", [])
+        if f.get("height") and f["height"] > 0
+    ), reverse=True)[:8]
+
     return {
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type",
-        "Content-Type": "application/json"
+        "success":          True,
+        "title":            d.get("title", "Video"),
+        "thumbnail":        d.get("thumbnail", ""),
+        "duration":         d.get("duration", 0),
+        "uploader":         d.get("uploader", ""),
+        "platform":         d.get("extractor_key", ""),
+        "available_heights":heights,
     }
+
 
 class handler(BaseHTTPRequestHandler):
 
-    def log_message(self, format, *args):
-        pass
+    def log_message(self, *a): pass
 
-    def send_json(self, status, data):
+    def _send(self, code, data):
         body = json.dumps(data).encode()
-        self.send_response(status)
-        for k, v in cors_headers().items():
-            self.send_header(k, v)
+        self.send_response(code)
+        _cors(self.headers)
+        self.send_header("Content-Type", "application/json")
         self.send_header("Content-Length", str(len(body)))
         self.end_headers()
         self.wfile.write(body)
 
     def do_OPTIONS(self):
         self.send_response(204)
-        for k, v in cors_headers().items():
-            self.send_header(k, v)
+        _cors(self.headers)
         self.end_headers()
 
     def do_GET(self):
-        parsed = urlparse(self.path)
-        params = parse_qs(parsed.query)
-        url = (params.get("url", [""])[0]).strip()
-        self._process(url)
+        qs  = parse_qs(urlparse(self.path).query)
+        url = qs.get("url", [""])[0].strip()
+        self._go(url)
 
     def do_POST(self):
-        length = int(self.headers.get("Content-Length", 0))
-        body = self.rfile.read(length)
-        try:
-            data = json.loads(body)
-        except Exception:
-            data = {}
-        url = data.get("url", "").strip()
-        self._process(url)
+        n = int(self.headers.get("Content-Length", 0))
+        try:    body = json.loads(self.rfile.read(n))
+        except: body = {}
+        self._go(body.get("url", "").strip())
 
-    def _process(self, url):
+    def _go(self, url):
         if not url or not url.startswith("http"):
-            self.send_json(400, {"success": False, "error": "url required"})
-            return
+            self._send(400, {"success": False, "error": "url required"}); return
         try:
-            ytdlp = get_ytdlp_path()
-            result = subprocess.run(
-                [ytdlp, "--dump-json", "--no-playlist", "--no-warnings",
-                 "--no-check-certificates", url],
-                capture_output=True, text=True, timeout=25
-            )
-            if result.returncode != 0:
-                err = result.stderr.strip().split("\n")[-1] if result.stderr else "error"
-                raise Exception(err)
-
-            info = json.loads(result.stdout)
-            # Extract available heights
-            fmts = info.get("formats", [])
-            heights = sorted(set(
-                f["height"] for f in fmts if f.get("height") and f["height"] > 0
-            ), reverse=True)
-
-            self.send_json(200, {
-                "success": True,
-                "title": info.get("title", "Video"),
-                "thumbnail": info.get("thumbnail", ""),
-                "duration": info.get("duration", 0),
-                "uploader": info.get("uploader", ""),
-                "platform": info.get("extractor_key", ""),
-                "available_heights": heights[:6],
-            })
+            self._send(200, _run(url))
         except Exception as e:
-            self.send_json(200, {"success": False, "error": str(e)})
+            self._send(200, {"success": False, "error": str(e)})
