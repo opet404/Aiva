@@ -5233,323 +5233,304 @@ function startNameCanvas(){
 }
 
 /* ════════════════════════════════════════════════════════
-   MEDIA DOWNLOADER  v5
-   API: cobalt.tools (free, no key, unlimited)
-   Endpoint: POST https://api.cobalt.tools/
-   Fallback: allorigins proxy if CORS blocked
+   MEDIA DOWNLOADER  v8
+   Primary  : YOUR own Vercel API (yt-dlp, free, unlimited)
+   Fallback : cobalt.tools public instances (no key)
    ════════════════════════════════════════════════════════ */
-const _VC = {
-  api: "https://api.cobalt.tools/",
-  fmt: "video",   // "video" | "mp3"
-  qual: "1080",   // "max" | "1080" | "720" | "480" | "360"
-  ctrl: null
-};
 
-const $ = id => document.getElementById(id);
+/*
+  GANTI INI dengan URL Vercel kamu setelah deploy!
+  Contoh: "https://media-api-xxx.vercel.app"
+*/
+const _MY_API = "https://aiva-beta.vercel.app/";
 
-/* ── OPEN — smooth slide in, no animation conflict ── */
+/* cobalt public instances sebagai fallback */
+const _COBALT = [
+  "https://api.cobalt.tools/",
+  "https://co.wuk.sh/",
+  "https://cobalt.api.timelessnesses.me/"
+];
+
+const _VC = { fmt:"video", qual:"best", ctrl:null };
+const $   = id => document.getElementById(id);
+
+/* ══ OPEN / CLOSE ══ */
 function openVideoConverter(){
-  const p = $("videoConverterPage");
-  p.style.cssText = "display:block;opacity:0;transform:translateY(12px);transition:opacity 0.25s ease,transform 0.25s ease;";
+  const p=$("videoConverterPage");
+  p.style.cssText="display:block;opacity:0;transform:translateY(14px);";
   void p.offsetHeight;
-  p.style.opacity = "1";
-  p.style.transform = "translateY(0)";
-  p.scrollTop = 0;
+  p.style.transition="opacity .26s ease,transform .26s ease";
+  p.style.opacity="1"; p.style.transform="translateY(0)"; p.scrollTop=0;
 }
-
-/* ── CLOSE — slide out, hide, NO splOut involved ── */
 function closeVideoConverter(){
-  const p = $("videoConverterPage");
-  p.style.transition = "opacity 0.2s ease,transform 0.2s ease";
-  p.style.opacity = "0";
-  p.style.transform = "translateY(10px)";
-  if(_VC.ctrl){ _VC.ctrl.abort(); _VC.ctrl = null; }
-  setTimeout(()=>{
-    p.style.cssText = "display:none;";
-  }, 220);
+  const p=$("videoConverterPage");
+  p.style.transition="opacity .2s ease,transform .2s ease";
+  p.style.opacity="0"; p.style.transform="translateY(10px)";
+  if(_VC.ctrl){_VC.ctrl.abort();_VC.ctrl=null;}
+  setTimeout(()=>{p.style.cssText="display:none;";},220);
 }
 
-/* ── FORMAT ── */
+/* ══ FORMAT / QUALITY ══ */
 function vcSetFormat(f){
-  _VC.fmt = f;
-  $("vcFmtMp4").classList.toggle("on", f==="video");
-  $("vcFmtMp3").classList.toggle("on", f==="mp3");
-  const qr = $("vcQualRow");
-  qr.style.opacity = f==="mp3" ? "0.28" : "";
-  qr.style.pointerEvents = f==="mp3" ? "none" : "";
+  _VC.fmt=f;
+  $("vcFmtMp4").classList.toggle("on",f==="video");
+  $("vcFmtMp3").classList.toggle("on",f==="mp3");
+  const qr=$("vcQualRow");
+  qr.style.opacity=f==="mp3"?"0.28":"";
+  qr.style.pointerEvents=f==="mp3"?"none":"";
 }
-
-/* ── QUALITY ── */
 function vcSetQuality(q){
-  _VC.qual = q;
+  _VC.qual=q;
   ["vcQBest","vcQVideo","vcQ480","vcQ360"].forEach(id=>{
-    const el=$(id); if(el) el.classList.remove("on");
+    const e=$(id);if(e)e.classList.remove("on");
   });
-  const m = {best:"vcQBest",video:"vcQVideo","480":"vcQ480","360":"vcQ360"};
-  const el = $(m[q]); if(el) el.classList.add("on");
+  const m={best:"vcQBest",video:"vcQVideo","480":"vcQ480","360":"vcQ360"};
+  const e=$(m[q]);if(e)e.classList.add("on");
 }
 
-/* ── DETECT PLATFORM ── */
+/* ══ DETECT PLATFORM ══ */
 function vcDetectPlatform(){
-  const raw = ($("vcUrlInput").value||"").trim();
-  const badge = $("vcBadge"), btn = $("vcConvertBtn");
-  badge.className = "vc-badge"; badge.textContent = "";
-  if(!raw){ btn.disabled=true; return; }
-  let plat="", cls="ok";
-  if(/tiktok\.com/i.test(raw))                {plat="TikTok";     cls="tiktok";   }
-  else if(/youtube\.com|youtu\.be/i.test(raw)){plat="YouTube";    cls="youtube";  }
-  else if(/instagram\.com/i.test(raw))         {plat="Instagram";  cls="instagram";}
-  else if(/twitter\.com|x\.com/i.test(raw))   {plat="Twitter / X";cls="twitter";  }
-  else if(/facebook\.com|fb\.com/i.test(raw)) {plat="Facebook";   cls="facebook"; }
-  else if(/snapchat\.com/i.test(raw))          {plat="Snapchat";                   }
-  else if(/pinterest\.com/i.test(raw))         {plat="Pinterest";                  }
-  else if(/vimeo\.com/i.test(raw))             {plat="Vimeo";                      }
-  else if(/twitch\.tv/i.test(raw))             {plat="Twitch";                     }
-  else if(/dailymotion\.com/i.test(raw))       {plat="Dailymotion";                }
+  const raw=($("vcUrlInput").value||"").trim();
+  const badge=$("vcBadge"),btn=$("vcConvertBtn");
+  badge.className="vc-badge";badge.textContent="";
+  if(!raw){btn.disabled=true;return;}
+  let plat="",cls="ok";
+  if(/tiktok\.com/i.test(raw))                {plat="TikTok";    cls="tiktok";   }
+  else if(/youtube\.com|youtu\.be/i.test(raw)){plat="YouTube";   cls="youtube";  }
+  else if(/instagram\.com/i.test(raw))        {plat="Instagram"; cls="instagram";}
+  else if(/twitter\.com|x\.com/i.test(raw))   {plat="Twitter/X"; cls="twitter";  }
+  else if(/facebook\.com|fb\.com/i.test(raw)) {plat="Facebook";  cls="facebook"; }
+  else if(/snapchat\.com/i.test(raw))         {plat="Snapchat";                  }
+  else if(/pinterest\.com/i.test(raw))        {plat="Pinterest";                 }
+  else if(/vimeo\.com/i.test(raw))            {plat="Vimeo";                     }
+  else if(/twitch\.tv/i.test(raw))            {plat="Twitch";                    }
+  else if(/dailymotion\.com/i.test(raw))      {plat="Dailymotion";               }
   if(raw.startsWith("http")){
-    badge.className = "vc-badge on "+cls;
-    badge.textContent = plat ? plat+" terdeteksi" : "Link valid";
-    btn.disabled = false;
-  } else { btn.disabled = true; }
+    badge.className="vc-badge on "+cls;
+    badge.textContent=plat?plat+" terdeteksi":"Link valid";
+    btn.disabled=false;
+  } else {btn.disabled=true;}
 }
-
 async function vcPasteUrl(){
-  try{
-    const t = await navigator.clipboard.readText();
-    $("vcUrlInput").value = t; vcDetectPlatform();
-  }catch(e){ $("vcUrlInput").focus(); }
+  try{const t=await navigator.clipboard.readText();$("vcUrlInput").value=t;vcDetectPlatform();}
+  catch(e){$("vcUrlInput").focus();}
 }
 
-/* ── PROGRESS HELPERS ── */
+/* ══ PROGRESS ══ */
 function _vcProg(on){
   $("vcProg").classList.toggle("on",on);
-  $("vcConvertBtn").disabled = on;
-  $("vcUrlInput").disabled   = on;
+  $("vcConvertBtn").disabled=on;
+  $("vcUrlInput").disabled=on;
 }
 function _vcStep(n,txt){
   ["vs1","vs2","vs3","vs4"].forEach((id,i)=>{
-    const el=$(id); if(!el) return;
-    el.className="vc-step"+(i<n-1?" ok":i===n-1?" go":"");
+    const e=$(id);if(!e)return;
+    e.className="vc-step"+(i<n-1?" ok":i===n-1?" go":"");
   });
-  $("vcProgFill").style.width=({1:10,2:36,3:65,4:88}[n]||8)+"%";
-  if(txt) $("vcProgLabel").textContent=txt;
+  $("vcProgFill").style.width=({1:8,2:32,3:62,4:86}[n]||8)+"%";
+  if(txt)$("vcProgLabel").textContent=txt;
 }
 function _vcErr(msg){
-  $("vcErr").innerHTML=msg; $("vcErr").classList.add("on");
+  $("vcErr").innerHTML=msg;$("vcErr").classList.add("on");
   $("vcResult").classList.remove("on");
 }
-function _vcClearErr(){ $("vcErr").classList.remove("on"); }
+function _vcClearErr(){$("vcErr").classList.remove("on");}
 
-/* ══════════════════════════════════════════════════════
-   COBALT.TOOLS API — free, no key needed
-   POST https://api.cobalt.tools/
-   Body: { url, videoQuality, isAudioOnly, filenameStyle }
-   Response: { status, url } or { status, picker[] }
-══════════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════════
+   API HELPERS
+═══════════════════════════════════════════════════════ */
+
+/* My Vercel API — yt-dlp backend */
+async function _myAPI(url, qual, fmt, sig){
+  const qualMap={best:"best",video:"720","480":"480","360":"360"};
+  const r=await fetch(_MY_API+"/api/download",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({url,quality:qualMap[qual]||"best",format:fmt}),
+    signal:sig
+  });
+  if(!r.ok) throw new Error("API HTTP "+r.status);
+  const d=await r.json();
+  if(!d.success||!d.url) throw new Error(d.error||"no url");
+  return [{url:d.url, fname:(d.title||"video").replace(/[^\w\s-]/g,"").trim().substring(0,60)+"."+(d.ext||fmt==="mp3"?"mp3":"mp4"), isAudio:fmt==="mp3", title:d.title||"", thumb:d.thumb||""}];
+}
+
+/* cobalt.tools single node */
+async function _cobaltNode(node, url, qual, isAudio, sig){
+  const qMap={best:"max",video:"1080","480":"480","360":"360"};
+  const r=await fetch(node,{
+    method:"POST",
+    headers:{"Content-Type":"application/json","Accept":"application/json"},
+    body:JSON.stringify({url,videoQuality:qMap[qual]||"max",downloadMode:isAudio?"audio":"auto",audioFormat:"mp3",filenameStyle:"basic",isAudioMuted:false}),
+    signal:sig
+  });
+  if(!r.ok) throw new Error("HTTP "+r.status);
+  const d=await r.json();
+  if(d.status==="error") throw new Error(d.error?.code||"cobalt error");
+  const items=[];
+  if(d.url) items.push({url:d.url,fname:d.filename||"video."+(isAudio?"mp3":"mp4"),isAudio,title:"",thumb:""});
+  else if(Array.isArray(d.picker)) d.picker.filter(p=>p.url).forEach((p,i)=>{
+    items.push({url:p.url,fname:p.filename||`video_${i}.mp4`,isAudio:false,title:"",thumb:""});
+  });
+  if(!items.length) throw new Error("no url");
+  return items;
+}
+
+/* ═══════════════════════════════════════════════════════
+   MAIN — Vercel API first, cobalt fallback
+═══════════════════════════════════════════════════════ */
 async function vcStartConvert(){
-  const rawUrl = ($("vcUrlInput").value||"").trim();
-  if(!rawUrl) return;
+  const rawUrl=($("vcUrlInput").value||"").trim();
+  if(!rawUrl)return;
 
   _vcClearErr();
   $("vcResult").classList.remove("on");
   _vcProg(true);
   _vcStep(1,"Menganalisis URL...");
+  if(_VC.ctrl)_VC.ctrl.abort();
+  _VC.ctrl=new AbortController();
+  const sig=_VC.ctrl.signal;
+  const isAudio=_VC.fmt==="mp3";
+  let items=null;
 
-  if(_VC.ctrl) _VC.ctrl.abort();
-  _VC.ctrl = new AbortController();
-  const sig = _VC.ctrl.signal;
+  /* ── Step 1: Try my Vercel API (yt-dlp) ── */
+  _vcStep(2,"Menghubungi server...");
+  const apiReady=!_MY_API.includes("YOUR-PROJECT");
 
-  // map quality selector to cobalt videoQuality
-  const qualMap = {best:"max",video:"720","480":"480","360":"360"};
-  const videoQuality = qualMap[_VC.qual] || "max";
-  const isAudioOnly  = _VC.fmt === "mp3";
-
-  const body = {
-    url: rawUrl,
-    videoQuality,
-    isAudioOnly,
-    isAudioMuted: false,
-    disableMetadata: false,
-    filenameStyle: "basic",
-    downloadMode: isAudioOnly ? "audio" : "auto"
-  };
-
-  try{
-    _vcStep(2,"Menghubungi server...");
-
-    let data = null;
-
-    /* ── Try A: cobalt.tools direct ── */
+  if(apiReady){
     try{
-      const res = await fetch(_VC.api,{
-        method:"POST",
-        headers:{"Content-Type":"application/json","Accept":"application/json"},
-        body:JSON.stringify(body),
-        signal:sig
-      });
-      if(res.ok) data = await res.json();
-    }catch(e1){ if(e1.name==="AbortError") throw e1; }
-
-    /* ── Try B: allorigins CORS proxy ── */
-    if(!data){
-      try{
-        const proxyUrl = "https://api.allorigins.win/raw?url="+encodeURIComponent(_VC.api);
-        const res2 = await fetch(proxyUrl,{
-          method:"POST",
-          headers:{"Content-Type":"application/json","Accept":"application/json"},
-          body:JSON.stringify(body),
-          signal:sig
-        });
-        if(res2.ok) data = await res2.json();
-      }catch(e2){ if(e2.name==="AbortError") throw e2; }
+      items=await _myAPI(rawUrl,_VC.qual,_VC.fmt,sig);
+    }catch(e){
+      if(e.name==="AbortError"){_vcProg(false);return;}
     }
-
-    /* ── Try C: corsproxy.io ── */
-    if(!data){
-      try{
-        const res3 = await fetch("https://corsproxy.io/?url="+encodeURIComponent(_VC.api),{
-          method:"POST",
-          headers:{"Content-Type":"application/json","Accept":"application/json"},
-          body:JSON.stringify(body),
-          signal:sig
-        });
-        if(res3.ok) data = await res3.json();
-      }catch(e3){ if(e3.name==="AbortError") throw e3; }
-    }
-
-    if(!data) throw new Error("Semua server tidak merespons. Coba lagi nanti.");
-
-    _vcStep(3,"Memproses video...");
-
-    // cobalt response: status = "stream"|"redirect"|"tunnel"|"picker"|"error"
-    if(data.status==="error"){
-      throw new Error(data.error?.code || data.error || "Server menolak permintaan ini.");
-    }
-
-    _vcStep(4,"Menyiapkan link...");
-    await new Promise(r=>setTimeout(r,200));
-    $("vcProgFill").style.width="100%";
-    await new Promise(r=>setTimeout(r,150));
-    _vcProg(false);
-
-    // extract download URLs
-    let urls = [];
-    if(data.url){
-      urls = [{url:data.url, label: isAudioOnly?"MP3 Audio":"MP4 Video", isAudio:isAudioOnly}];
-    } else if(Array.isArray(data.picker)){
-      data.picker.forEach((item,i)=>{
-        if(item.url) urls.push({url:item.url, label:item.type||"Video "+(i+1), isAudio:false});
-      });
-    }
-
-    if(!urls.length) throw new Error("Tidak ada link yang dikembalikan server.");
-
-    _vcRender(urls, rawUrl);
-
-  }catch(e){
-    if(e.name==="AbortError") return;
-    _vcProg(false);
-    _vcErr("Gagal: "+(e.message||"Coba lagi dengan link berbeda."));
   }
+
+  /* ── Step 2: cobalt fallback (race all nodes) ── */
+  if(!items){
+    _vcStep(2,"Mencoba server alternatif...");
+    try{
+      items=await Promise.any(
+        _COBALT.map(n=>_cobaltNode(n,rawUrl,_VC.qual,isAudio,sig))
+      );
+    }catch(e){
+      if(e.name==="AbortError"){_vcProg(false);return;}
+    }
+  }
+
+  if(!items){
+    _vcProg(false);
+    const hint=apiReady
+      ?"Semua server gagal. Coba platform atau kualitas lain."
+      :"Setup API Vercel dulu — lihat README. Cobalt juga gagal untuk URL ini.";
+    _vcErr(hint);
+    return;
+  }
+
+  _vcStep(3,"Memproses...");
+  await new Promise(r=>setTimeout(r,160));
+  _vcStep(4,"Menyiapkan link...");
+  $("vcProgFill").style.width="100%";
+  await new Promise(r=>setTimeout(r,100));
+  _vcProg(false);
+  _vcRender(items, rawUrl);
 }
 
-/* ── RENDER RESULT ── */
-function _vcRender(urls, srcUrl){
-  // try to get a clean title from URL
-  let title = "Video";
-  try{
-    const u = new URL(srcUrl);
-    const seg = u.pathname.split("/").filter(Boolean);
-    if(seg.length) title = decodeURIComponent(seg[seg.length-1]).replace(/[-_]/g," ").replace(/\.\w+$/,"");
-  }catch(_){}
+/* ══ RENDER ══ */
+function _vcRender(items, srcUrl){
+  const first=items[0]||{};
+  const isAudio=_VC.fmt==="mp3";
+  const qlbl={best:"Best Quality",video:"HD 1080p","480":"Normal 480p","360":"Low 360p"}[_VC.qual]||_VC.qual;
 
-  $("vcTitle").textContent = title || "Video siap download";
-  $("vcTags").innerHTML = `<span class="vc-result-tag">${_VC.fmt==="mp3"?"MP3 Audio":"MP4 Video"}</span>
-    <span class="vc-result-tag">${_VC.qual==="best"?"Best Quality":_VC.qual==="video"?"HD":_VC.qual+"p"}</span>`;
-  $("vcThumb").style.display = "none";
+  $("vcTitle").textContent=first.title||"Video siap download";
 
-  const links = $("vcLinks");
-  links.innerHTML = "";
-  urls.forEach(item => links.appendChild(_vcRow(item.url, item.label, "", item.isAudio)));
+  const th=$("vcThumb");
+  if(first.thumb){th.src=first.thumb;th.style.display="block";th.onerror=()=>th.style.display="none";}
+  else th.style.display="none";
 
+  $("vcTags").innerHTML=
+    `<span class="vc-result-tag">${isAudio?"MP3 Audio":"MP4 Video"}</span>`+
+    `<span class="vc-result-tag">${isAudio?"Audio Only":qlbl}</span>`;
+
+  const links=$("vcLinks");
+  links.innerHTML="";
+  items.forEach((item,idx)=>{
+    const lbl=item.isAudio?"MP3 Audio — "+qlbl
+      :(items.length>1?"MP4 Video "+(idx+1)+" — "+qlbl:"MP4 Video — "+qlbl);
+    links.appendChild(_vcRow(item.url,lbl,item.isAudio,item.fname));
+  });
+  if(!links.children.length){
+    links.innerHTML=`<div style="font-size:12px;color:rgba(255,255,255,0.3);padding:14px;text-align:center">Tidak ada link tersedia.</div>`;
+  }
   $("vcResult").classList.add("on");
   setTimeout(()=>$("vcResult").scrollIntoView({behavior:"smooth",block:"nearest"}),90);
 }
 
-/* ── DOWNLOAD ROW — bulletproof, 3 methods, no navigation ── */
-function _vcRow(url, label, size, isAudio){
-  const div = document.createElement("div");
-  div.className = "vc-link";
-  const bg  = isAudio ? "rgba(114,72,245,0.22)" : "rgba(61,114,246,0.22)";
-  const clr = isAudio ? "#c4a8ff" : "#8ab4f8";
-  const ico = isAudio
-    ? `<svg viewBox="0 0 24 24" fill="none" stroke="${clr}" stroke-width="2" style="width:17px;height:17px"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>`
-    : `<svg viewBox="0 0 24 24" fill="none" stroke="${clr}" stroke-width="2" style="width:17px;height:17px"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>`;
-  const ext  = isAudio ? ".mp3" : ".mp4";
-  const uid  = "vs"+Math.random().toString(36).slice(2,8);
-
-  div.innerHTML = `
+/* ══ DOWNLOAD ROW ══ */
+function _vcRow(url,label,isAudio,fname){
+  const div=document.createElement("div");
+  div.className="vc-link";
+  const bg=isAudio?"rgba(114,72,245,0.22)":"rgba(61,114,246,0.22)";
+  const clr=isAudio?"#c4a8ff":"#8ab4f8";
+  const ico=isAudio
+    ?`<svg viewBox="0 0 24 24" fill="none" stroke="${clr}" stroke-width="2" style="width:17px;height:17px"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>`
+    :`<svg viewBox="0 0 24 24" fill="none" stroke="${clr}" stroke-width="2" style="width:17px;height:17px"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>`;
+  const uid="vr"+Math.random().toString(36).slice(2,9);
+  div.innerHTML=`
     <div class="vc-link-ic" style="background:${bg};border:1px solid ${clr}55">${ico}</div>
     <div class="vc-link-info">
       <div class="vc-link-lbl">${label}</div>
       <div class="vc-link-sub" id="${uid}">Tap untuk download</div>
     </div>
-    <div class="vc-link-arr"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg></div>`;
+    <div class="vc-link-arr">
+      <svg viewBox="0 0 24 24" fill="none" stroke="${clr}" stroke-width="2.2" style="width:15px;height:15px">
+        <line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/>
+      </svg>
+    </div>`;
 
-  div.addEventListener("click", async ()=>{
-    if(div.dataset.busy==="1") return;
-    div.dataset.busy = "1";
-    const sub = document.getElementById(uid);
-    div.style.opacity = "0.55";
-    sub.textContent = "Memulai download...";
+  div.addEventListener("click",async()=>{
+    if(div.dataset.busy==="1")return;
+    div.dataset.busy="1";
+    const sub=document.getElementById(uid);
+    div.style.opacity="0.5"; sub.textContent="Memulai...";
+    let done=false;
 
-    const fname = "download"+ext;
-    let done = false;
-
-    /* Method 1: fetch blob → createObjectURL → <a download>
-       Triggers native download bar, page stays put */
+    /* M1: fetch blob → objectURL → anchor (native download bar) */
     try{
-      const r = await fetch(url, {mode:"cors"});
+      const r=await fetch(url,{mode:"cors"});
       if(r.ok){
-        const blob = await r.blob();
-        const obj  = URL.createObjectURL(blob);
-        const a    = Object.assign(document.createElement("a"),{href:obj,download:fname});
-        a.style.display="none";
-        document.body.appendChild(a); a.click();
-        setTimeout(()=>{ document.body.removeChild(a); URL.revokeObjectURL(obj); },3000);
-        sub.textContent = "Download dimulai";
-        div.style.opacity="1"; div.dataset.busy="0"; done=true;
+        const blob=await r.blob();
+        const obj=URL.createObjectURL(blob);
+        const a=Object.assign(document.createElement("a"),{href:obj,download:fname});
+        a.style.cssText="position:fixed;top:-999px;left:-999px;";
+        document.body.appendChild(a);a.click();
+        setTimeout(()=>{try{URL.revokeObjectURL(obj);document.body.removeChild(a);}catch(_){}},5000);
+        sub.textContent="Download berjalan";done=true;
       }
     }catch(_){}
 
-    /* Method 2: hidden anchor direct download */
+    /* M2: anchor direct */
     if(!done){
       try{
-        const a = Object.assign(document.createElement("a"),{href:url,download:fname});
-        a.style.display="none";
-        document.body.appendChild(a); a.click();
-        setTimeout(()=>document.body.removeChild(a),500);
-        sub.textContent = "Download dimulai";
-        div.style.opacity="1"; div.dataset.busy="0"; done=true;
+        const a=Object.assign(document.createElement("a"),{href:url,download:fname});
+        a.style.cssText="position:fixed;top:-999px;left:-999px;";
+        document.body.appendChild(a);a.click();
+        setTimeout(()=>{try{document.body.removeChild(a);}catch(_){}},500);
+        sub.textContent="Download berjalan";done=true;
       }catch(_){}
     }
 
-    /* Method 3: hidden iframe (last resort — no page navigation) */
+    /* M3: hidden iframe */
     if(!done){
       try{
-        const fr = document.createElement("iframe");
-        fr.style.cssText="position:fixed;top:-9999px;left:-9999px;width:1px;height:1px;opacity:0;pointer-events:none;";
-        fr.src = url;
-        document.body.appendChild(fr);
-        setTimeout(()=>{ try{document.body.removeChild(fr);}catch(_){} },6000);
-        sub.textContent = "Download dimulai";
-      }catch(_){
-        sub.textContent = "Gagal. Coba buka link manual.";
-      }
-      div.style.opacity="1"; div.dataset.busy="0";
+        const fr=document.createElement("iframe");
+        fr.style.cssText="position:fixed;top:-9999px;left:-9999px;width:1px;height:1px;opacity:0;pointer-events:none;border:none;";
+        fr.src=url;document.body.appendChild(fr);
+        setTimeout(()=>{try{document.body.removeChild(fr);}catch(_){}},8000);
+        sub.textContent="Download berjalan";done=true;
+      }catch(_){sub.textContent="Gagal.";}
     }
+    div.style.opacity="1";div.dataset.busy="0";
   });
-
   return div;
 }
 
