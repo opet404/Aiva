@@ -1,5 +1,13 @@
 {
   "version": 2,
+  "routes": [
+    { "src": "/api/download", "dest": "/api/download.js" },
+    { "src": "/api/info",     "dest": "/api/info.js"     },
+    { "src": "/api/chat",     "dest": "/api/chat.js"     },
+    { "src": "/api/status",   "dest": "/api/status.js"   },
+    { "src": "/api/multi-chat","dest": "/api/multi-chat.js"},
+    { "src": "/(.*)",         "dest": "/api/serve.js"    }
+  ],
   "headers": [
     {
       "source": "/api/(.*)",

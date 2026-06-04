@@ -1,8 +1,11 @@
 {
-  "name": "media-downloader-api",
+  "name": "aiva",
   "version": "1.0.0",
   "private": true,
   "dependencies": {
     "yt-dlp-exec": "^1.0.2"
+  },
+  "engines": {
+    "node": "18.x"
   }
 }

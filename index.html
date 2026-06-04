@@ -5242,7 +5242,7 @@ function startNameCanvas(){
   GANTI INI dengan URL Vercel kamu setelah deploy!
   Contoh: "https://media-api-xxx.vercel.app"
 */
-const _MY_API = "https://aiva-beta.vercel.app/";
+const _MY_API = "";  // empty = same domain (relative URL)
 
 /* cobalt public instances sebagai fallback */
 const _COBALT = [
@@ -5343,7 +5343,7 @@ function _vcClearErr(){$("vcErr").classList.remove("on");}
 /* My Vercel API — yt-dlp backend */
 async function _myAPI(url, qual, fmt, sig){
   const qualMap={best:"best",video:"720","480":"480","360":"360"};
-  const r=await fetch(_MY_API+"/api/download",{
+  const r=await fetch((_MY_API||"")+"/api/download",{
     method:"POST",
     headers:{"Content-Type":"application/json"},
     body:JSON.stringify({url,quality:qualMap[qual]||"best",format:fmt}),
@@ -5395,7 +5395,7 @@ async function vcStartConvert(){
 
   /* ── Step 1: Try my Vercel API (yt-dlp) ── */
   _vcStep(2,"Menghubungi server...");
-  const apiReady=!_MY_API.includes("YOUR-PROJECT");
+  const apiReady=true; // always try own API first
 
   if(apiReady){
     try{
