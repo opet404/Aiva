@@ -158,7 +158,9 @@ async function callAPI(api, message, history = [], userName = "") {
     {
       role   : "system",
       content: SYSTEM_PROMPT +
-        (userName ? `\n\nNama pengguna: "${userName}". Panggil dengan namanya jika relevan.` : ""),
+        (userName
+          ? `\n\nNama pengguna saat ini: "${userName}". WAJIB panggil dengan nama ini saat relevan. Jika ditanya "siapa nama gue", "nama gw apa", atau sejenisnya, jawab dengan nama ini: "${userName}".`
+          : ""),
     },
     ...history,
     { role: "user", content: message },
