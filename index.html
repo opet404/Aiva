@@ -506,35 +506,45 @@ body.light .mm-final-meta    { border-top-color: rgba(0,0,0,0.07); }
 
 /* Sidebar Profile Card */
 .sb-profile{padding:10px 10px 8px;flex-shrink:0}
-.sb-profile-wrap{position:relative;border-radius:14px;padding:1px;background:linear-gradient(135deg,rgba(61,114,246,0.35),rgba(114,72,245,0.18),rgba(255,255,255,0.06));box-shadow:0 4px 24px rgba(0,0,0,0.35)}
-.sb-profile-card{display:flex;align-items:center;gap:11px;padding:11px 12px;border-radius:13px;cursor:pointer;transition:all 0.25s var(--ease);background:linear-gradient(135deg,rgba(10,12,28,0.97),rgba(14,16,36,0.95));position:relative;overflow:hidden}
-.sb-profile-card::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(61,114,246,0.07),rgba(114,72,245,0.04));opacity:0;transition:opacity 0.25s}
-.sb-profile-card:hover::before{opacity:1}
-.sb-profile-card:hover{transform:translateY(-1px)}
-.sb-profile-card:hover .sb-profile-wrap{box-shadow:0 6px 30px rgba(61,114,246,0.22)}
-.sb-profile-avatar{width:38px;height:38px;border-radius:50%;flex-shrink:0;background:linear-gradient(135deg,#3d72f6,#7248f5);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;color:#fff;letter-spacing:-0.5px;border:2px solid rgba(255,255,255,0.12);box-shadow:0 0 0 2px rgba(61,114,246,0.3),0 4px 14px rgba(61,114,246,0.35);transition:box-shadow 0.25s,transform 0.25s;position:relative;z-index:1}
-.sb-profile-card:hover .sb-profile-avatar{box-shadow:0 0 0 2px rgba(61,114,246,0.55),0 6px 20px rgba(61,114,246,0.45);transform:scale(1.05)}
-.sb-profile-info{flex:1;overflow:hidden;position:relative;z-index:1}
-.sb-profile-name{font-size:13px;font-weight:700;color:rgba(255,255,255,0.92);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.25;letter-spacing:0.1px}
-.sb-profile-label{font-size:10px;color:rgba(255,255,255,0.32);letter-spacing:0.8px;margin-top:2px;font-weight:500}
-.sb-profile-edit-btn{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:rgba(61,114,246,0.12);border:1px solid rgba(61,114,246,0.22);transition:all 0.2s;position:relative;z-index:1}
-.sb-profile-edit-btn:hover{background:rgba(61,114,246,0.28);border-color:rgba(61,114,246,0.5);transform:scale(1.1)}
-.sb-profile-edit-btn svg{width:12px;height:12px;stroke:rgba(130,168,255,0.9);stroke-width:2;fill:none;transition:stroke 0.2s}
-.sb-profile-edit-btn:hover svg{stroke:#a8c0ff}
+.sb-profile-wrap{position:relative;border-radius:15px;padding:1.5px;background:linear-gradient(135deg,rgba(61,114,246,0.5),rgba(114,72,245,0.3),rgba(61,114,246,0.15));box-shadow:0 4px 20px rgba(0,0,0,0.4);transition:box-shadow 0.3s}
+.sb-profile-wrap:hover{box-shadow:0 6px 28px rgba(61,114,246,0.28)}
+.sb-profile-card{display:flex;align-items:center;gap:11px;padding:10px 11px;border-radius:14px;transition:all 0.25s var(--ease);background:linear-gradient(145deg,rgba(9,11,26,0.98),rgba(13,15,34,0.97));position:relative;overflow:hidden}
+.sb-profile-card::after{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 10% 50%,rgba(61,114,246,0.08),transparent 70%);opacity:0;transition:opacity 0.3s}
+.sb-profile-card:hover::after{opacity:1}
 
-/* Inline edit popup */
-.sb-profile-edit-modal{position:absolute;bottom:calc(100% + 6px);left:0;right:0;background:linear-gradient(160deg,rgba(10,13,30,0.98),rgba(14,16,36,0.98));border:1px solid rgba(61,114,246,0.35);border-radius:14px;padding:14px;z-index:99999;backdrop-filter:blur(24px);box-shadow:0 -8px 36px rgba(0,0,0,0.55),0 0 0 1px rgba(255,255,255,0.04);animation:popIn 0.18s var(--ease)}
-.sb-profile-edit-header{display:flex;align-items:center;gap:7px;margin-bottom:10px}
-.sb-profile-edit-dot{width:6px;height:6px;border-radius:50%;background:linear-gradient(135deg,#3d72f6,#7248f5);flex-shrink:0;box-shadow:0 0 6px rgba(61,114,246,0.6)}
-.sb-profile-edit-title{font-size:10px;font-weight:700;letter-spacing:1.8px;color:rgba(255,255,255,0.35);text-transform:uppercase}
-.sb-profile-edit-input{width:100%;padding:9px 12px;border-radius:9px;background:rgba(61,114,246,0.06);border:1px solid rgba(61,114,246,0.22);color:#e8eeff;font-family:var(--F);font-size:13px;font-weight:500;outline:none;box-sizing:border-box;transition:all 0.2s;caret-color:#7aa8f7}
-.sb-profile-edit-input::placeholder{color:rgba(255,255,255,0.2)}
-.sb-profile-edit-input:focus{border-color:rgba(61,114,246,0.55);background:rgba(61,114,246,0.1);box-shadow:0 0 0 3px rgba(61,114,246,0.12)}
-.sb-profile-edit-actions{display:flex;gap:7px;margin-top:10px}
-.sb-profile-edit-save{flex:1;padding:9px;border-radius:9px;background:linear-gradient(135deg,rgba(61,114,246,0.28),rgba(114,72,245,0.2));border:1px solid rgba(61,114,246,0.4);color:#b8d0ff;font-family:var(--F);font-size:12px;font-weight:700;cursor:pointer;transition:all 0.18s;letter-spacing:0.3px}
-.sb-profile-edit-save:hover{background:linear-gradient(135deg,rgba(61,114,246,0.42),rgba(114,72,245,0.32));border-color:rgba(61,114,246,0.6);color:#d0e4ff;transform:translateY(-1px);box-shadow:0 4px 14px rgba(61,114,246,0.25)}
-.sb-profile-edit-cancel{padding:9px 13px;border-radius:9px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);color:rgba(255,255,255,0.3);font-family:var(--F);font-size:12px;cursor:pointer;transition:all 0.18s}
-.sb-profile-edit-cancel:hover{background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.55)}
+/* Avatar — premium shape */
+.sb-profile-avatar{width:40px;height:40px;border-radius:12px;flex-shrink:0;display:flex;align-items:center;justify-content:center;position:relative;z-index:1;transition:transform 0.25s var(--ease),box-shadow 0.25s;overflow:hidden}
+.sb-profile-avatar-inner{position:absolute;inset:0;border-radius:12px;display:flex;align-items:center;justify-content:center}
+.sb-profile-avatar-bg{position:absolute;inset:0;border-radius:12px;opacity:1}
+.sb-profile-avatar-shine{position:absolute;top:0;left:0;right:0;height:55%;background:linear-gradient(180deg,rgba(255,255,255,0.18),transparent);border-radius:12px 12px 0 0;pointer-events:none}
+.sb-profile-avatar-initials{position:relative;z-index:2;font-size:15px;font-weight:800;color:#fff;letter-spacing:-0.5px;text-shadow:0 1px 4px rgba(0,0,0,0.35);line-height:1;font-family:var(--F)}
+.sb-profile-wrap:hover .sb-profile-avatar{transform:scale(1.07);box-shadow:0 4px 18px rgba(61,114,246,0.45)}
+.sb-profile-avatar-ring{position:absolute;inset:-2px;border-radius:14px;border:1.5px solid transparent;background:linear-gradient(135deg,rgba(255,255,255,0.2),rgba(255,255,255,0.04)) border-box;-webkit-mask:linear-gradient(#fff 0 0) padding-box,linear-gradient(#fff 0 0);-webkit-mask-composite:destination-out;mask-composite:exclude;pointer-events:none}
+
+.sb-profile-info{flex:1;overflow:hidden;position:relative;z-index:1;min-width:0}
+.sb-profile-name{font-size:13px;font-weight:700;color:rgba(255,255,255,0.93);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.3;letter-spacing:0.05px;transition:color 0.3s}
+.sb-profile-status{display:flex;align-items:center;gap:5px;margin-top:3px}
+.sb-profile-status-dot{width:5px;height:5px;border-radius:50%;background:#22c55e;box-shadow:0 0 5px rgba(34,197,94,0.7);flex-shrink:0;animation:sbStatusPulse 2.5s ease-in-out infinite}
+@keyframes sbStatusPulse{0%,100%{opacity:1;box-shadow:0 0 5px rgba(34,197,94,0.7)}50%{opacity:0.6;box-shadow:0 0 2px rgba(34,197,94,0.3)}}
+.sb-profile-status-text{font-size:9.5px;color:rgba(255,255,255,0.28);letter-spacing:0.7px;font-weight:500}
+
+.sb-profile-edit-btn{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:rgba(61,114,246,0.13);border:1px solid rgba(61,114,246,0.25);transition:all 0.2s;position:relative;z-index:1;cursor:pointer}
+.sb-profile-edit-btn:hover{background:rgba(61,114,246,0.3);border-color:rgba(61,114,246,0.55);transform:scale(1.08);box-shadow:0 0 12px rgba(61,114,246,0.3)}
+.sb-profile-edit-btn svg{width:11px;height:11px;stroke:#7aa8f7;stroke-width:2.2;fill:none}
+
+/* Edit popup */
+.sb-profile-edit-modal{position:absolute;bottom:calc(100% + 8px);left:0;right:0;background:linear-gradient(160deg,rgba(8,10,24,0.99),rgba(12,14,32,0.98));border:1px solid rgba(61,114,246,0.4);border-radius:14px;padding:13px;z-index:99999;backdrop-filter:blur(28px);box-shadow:0 -10px 40px rgba(0,0,0,0.6),0 0 0 1px rgba(255,255,255,0.03);animation:popIn 0.18s var(--ease)}
+.sb-profile-edit-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.sb-profile-edit-headleft{display:flex;align-items:center;gap:7px}
+.sb-profile-edit-dot{width:6px;height:6px;border-radius:50%;background:linear-gradient(135deg,#3d72f6,#7248f5);flex-shrink:0;box-shadow:0 0 8px rgba(61,114,246,0.7)}
+.sb-profile-edit-title{font-size:10px;font-weight:700;letter-spacing:1.8px;color:rgba(255,255,255,0.38);text-transform:uppercase}
+.sb-profile-edit-autosave{font-size:9px;color:rgba(255,255,255,0.2);letter-spacing:0.5px;transition:all 0.3s}
+.sb-profile-edit-autosave.saved{color:#22c55e;text-shadow:0 0 6px rgba(34,197,94,0.5)}
+.sb-profile-edit-input{width:100%;padding:10px 12px;border-radius:10px;background:rgba(61,114,246,0.07);border:1px solid rgba(61,114,246,0.2);color:#e8eeff;font-family:var(--F);font-size:13px;font-weight:600;outline:none;box-sizing:border-box;transition:all 0.22s;caret-color:#7aa8f7;letter-spacing:0.1px}
+.sb-profile-edit-input::placeholder{color:rgba(255,255,255,0.18);font-weight:400}
+.sb-profile-edit-input:focus{border-color:rgba(61,114,246,0.55);background:rgba(61,114,246,0.11);box-shadow:0 0 0 3px rgba(61,114,246,0.13)}
+.sb-profile-edit-hint{font-size:9.5px;color:rgba(255,255,255,0.18);margin-top:7px;letter-spacing:0.3px}
+.sb-profile-edit-hint span{color:rgba(61,114,246,0.7)}
 
 /* FULL PAGE (About / Support) */
 .full-page{position:fixed;inset:0;z-index:100000;overflow-y:auto;display:none;background:radial-gradient(ellipse 70% 50% at 20% 10%,rgba(61,114,246,0.12),transparent 55%),radial-gradient(ellipse 60% 45% at 80% 90%,rgba(114,72,245,0.1),transparent 55%),var(--bg);animation:popIn 0.25s var(--ease)}
@@ -1709,12 +1719,20 @@ line-height:1.8;
   <div class="sb-profile" id="sbProfileSection" style="position:relative">
     <div class="sb-profile-wrap">
       <div class="sb-profile-card">
-        <div class="sb-profile-avatar" id="sbProfileAvatar">?</div>
+        <div class="sb-profile-avatar" id="sbProfileAvatar">
+          <div class="sb-profile-avatar-bg" id="sbProfileAvatarBg"></div>
+          <div class="sb-profile-avatar-shine"></div>
+          <div class="sb-profile-avatar-ring"></div>
+          <div class="sb-profile-avatar-initials" id="sbProfileInitials">?</div>
+        </div>
         <div class="sb-profile-info">
           <div class="sb-profile-name" id="sbProfileName">—</div>
-          <div class="sb-profile-label">PROFIL KAMU</div>
+          <div class="sb-profile-status">
+            <div class="sb-profile-status-dot"></div>
+            <div class="sb-profile-status-text">ONLINE</div>
+          </div>
         </div>
-        <div class="sb-profile-edit-btn" onclick="toggleProfileEdit(event)" title="Edit nama">
+        <div class="sb-profile-edit-btn" onclick="toggleProfileEdit(event)" title="Ganti nama">
           <svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
         </div>
       </div>
@@ -4719,29 +4737,55 @@ function newChat(){
 function getAivaUserName(){ return localStorage.getItem("aivaUserName") || ""; }
 
 /* ── Sidebar Profile ─────────────────────────────── */
+const AVATAR_PALETTES = [
+  {a:"#3d72f6",b:"#7248f5"},  // blue-purple
+  {a:"#f05d23",b:"#f5485a"},  // orange-red
+  {a:"#0fba81",b:"#0d8cf0"},  // teal-blue
+  {a:"#c840e9",b:"#7248f5"},  // pink-purple
+  {a:"#f5a623",b:"#f56323"},  // amber-orange
+  {a:"#00c6ff",b:"#3d52f6"},  // cyan-blue
+  {a:"#43e97b",b:"#38b2ac"},  // green-teal
+  {a:"#f857a6",b:"#ff5858"},  // pink-red
+];
+
+function getAvatarPalette(name){
+  if(!name) return AVATAR_PALETTES[0];
+  const hash = name.split("").reduce((a,c)=>a+c.charCodeAt(0),0);
+  return AVATAR_PALETTES[Math.abs(hash) % AVATAR_PALETTES.length];
+}
+
+function renderAvatar(name){
+  const bgEl = document.getElementById("sbProfileAvatarBg");
+  const initEl = document.getElementById("sbProfileInitials");
+  if(!bgEl || !initEl) return;
+
+  if(!name){ initEl.textContent = "?"; bgEl.style.background = "linear-gradient(135deg,#3d72f6,#7248f5)"; return; }
+
+  const words = name.trim().split(/\s+/);
+  let initials;
+  if(words.length >= 2){
+    initials = (words[0][0] + words[words.length-1][0]).toUpperCase();
+  } else {
+    initials = name.slice(0,2).toUpperCase();
+  }
+  initEl.textContent = initials;
+
+  const {a,b} = getAvatarPalette(name);
+  bgEl.style.background = `linear-gradient(145deg,${a},${b})`;
+
+  // Glow warna sesuai palette
+  const avatarEl = document.getElementById("sbProfileAvatar");
+  if(avatarEl) avatarEl.style.boxShadow = `0 3px 16px ${a}55,0 0 0 1px ${a}33`;
+}
+
 function initSbProfile(){
   const name = getAivaUserName();
   const nameEl = document.getElementById("sbProfileName");
-  const avatarEl = document.getElementById("sbProfileAvatar");
-  if(!nameEl || !avatarEl) return;
-
-  if(name){
-    nameEl.textContent = name;
-    const initials = name.split(" ").map(w=>w[0]||"").join("").toUpperCase().slice(0,2) || "?";
-    avatarEl.textContent = initials;
-    const colors = [
-      ["#3d72f6","#7248f5"],["#f6913d","#f54872"],["#12c88a","#3d72f6"],
-      ["#f548c8","#7248f5"],["#f6c23d","#f6603d"],["#48d4f5","#3d52f6"]
-    ];
-    const idx = Math.abs(name.split("").reduce((a,c)=>a+c.charCodeAt(0),0)) % colors.length;
-    avatarEl.style.background = `linear-gradient(135deg,${colors[idx][0]},${colors[idx][1]})`;
-    avatarEl.style.boxShadow = `0 0 0 2px rgba(61,114,246,0.3),0 4px 14px ${colors[idx][0]}55`;
-  } else {
-    nameEl.textContent = "Belum diset";
-    avatarEl.textContent = "?";
-    avatarEl.style.background = "linear-gradient(135deg,#3d72f6,#7248f5)";
-  }
+  if(nameEl) nameEl.textContent = name || "Belum diset";
+  renderAvatar(name);
 }
+
+let _sbAutoSaveTimer = null;
 
 function toggleProfileEdit(e){
   if(e) e.stopPropagation();
@@ -4755,27 +4799,57 @@ function toggleProfileEdit(e){
   modal.className = "sb-profile-edit-modal";
   modal.innerHTML = `
     <div class="sb-profile-edit-header">
-      <div class="sb-profile-edit-dot"></div>
-      <div class="sb-profile-edit-title">Ganti Nama</div>
+      <div class="sb-profile-edit-headleft">
+        <div class="sb-profile-edit-dot"></div>
+        <div class="sb-profile-edit-title">Ganti Nama</div>
+      </div>
+      <div class="sb-profile-edit-autosave" id="sbAutoSaveLabel">auto-save</div>
     </div>
     <input class="sb-profile-edit-input" id="sbProfileEditInput" type="text"
       placeholder="Ketik nama kamu…" value="${currentName.replace(/"/g,'&quot;')}" maxlength="32" autocomplete="off" spellcheck="false">
-    <div class="sb-profile-edit-actions">
-      <button class="sb-profile-edit-save" onclick="saveSbProfileName()">✓ Simpan</button>
-      <button class="sb-profile-edit-cancel" onclick="closeSbProfileEdit()">Batal</button>
-    </div>`;
+    <div class="sb-profile-edit-hint">Tekan <span>Enter</span> untuk simpan · <span>Esc</span> untuk tutup</div>`;
   section.appendChild(modal);
 
   const input = modal.querySelector("#sbProfileEditInput");
   setTimeout(()=>{ if(input){ input.focus(); input.select(); } }, 60);
+
+  // Auto-save saat ngetik (debounce 500ms)
+  input.addEventListener("input", ()=>{
+    const label = document.getElementById("sbAutoSaveLabel");
+    if(label){ label.textContent = "menyimpan…"; label.classList.remove("saved"); }
+    clearTimeout(_sbAutoSaveTimer);
+    _sbAutoSaveTimer = setTimeout(()=>{
+      const val = input.value.trim();
+      if(val){
+        localStorage.setItem("aivaUserName", val);
+        localStorage.setItem("aivaNameSet","1");
+        initSbProfile();
+        if(label){ label.textContent = "✓ tersimpan"; label.classList.add("saved"); }
+        setTimeout(()=>{ if(label){ label.textContent="auto-save"; label.classList.remove("saved"); } }, 1800);
+      }
+    }, 500);
+  });
+
   input.addEventListener("keydown", e2=>{
-    if(e2.key==="Enter") saveSbProfileName();
+    if(e2.key==="Enter"){
+      const val = input.value.trim();
+      if(val){
+        clearTimeout(_sbAutoSaveTimer);
+        localStorage.setItem("aivaUserName", val);
+        localStorage.setItem("aivaNameSet","1");
+        initSbProfile();
+      }
+      closeSbProfileEdit();
+    }
     if(e2.key==="Escape") closeSbProfileEdit();
   });
 
   setTimeout(()=>{
     document.addEventListener("click", function outsideHandler(ev){
       if(!section.contains(ev.target)){
+        // Auto-save sisa input sebelum tutup
+        const inp = document.getElementById("sbProfileEditInput");
+        if(inp){ const v=inp.value.trim(); if(v){ clearTimeout(_sbAutoSaveTimer); localStorage.setItem("aivaUserName",v); localStorage.setItem("aivaNameSet","1"); initSbProfile(); } }
         closeSbProfileEdit();
         document.removeEventListener("click", outsideHandler);
       }
@@ -4787,32 +4861,16 @@ function saveSbProfileName(){
   const input = document.getElementById("sbProfileEditInput");
   if(!input) return;
   const name = input.value.trim();
-  if(!name){
-    input.style.borderColor = "rgba(240,68,68,0.65)";
-    input.style.boxShadow = "0 0 0 3px rgba(240,68,68,0.14)";
-    input.placeholder = "Nama nggak boleh kosong!";
-    setTimeout(()=>{
-      input.style.borderColor = "";
-      input.style.boxShadow = "";
-    }, 900);
-    return;
-  }
-  // Simpan ke localStorage — otomatis kepake di request AI berikutnya
+  if(!name) return;
+  clearTimeout(_sbAutoSaveTimer);
   localStorage.setItem("aivaUserName", name);
   localStorage.setItem("aivaNameSet", "1");
   closeSbProfileEdit();
   initSbProfile();
-
-  // Flash animasi nama baru
-  const nameEl = document.getElementById("sbProfileName");
-  if(nameEl){
-    nameEl.style.transition = "color 0.3s";
-    nameEl.style.color = "#7aa8f7";
-    setTimeout(()=>{ nameEl.style.color = ""; }, 800);
-  }
 }
 
 function closeSbProfileEdit(){
+  clearTimeout(_sbAutoSaveTimer);
   const section = document.getElementById("sbProfileSection");
   if(!section) return;
   const modal = section.querySelector(".sb-profile-edit-modal");
