@@ -505,43 +505,46 @@ body.light .mm-final-meta    { border-top-color: rgba(0,0,0,0.07); }
 .sb-beta{display:inline-block;padding:2px 7px;border-radius:5px;background:rgba(255,200,60,0.08);border:1px solid rgba(255,200,60,0.2);color:#ffd54a;font-size:9px;letter-spacing:1.5px;margin-bottom:3px}
 
 /* Sidebar Profile Card */
-.sb-profile{padding:8px 10px 10px;flex-shrink:0}
-.sb-profile-wrap{border-radius:14px;background:rgba(255,255,255,0.035);border:1px solid rgba(255,255,255,0.08);transition:all 0.25s var(--ease);cursor:default}
-.sb-profile-wrap:hover{background:rgba(61,114,246,0.08);border-color:rgba(61,114,246,0.22)}
-.sb-profile-card{display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:14px;position:relative;overflow:hidden}
+.sb-profile{padding:10px 10px 8px;flex-shrink:0}
+.sb-profile-wrap{position:relative;border-radius:15px;padding:1.5px;background:linear-gradient(135deg,rgba(61,114,246,0.5),rgba(114,72,245,0.3),rgba(61,114,246,0.15));box-shadow:0 4px 20px rgba(0,0,0,0.4);transition:box-shadow 0.3s}
+.sb-profile-wrap:hover{box-shadow:0 6px 28px rgba(61,114,246,0.28)}
+.sb-profile-card{display:flex;align-items:center;gap:11px;padding:10px 11px;border-radius:14px;transition:all 0.25s var(--ease);background:linear-gradient(145deg,rgba(9,11,26,0.98),rgba(13,15,34,0.97));position:relative;overflow:hidden}
+.sb-profile-card::after{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 10% 50%,rgba(61,114,246,0.08),transparent 70%);opacity:0;transition:opacity 0.3s}
+.sb-profile-card:hover::after{opacity:1}
 
-/* Avatar */
-.sb-profile-avatar{width:42px;height:42px;border-radius:12px;flex-shrink:0;display:flex;align-items:center;justify-content:center;position:relative;z-index:1;transition:transform 0.25s var(--ease);overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.3)}
-.sb-profile-avatar-bg{position:absolute;inset:0;border-radius:12px}
-.sb-profile-avatar-shine{position:absolute;top:0;left:0;right:0;height:50%;background:linear-gradient(180deg,rgba(255,255,255,0.22),transparent);border-radius:12px 12px 0 0;pointer-events:none;z-index:1}
-.sb-profile-avatar-ring{position:absolute;inset:0;border-radius:12px;box-shadow:inset 0 0 0 1px rgba(255,255,255,0.15);pointer-events:none;z-index:3}
-.sb-profile-avatar-initials{position:relative;z-index:2;font-size:20px;font-weight:900;color:#fff;text-shadow:0 2px 8px rgba(0,0,0,0.5);line-height:1;font-family:var(--F);letter-spacing:-1px;user-select:none}
-.sb-profile-wrap:hover .sb-profile-avatar{transform:scale(1.06)}
+/* Avatar — premium shape */
+.sb-profile-avatar{width:40px;height:40px;border-radius:12px;flex-shrink:0;display:flex;align-items:center;justify-content:center;position:relative;z-index:1;transition:transform 0.25s var(--ease),box-shadow 0.25s;overflow:hidden}
+.sb-profile-avatar-inner{position:absolute;inset:0;border-radius:12px;display:flex;align-items:center;justify-content:center}
+.sb-profile-avatar-bg{position:absolute;inset:0;border-radius:12px;opacity:1}
+.sb-profile-avatar-shine{position:absolute;top:0;left:0;right:0;height:55%;background:linear-gradient(180deg,rgba(255,255,255,0.18),transparent);border-radius:12px 12px 0 0;pointer-events:none}
+.sb-profile-avatar-initials{position:relative;z-index:2;font-size:15px;font-weight:800;color:#fff;letter-spacing:-0.5px;text-shadow:0 1px 4px rgba(0,0,0,0.35);line-height:1;font-family:var(--F)}
+.sb-profile-wrap:hover .sb-profile-avatar{transform:scale(1.07);box-shadow:0 4px 18px rgba(61,114,246,0.45)}
+.sb-profile-avatar-ring{position:absolute;inset:-2px;border-radius:14px;border:1.5px solid transparent;background:linear-gradient(135deg,rgba(255,255,255,0.2),rgba(255,255,255,0.04)) border-box;-webkit-mask:linear-gradient(#fff 0 0) padding-box,linear-gradient(#fff 0 0);-webkit-mask-composite:destination-out;mask-composite:exclude;pointer-events:none}
 
 .sb-profile-info{flex:1;overflow:hidden;position:relative;z-index:1;min-width:0}
-.sb-profile-name{font-size:13.5px;font-weight:700;color:rgba(255,255,255,0.92);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.3;letter-spacing:0.05px;transition:color 0.3s}
+.sb-profile-name{font-size:13px;font-weight:700;color:rgba(255,255,255,0.93);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.3;letter-spacing:0.05px;transition:color 0.3s}
 .sb-profile-status{display:flex;align-items:center;gap:5px;margin-top:3px}
 .sb-profile-status-dot{width:5px;height:5px;border-radius:50%;background:#22c55e;box-shadow:0 0 5px rgba(34,197,94,0.7);flex-shrink:0;animation:sbStatusPulse 2.5s ease-in-out infinite}
 @keyframes sbStatusPulse{0%,100%{opacity:1;box-shadow:0 0 5px rgba(34,197,94,0.7)}50%{opacity:0.6;box-shadow:0 0 2px rgba(34,197,94,0.3)}}
 .sb-profile-status-text{font-size:9.5px;color:rgba(255,255,255,0.28);letter-spacing:0.7px;font-weight:500}
 
-.sb-profile-edit-btn{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:rgba(61,114,246,0.12);border:1px solid rgba(61,114,246,0.22);transition:all 0.2s;position:relative;z-index:1;cursor:pointer}
-.sb-profile-edit-btn:hover{background:rgba(61,114,246,0.28);border-color:rgba(61,114,246,0.5);transform:scale(1.08);box-shadow:0 0 10px rgba(61,114,246,0.28)}
+.sb-profile-edit-btn{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:rgba(61,114,246,0.13);border:1px solid rgba(61,114,246,0.25);transition:all 0.2s;position:relative;z-index:1;cursor:pointer}
+.sb-profile-edit-btn:hover{background:rgba(61,114,246,0.3);border-color:rgba(61,114,246,0.55);transform:scale(1.08);box-shadow:0 0 12px rgba(61,114,246,0.3)}
 .sb-profile-edit-btn svg{width:11px;height:11px;stroke:#7aa8f7;stroke-width:2.2;fill:none}
 
 /* Edit popup */
-.sb-profile-edit-modal{position:absolute;bottom:calc(100% + 8px);left:0;right:0;background:rgba(10,12,28,0.98);border:1px solid rgba(61,114,246,0.35);border-radius:14px;padding:13px;z-index:99999;backdrop-filter:blur(30px);box-shadow:0 -8px 32px rgba(0,0,0,0.55);animation:popIn 0.16s var(--ease)}
+.sb-profile-edit-modal{position:absolute;bottom:calc(100% + 8px);left:0;right:0;background:linear-gradient(160deg,rgba(8,10,24,0.99),rgba(12,14,32,0.98));border:1px solid rgba(61,114,246,0.4);border-radius:14px;padding:13px;z-index:99999;backdrop-filter:blur(28px);box-shadow:0 -10px 40px rgba(0,0,0,0.6),0 0 0 1px rgba(255,255,255,0.03);animation:popIn 0.18s var(--ease)}
 .sb-profile-edit-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
 .sb-profile-edit-headleft{display:flex;align-items:center;gap:7px}
-.sb-profile-edit-dot{width:6px;height:6px;border-radius:50%;background:linear-gradient(135deg,#3d72f6,#7248f5);flex-shrink:0;box-shadow:0 0 7px rgba(61,114,246,0.7)}
-.sb-profile-edit-title{font-size:10px;font-weight:700;letter-spacing:1.8px;color:rgba(255,255,255,0.35);text-transform:uppercase}
-.sb-profile-edit-autosave{font-size:9px;color:rgba(255,255,255,0.18);letter-spacing:0.5px;transition:all 0.3s}
+.sb-profile-edit-dot{width:6px;height:6px;border-radius:50%;background:linear-gradient(135deg,#3d72f6,#7248f5);flex-shrink:0;box-shadow:0 0 8px rgba(61,114,246,0.7)}
+.sb-profile-edit-title{font-size:10px;font-weight:700;letter-spacing:1.8px;color:rgba(255,255,255,0.38);text-transform:uppercase}
+.sb-profile-edit-autosave{font-size:9px;color:rgba(255,255,255,0.2);letter-spacing:0.5px;transition:all 0.3s}
 .sb-profile-edit-autosave.saved{color:#22c55e;text-shadow:0 0 6px rgba(34,197,94,0.5)}
-.sb-profile-edit-input{width:100%;padding:10px 12px;border-radius:10px;background:rgba(61,114,246,0.07);border:1px solid rgba(61,114,246,0.2);color:#e8eeff;font-family:var(--F);font-size:13px;font-weight:600;outline:none;box-sizing:border-box;transition:all 0.22s;caret-color:#7aa8f7}
+.sb-profile-edit-input{width:100%;padding:10px 12px;border-radius:10px;background:rgba(61,114,246,0.07);border:1px solid rgba(61,114,246,0.2);color:#e8eeff;font-family:var(--F);font-size:13px;font-weight:600;outline:none;box-sizing:border-box;transition:all 0.22s;caret-color:#7aa8f7;letter-spacing:0.1px}
 .sb-profile-edit-input::placeholder{color:rgba(255,255,255,0.18);font-weight:400}
-.sb-profile-edit-input:focus{border-color:rgba(61,114,246,0.55);background:rgba(61,114,246,0.1);box-shadow:0 0 0 3px rgba(61,114,246,0.12)}
-.sb-profile-edit-hint{font-size:9.5px;color:rgba(255,255,255,0.17);margin-top:8px;letter-spacing:0.3px}
-.sb-profile-edit-hint span{color:rgba(100,148,255,0.7)}
+.sb-profile-edit-input:focus{border-color:rgba(61,114,246,0.55);background:rgba(61,114,246,0.11);box-shadow:0 0 0 3px rgba(61,114,246,0.13)}
+.sb-profile-edit-hint{font-size:9.5px;color:rgba(255,255,255,0.18);margin-top:7px;letter-spacing:0.3px}
+.sb-profile-edit-hint span{color:rgba(61,114,246,0.7)}
 
 /* FULL PAGE (About / Support) */
 .full-page{position:fixed;inset:0;z-index:100000;overflow-y:auto;display:none;background:radial-gradient(ellipse 70% 50% at 20% 10%,rgba(61,114,246,0.12),transparent 55%),radial-gradient(ellipse 60% 45% at 80% 90%,rgba(114,72,245,0.1),transparent 55%),var(--bg);animation:popIn 0.25s var(--ease)}
@@ -4758,8 +4761,14 @@ function renderAvatar(name){
 
   if(!name){ initEl.textContent = "?"; bgEl.style.background = "linear-gradient(135deg,#3d72f6,#7248f5)"; return; }
 
-  const initial = name.trim()[0].toUpperCase();
-  initEl.textContent = initial;
+  const words = name.trim().split(/\s+/);
+  let initials;
+  if(words.length >= 2){
+    initials = (words[0][0] + words[words.length-1][0]).toUpperCase();
+  } else {
+    initials = name.slice(0,2).toUpperCase();
+  }
+  initEl.textContent = initials;
 
   const {a,b} = getAvatarPalette(name);
   bgEl.style.background = `linear-gradient(145deg,${a},${b})`;
@@ -4797,7 +4806,7 @@ function toggleProfileEdit(e){
       <div class="sb-profile-edit-autosave" id="sbAutoSaveLabel">auto-save</div>
     </div>
     <input class="sb-profile-edit-input" id="sbProfileEditInput" type="text"
-      placeholder="Ketik nama kamu…" value="${currentName.replace(/"/g,'&quot;')}" maxlength="32" autocomplete="off" spellcheck="false" enterkeyhint="done" inputmode="text">
+      placeholder="Ketik nama kamu…" value="${currentName.replace(/"/g,'&quot;')}" maxlength="32" autocomplete="off" spellcheck="false">
     <div class="sb-profile-edit-hint">Tekan <span>Enter</span> untuk simpan · <span>Esc</span> untuk tutup</div>`;
   section.appendChild(modal);
 
@@ -4821,30 +4830,9 @@ function toggleProfileEdit(e){
     }, 500);
   });
 
-  // Enter & Go button (Android keyboard) = save + tutup
-  function commitAndClose(){
-    const val = input.value.trim();
-    if(val){
-      clearTimeout(_sbAutoSaveTimer);
-      localStorage.setItem("aivaUserName", val);
-      localStorage.setItem("aivaNameSet","1");
-      initSbProfile();
-    }
-    input.blur();
-    closeSbProfileEdit();
-  }
   input.addEventListener("keydown", e2=>{
-    if(e2.key==="Enter"){ e2.preventDefault(); commitAndClose(); }
-    if(e2.key==="Escape") closeSbProfileEdit();
-  });
-  // enterkeyhint="done" triggers Go/Done on Android soft keyboard
-  input.setAttribute("enterkeyhint","done");
-  input.addEventListener("blur", ()=>{
-    // Tap luar di mobile = blur, simpan dan tutup
-    setTimeout(()=>{
-      const inp2 = document.getElementById("sbProfileEditInput");
-      if(!inp2){ return; } // sudah ditutup
-      const val = inp2.value.trim();
+    if(e2.key==="Enter"){
+      const val = input.value.trim();
       if(val){
         clearTimeout(_sbAutoSaveTimer);
         localStorage.setItem("aivaUserName", val);
@@ -4852,9 +4840,21 @@ function toggleProfileEdit(e){
         initSbProfile();
       }
       closeSbProfileEdit();
-    }, 150);
+    }
+    if(e2.key==="Escape") closeSbProfileEdit();
   });
 
+  setTimeout(()=>{
+    document.addEventListener("click", function outsideHandler(ev){
+      if(!section.contains(ev.target)){
+        // Auto-save sisa input sebelum tutup
+        const inp = document.getElementById("sbProfileEditInput");
+        if(inp){ const v=inp.value.trim(); if(v){ clearTimeout(_sbAutoSaveTimer); localStorage.setItem("aivaUserName",v); localStorage.setItem("aivaNameSet","1"); initSbProfile(); } }
+        closeSbProfileEdit();
+        document.removeEventListener("click", outsideHandler);
+      }
+    });
+  }, 120);
 }
 
 function saveSbProfileName(){
