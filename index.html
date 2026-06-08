@@ -504,6 +504,48 @@ body.light .mm-final-meta    { border-top-color: rgba(0,0,0,0.07); }
 .sb-version{font-size:10px;letter-spacing:0.8px;color:rgba(255,255,255,0.18)}
 .sb-beta{display:inline-block;padding:2px 7px;border-radius:5px;background:rgba(255,200,60,0.08);border:1px solid rgba(255,200,60,0.2);color:#ffd54a;font-size:9px;letter-spacing:1.5px;margin-bottom:3px}
 
+/* Sidebar Profile Card */
+.sb-profile{padding:10px 10px 8px;flex-shrink:0}
+.sb-profile-wrap{position:relative;border-radius:15px;padding:1.5px;background:linear-gradient(135deg,rgba(61,114,246,0.5),rgba(114,72,245,0.3),rgba(61,114,246,0.15));box-shadow:0 4px 20px rgba(0,0,0,0.4);transition:box-shadow 0.3s}
+.sb-profile-wrap:hover{box-shadow:0 6px 28px rgba(61,114,246,0.28)}
+.sb-profile-card{display:flex;align-items:center;gap:11px;padding:10px 11px;border-radius:14px;transition:all 0.25s var(--ease);background:linear-gradient(145deg,rgba(9,11,26,0.98),rgba(13,15,34,0.97));position:relative;overflow:hidden}
+.sb-profile-card::after{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 10% 50%,rgba(61,114,246,0.08),transparent 70%);opacity:0;transition:opacity 0.3s}
+.sb-profile-card:hover::after{opacity:1}
+
+/* Avatar — premium shape */
+.sb-profile-avatar{width:40px;height:40px;border-radius:12px;flex-shrink:0;display:flex;align-items:center;justify-content:center;position:relative;z-index:1;transition:transform 0.25s var(--ease),box-shadow 0.25s;overflow:hidden}
+.sb-profile-avatar-inner{position:absolute;inset:0;border-radius:12px;display:flex;align-items:center;justify-content:center}
+.sb-profile-avatar-bg{position:absolute;inset:0;border-radius:12px;opacity:1}
+.sb-profile-avatar-shine{position:absolute;top:0;left:0;right:0;height:55%;background:linear-gradient(180deg,rgba(255,255,255,0.18),transparent);border-radius:12px 12px 0 0;pointer-events:none}
+.sb-profile-avatar-initials{position:relative;z-index:2;font-size:15px;font-weight:800;color:#fff;letter-spacing:-0.5px;text-shadow:0 1px 4px rgba(0,0,0,0.35);line-height:1;font-family:var(--F)}
+.sb-profile-wrap:hover .sb-profile-avatar{transform:scale(1.07);box-shadow:0 4px 18px rgba(61,114,246,0.45)}
+.sb-profile-avatar-ring{position:absolute;inset:-2px;border-radius:14px;border:1.5px solid transparent;background:linear-gradient(135deg,rgba(255,255,255,0.2),rgba(255,255,255,0.04)) border-box;-webkit-mask:linear-gradient(#fff 0 0) padding-box,linear-gradient(#fff 0 0);-webkit-mask-composite:destination-out;mask-composite:exclude;pointer-events:none}
+
+.sb-profile-info{flex:1;overflow:hidden;position:relative;z-index:1;min-width:0}
+.sb-profile-name{font-size:13px;font-weight:700;color:rgba(255,255,255,0.93);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.3;letter-spacing:0.05px;transition:color 0.3s}
+.sb-profile-status{display:flex;align-items:center;gap:5px;margin-top:3px}
+.sb-profile-status-dot{width:5px;height:5px;border-radius:50%;background:#22c55e;box-shadow:0 0 5px rgba(34,197,94,0.7);flex-shrink:0;animation:sbStatusPulse 2.5s ease-in-out infinite}
+@keyframes sbStatusPulse{0%,100%{opacity:1;box-shadow:0 0 5px rgba(34,197,94,0.7)}50%{opacity:0.6;box-shadow:0 0 2px rgba(34,197,94,0.3)}}
+.sb-profile-status-text{font-size:9.5px;color:rgba(255,255,255,0.28);letter-spacing:0.7px;font-weight:500}
+
+.sb-profile-edit-btn{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:rgba(61,114,246,0.13);border:1px solid rgba(61,114,246,0.25);transition:all 0.2s;position:relative;z-index:1;cursor:pointer}
+.sb-profile-edit-btn:hover{background:rgba(61,114,246,0.3);border-color:rgba(61,114,246,0.55);transform:scale(1.08);box-shadow:0 0 12px rgba(61,114,246,0.3)}
+.sb-profile-edit-btn svg{width:11px;height:11px;stroke:#7aa8f7;stroke-width:2.2;fill:none}
+
+/* Edit popup */
+.sb-profile-edit-modal{position:absolute;bottom:calc(100% + 8px);left:0;right:0;background:linear-gradient(160deg,rgba(8,10,24,0.99),rgba(12,14,32,0.98));border:1px solid rgba(61,114,246,0.4);border-radius:14px;padding:13px;z-index:99999;backdrop-filter:blur(28px);box-shadow:0 -10px 40px rgba(0,0,0,0.6),0 0 0 1px rgba(255,255,255,0.03);animation:popIn 0.18s var(--ease)}
+.sb-profile-edit-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.sb-profile-edit-headleft{display:flex;align-items:center;gap:7px}
+.sb-profile-edit-dot{width:6px;height:6px;border-radius:50%;background:linear-gradient(135deg,#3d72f6,#7248f5);flex-shrink:0;box-shadow:0 0 8px rgba(61,114,246,0.7)}
+.sb-profile-edit-title{font-size:10px;font-weight:700;letter-spacing:1.8px;color:rgba(255,255,255,0.38);text-transform:uppercase}
+.sb-profile-edit-autosave{font-size:9px;color:rgba(255,255,255,0.2);letter-spacing:0.5px;transition:all 0.3s}
+.sb-profile-edit-autosave.saved{color:#22c55e;text-shadow:0 0 6px rgba(34,197,94,0.5)}
+.sb-profile-edit-input{width:100%;padding:10px 12px;border-radius:10px;background:rgba(61,114,246,0.07);border:1px solid rgba(61,114,246,0.2);color:#e8eeff;font-family:var(--F);font-size:13px;font-weight:600;outline:none;box-sizing:border-box;transition:all 0.22s;caret-color:#7aa8f7;letter-spacing:0.1px}
+.sb-profile-edit-input::placeholder{color:rgba(255,255,255,0.18);font-weight:400}
+.sb-profile-edit-input:focus{border-color:rgba(61,114,246,0.55);background:rgba(61,114,246,0.11);box-shadow:0 0 0 3px rgba(61,114,246,0.13)}
+.sb-profile-edit-hint{font-size:9.5px;color:rgba(255,255,255,0.18);margin-top:7px;letter-spacing:0.3px}
+.sb-profile-edit-hint span{color:rgba(61,114,246,0.7)}
+
 /* FULL PAGE (About / Support) */
 .full-page{position:fixed;inset:0;z-index:100000;overflow-y:auto;display:none;background:radial-gradient(ellipse 70% 50% at 20% 10%,rgba(61,114,246,0.12),transparent 55%),radial-gradient(ellipse 60% 45% at 80% 90%,rgba(114,72,245,0.1),transparent 55%),var(--bg);animation:popIn 0.25s var(--ease)}
 .full-page.show{display:block}
@@ -1579,404 +1621,6 @@ font-size:14px;
 opacity:.8;
 line-height:1.8;
 }
-
-/* ===================== MUSIC PAGE ===================== */
-/* ── Sidebar Music Button ── */
-.sb-music-section{
-  padding:6px 10px 8px;
-  flex-shrink:0;
-  border-top:1px solid rgba(255,255,255,0.05);
-}
-.sb-music-btn{
-  display:flex;align-items:center;gap:9px;
-  padding:10px 12px;border-radius:12px;cursor:pointer;
-  background:transparent;border:none;
-  transition:all 0.2s var(--ease);
-  position:relative;overflow:hidden;width:100%;text-align:left;
-}
-.sb-music-btn::after{
-  content:'';position:absolute;inset:0;border-radius:12px;
-  background:linear-gradient(90deg,rgba(61,114,246,0.13),rgba(114,72,245,0.1));
-  opacity:0;transition:opacity 0.18s;
-}
-.sb-music-btn:hover::after{opacity:1}
-.sb-music-btn:hover .sb-music-txt{color:rgba(255,255,255,0.9)}
-.sb-music-btn:hover .sb-music-ico{
-  color:#fff;
-  filter:drop-shadow(0 0 6px rgba(61,114,246,0.7));
-}
-.sb-music-btn:active{transform:scale(0.97)}
-.sb-music-ico{
-  width:15px;height:15px;flex-shrink:0;
-  stroke:currentColor;stroke-width:1.8;fill:none;
-  color:rgba(255,255,255,0.5);
-  transition:all 0.2s;position:relative;z-index:1;
-}
-.sb-music-txt{
-  font-size:13px;font-weight:500;
-  color:rgba(255,255,255,0.48);
-  transition:color 0.18s;
-  flex:1;position:relative;z-index:1;
-}
-/* EQ animation when playing */
-.music-eq{
-  display:none;align-items:flex-end;gap:2px;height:13px;
-  flex-shrink:0;position:relative;z-index:1;
-}
-.music-eq.active{display:flex}
-.music-eq span{
-  width:3px;border-radius:2px;
-  background:linear-gradient(180deg,var(--accent),var(--accent2));
-  animation:eq-bounce 0.75s ease-in-out infinite;
-}
-.music-eq span:nth-child(1){height:5px;animation-delay:0s}
-.music-eq span:nth-child(2){height:11px;animation-delay:0.13s}
-.music-eq span:nth-child(3){height:7px;animation-delay:0.27s}
-@keyframes eq-bounce{
-  0%,100%{transform:scaleY(0.35)}
-  50%{transform:scaleY(1)}
-}
-
-/* ── Music full page ── */
-#musicPage{
-  position:fixed;inset:0;z-index:100000;
-  display:none;flex-direction:column;overflow:hidden;
-  background:radial-gradient(ellipse 80% 55% at 15% 5%,rgba(61,114,246,0.18),transparent 60%),
-             radial-gradient(ellipse 65% 45% at 85% 95%,rgba(114,72,245,0.14),transparent 55%),
-             var(--bg);
-}
-#musicPage.show{display:flex;animation:popIn 0.25s var(--ease)}
-#musicPage.out{animation:splOut 0.25s var(--ease) forwards}
-
-/* Music page header */
-.mp-hdr{
-  display:flex;align-items:center;gap:12px;
-  padding:14px 16px 10px;flex-shrink:0;
-  border-bottom:1px solid rgba(255,255,255,0.06);
-  background:rgba(4,6,16,0.5);backdrop-filter:blur(16px);
-}
-.mp-back{
-  width:34px;height:34px;border-radius:10px;
-  background:var(--glass);border:1px solid var(--gb);
-  display:flex;align-items:center;justify-content:center;
-  cursor:pointer;transition:all 0.2s;flex-shrink:0;
-}
-.mp-back:hover{background:rgba(61,114,246,0.12);border-color:rgba(61,114,246,0.3)}
-.mp-back svg{width:16px;height:16px;stroke:var(--muted);stroke-width:2.2;fill:none}
-.mp-hdr-title{
-  font-size:20px;font-weight:800;letter-spacing:-0.5px;
-  color:var(--text);flex:1;
-}
-.mp-hdr-title span{
-  background:linear-gradient(135deg,var(--accent),var(--accent2));
-  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
-}
-
-/* Search bar — sticky below header */
-.mp-search-sticky{
-  flex-shrink:0;
-  padding:10px 16px 8px;
-  background:rgba(4,6,16,0.4);
-  backdrop-filter:blur(12px);
-  border-bottom:1px solid rgba(255,255,255,0.04);
-}
-.mp-search-wrap{
-  display:flex;gap:8px;align-items:center;
-}
-.mp-search-input{
-  flex:1;padding:11px 16px;border-radius:14px;
-  border:1.5px solid rgba(255,255,255,0.1);
-  background:rgba(255,255,255,0.07);
-  color:var(--text);font-size:13px;font-family:var(--F);
-  outline:none;transition:all 0.22s;
-}
-body.light .mp-search-input{background:rgba(0,0,0,0.04);border-color:rgba(0,0,0,0.1)}
-.mp-search-input:focus{border-color:rgba(61,114,246,0.55);background:rgba(255,255,255,0.09);box-shadow:0 0 0 3px rgba(61,114,246,0.1)}
-.mp-search-input::placeholder{color:var(--muted)}
-.mp-search-btn{
-  padding:11px 18px;border-radius:14px;border:none;
-  background:linear-gradient(135deg,var(--accent),var(--accent2));
-  color:#fff;font-size:12px;font-weight:700;
-  font-family:var(--F);cursor:pointer;white-space:nowrap;
-  transition:all 0.18s;box-shadow:0 3px 14px rgba(61,114,246,0.35);
-}
-.mp-search-btn:hover{transform:translateY(-1px);box-shadow:0 5px 18px rgba(61,114,246,0.5)}
-.mp-search-btn:disabled{opacity:0.5;cursor:default;transform:none;box-shadow:none}
-.mp-search-inner{
-  flex:1;position:relative;display:flex;align-items:center;
-}
-.mp-search-ico{
-  position:absolute;left:12px;width:15px;height:15px;
-  stroke:var(--muted);stroke-width:2;flex-shrink:0;pointer-events:none;
-}
-.mp-search-inner .mp-search-input{padding-left:38px;width:100%}
-.mp-search-clear{
-  position:absolute;right:10px;width:22px;height:22px;border-radius:6px;
-  background:rgba(255,255,255,0.1);border:none;cursor:pointer;
-  display:none;align-items:center;justify-content:center;
-}
-body.light .mp-search-clear{background:rgba(0,0,0,0.08)}
-.mp-search-clear svg{width:11px;height:11px;stroke:var(--muted);stroke-width:2.5}
-.mp-divider{height:1px;background:rgba(255,255,255,0.06);margin:4px 16px 0}
-body.light .mp-divider{background:rgba(0,0,0,0.07)}
-.mpb-art-wrap{position:relative;flex-shrink:0;width:52px;height:52px;}
-.mpb-art-wrap .mpb-art{width:52px;height:52px;border-radius:13px;object-fit:cover;box-shadow:0 4px 18px rgba(0,0,0,0.4);}
-.mpb-progress-wrap{
-  width:100%;height:6px;border-radius:6px;
-  background:rgba(255,255,255,0.1);cursor:pointer;
-  position:relative;margin-bottom:5px;overflow:hidden;
-  transition:height 0.15s;
-}
-.mpb-progress-wrap:hover{height:8px}
-body.light .mpb-progress-wrap{background:rgba(0,0,0,0.1)}
-
-/* Body scroll area */
-.mp-body{
-  flex:1;overflow-y:auto;
-  scrollbar-width:thin;scrollbar-color:rgba(61,114,246,0.3) transparent;
-}
-.mp-body::-webkit-scrollbar{width:3px}
-.mp-body::-webkit-scrollbar-thumb{background:rgba(61,114,246,0.3);border-radius:3px}
-
-/* Section labels */
-.mp-section-label{
-  font-size:17px;font-weight:800;letter-spacing:-0.3px;
-  color:var(--text);padding:16px 16px 10px;
-  display:flex;align-items:center;justify-content:space-between;
-}
-.mp-section-see-all{
-  font-size:11px;font-weight:600;color:var(--accent);
-  cursor:pointer;letter-spacing:0.5px;
-}
-
-/* Trending horizontal scroll */
-.mp-trending-wrap{
-  overflow-x:auto;overflow-y:hidden;
-  padding:0 16px 14px;
-  scrollbar-width:none;display:flex;gap:12px;
-}
-.mp-trending-wrap::-webkit-scrollbar{display:none}
-.mp-trending-card{
-  flex-shrink:0;width:150px;cursor:pointer;
-  transition:all 0.22s;
-}
-.mp-trending-card:hover{transform:scale(1.03)}
-.mp-trending-card:active{transform:scale(0.97)}
-.mp-trending-thumb{
-  width:150px;height:150px;border-radius:18px;
-  object-fit:cover;display:block;
-  background:linear-gradient(135deg,rgba(61,114,246,0.3),rgba(114,72,245,0.25));
-  position:relative;overflow:hidden;
-  box-shadow:0 8px 28px rgba(0,0,0,0.4);
-}
-.mp-trending-thumb img{
-  width:100%;height:100%;object-fit:cover;display:block;
-  border-radius:18px;
-}
-.mp-trending-thumb-overlay{
-  position:absolute;inset:0;border-radius:18px;
-  background:linear-gradient(to bottom,transparent 45%,rgba(0,0,0,0.65));
-  pointer-events:none;
-}
-.mp-trending-play-btn{
-  position:absolute;bottom:10px;right:10px;
-  width:32px;height:32px;border-radius:50%;
-  background:rgba(255,255,255,0.92);
-  display:flex;align-items:center;justify-content:center;
-  opacity:0;transition:opacity 0.18s;pointer-events:none;
-}
-.mp-trending-play-btn svg{width:13px;height:13px;fill:#3d72f6;stroke:none;margin-left:2px}
-.mp-trending-card:hover .mp-trending-play-btn{opacity:1}
-.mp-trending-playing-badge{
-  position:absolute;top:8px;right:8px;
-  background:rgba(61,114,246,0.92);backdrop-filter:blur(8px);
-  border-radius:8px;padding:3px 6px;
-  display:none;align-items:center;gap:3px;
-}
-.mp-trending-playing-badge.show{display:flex}
-.mp-trending-playing-badge .music-eq{height:10px}
-.mp-trending-playing-badge .music-eq span{width:2px}
-.mp-trending-name{
-  font-size:13px;font-weight:700;color:var(--text);
-  margin-top:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
-}
-.mp-trending-artist{
-  font-size:11px;color:var(--muted);margin-top:2px;
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
-}
-.mp-trending-card.active .mp-trending-name{color:var(--accent)}
-
-/* Top charts numbered list */
-.mp-charts-wrap{
-  padding:0 16px;
-}
-.mp-charts-item{
-  display:flex;align-items:center;gap:12px;
-  padding:10px 10px;border-radius:14px;cursor:pointer;
-  transition:all 0.18s;margin-bottom:2px;
-}
-.mp-charts-item:hover{background:rgba(255,255,255,0.05)}
-.mp-charts-item.active{background:rgba(61,114,246,0.1)}
-body.light .mp-charts-item:hover{background:rgba(0,0,0,0.04)}
-body.light .mp-charts-item.active{background:rgba(61,114,246,0.07)}
-.mp-charts-num{
-  width:22px;text-align:center;flex-shrink:0;
-  font-size:15px;font-weight:800;color:rgba(255,255,255,0.2);
-}
-.mp-charts-item.active .mp-charts-num{color:var(--accent)}
-body.light .mp-charts-num{color:rgba(0,0,0,0.2)}
-.mp-charts-art{
-  width:52px;height:52px;border-radius:13px;object-fit:cover;flex-shrink:0;
-  background:linear-gradient(135deg,rgba(61,114,246,0.3),rgba(114,72,245,0.25));
-  box-shadow:0 3px 12px rgba(0,0,0,0.3);
-}
-.mp-charts-info{flex:1;min-width:0}
-.mp-charts-title{font-size:14px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.mp-charts-artist{font-size:12px;color:var(--muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.mp-charts-item.active .mp-charts-title{color:var(--accent)}
-.mp-charts-eq{width:22px;flex-shrink:0;display:flex;justify-content:center}
-
-/* Search results list */
-.mp-tracklist-wrap{padding:0 16px 8px}
-.mp-track{
-  display:flex;align-items:center;gap:12px;
-  padding:9px 10px;border-radius:14px;cursor:pointer;
-  transition:all 0.18s;margin-bottom:2px;
-}
-.mp-track:hover{background:rgba(255,255,255,0.06)}
-.mp-track.playing{background:rgba(61,114,246,0.12);border:1px solid rgba(61,114,246,0.22)}
-body.light .mp-track:hover{background:rgba(0,0,0,0.05)}
-body.light .mp-track.playing{background:rgba(61,114,246,0.07)}
-.mp-track-art{
-  width:44px;height:44px;border-radius:11px;object-fit:cover;flex-shrink:0;
-  background:linear-gradient(135deg,rgba(61,114,246,0.25),rgba(114,72,245,0.25));
-  box-shadow:0 2px 8px rgba(0,0,0,0.25);
-}
-.mp-track-info{flex:1;min-width:0}
-.mp-track-title{font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.mp-track-artist{font-size:11px;color:var(--muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.mp-track-dur{font-size:10px;color:rgba(255,255,255,0.3);flex-shrink:0;font-family:var(--FM)}
-body.light .mp-track-dur{color:rgba(0,0,0,0.3)}
-.mp-track.playing .mp-track-title{color:var(--accent)}
-.mp-track-play-icon{
-  width:28px;height:28px;border-radius:50%;flex-shrink:0;
-  background:rgba(61,114,246,0.15);border:1px solid rgba(61,114,246,0.25);
-  display:flex;align-items:center;justify-content:center;
-  transition:all 0.18s;
-}
-.mp-track-play-icon svg{width:10px;height:10px;fill:var(--accent);stroke:none;margin-left:1px}
-.mp-track.playing .mp-track-play-icon{background:rgba(61,114,246,0.25)}
-.mp-track:hover .mp-track-play-icon{background:rgba(61,114,246,0.3);border-color:rgba(61,114,246,0.5)}
-
-.mp-list-label{
-  font-size:10px;font-weight:700;letter-spacing:2px;
-  color:rgba(255,255,255,0.22);text-transform:uppercase;
-  padding:10px 6px 8px;
-}
-body.light .mp-list-label{color:rgba(0,0,0,0.3)}
-
-.mp-empty{
-  text-align:center;padding:32px 16px;
-  font-size:13px;color:var(--muted);line-height:1.8;
-}
-
-/* Trending loading skeleton */
-.mp-skel{
-  background:linear-gradient(90deg,rgba(255,255,255,0.05) 25%,rgba(255,255,255,0.1) 50%,rgba(255,255,255,0.05) 75%);
-  background-size:200% 100%;
-  animation:skel-shimmer 1.5s infinite;
-  border-radius:16px;
-}
-@keyframes skel-shimmer{
-  0%{background-position:200% 0}
-  100%{background-position:-200% 0}
-}
-
-/* ── Bottom player bar ── */
-#mpPlayerBar{
-  flex-shrink:0;
-  border-top:1px solid rgba(61,114,246,0.2);
-  background:rgba(4,6,16,0.96);
-  backdrop-filter:blur(28px);
-  padding:12px 18px 22px;
-  display:none;
-}
-body.light #mpPlayerBar{background:rgba(240,244,255,0.97);border-top-color:rgba(61,114,246,0.15)}
-#mpPlayerBar.has-track{display:block}
-
-.mpb-top{display:flex;align-items:center;gap:12px;margin-bottom:12px}
-.mpb-art{
-  width:50px;height:50px;border-radius:13px;
-  object-fit:cover;flex-shrink:0;
-  background:linear-gradient(135deg,rgba(61,114,246,0.3),rgba(114,72,245,0.3));
-  box-shadow:0 5px 18px rgba(0,0,0,0.45);
-}
-.mpb-info{flex:1;min-width:0}
-.mpb-title{font-size:14px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.mpb-artist{font-size:11px;color:var(--muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.mpb-full-tag{
-  font-size:9px;font-weight:700;letter-spacing:1px;
-  background:rgba(16,185,129,0.15);color:#10b981;
-  border:1px solid rgba(16,185,129,0.3);
-  border-radius:5px;padding:2px 5px;flex-shrink:0;
-}
-
-/* Progress bar */
-.mpb-progress-bg{
-  position:absolute;inset:0;border-radius:6px;
-  background:rgba(255,255,255,0.1);
-}
-body.light .mpb-progress-bg{background:rgba(0,0,0,0.1)}.mpb-progress:hover{height:7px}
-body.light .mpb-progress{background:rgba(0,0,0,0.1)}
-.mpb-progress-fill{
-  height:100%;border-radius:5px;
-  background:linear-gradient(90deg,var(--accent),var(--accent2));
-  width:0%;transition:width 0.25s linear;pointer-events:none;
-}
-.mpb-time-row{display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-bottom:10px;font-family:var(--FM)}
-
-/* Controls row */
-.mpb-controls{
-  display:flex;align-items:center;justify-content:center;
-  gap:8px;
-}
-.mpb-ctrl{
-  width:38px;height:38px;border-radius:11px;border:none;
-  background:rgba(255,255,255,0.06);color:var(--text);
-  display:flex;align-items:center;justify-content:center;cursor:pointer;
-  transition:all 0.18s;
-}
-.mpb-ctrl:hover{background:rgba(61,114,246,0.18);color:#fff}
-.mpb-ctrl svg{width:15px;height:15px;stroke:currentColor;stroke-width:2;fill:none}
-.mpb-ctrl.active{background:rgba(61,114,246,0.25);color:var(--accent)}
-#mpbPlayBtn{
-  width:52px;height:52px;border-radius:16px;border:none;
-  background:linear-gradient(135deg,var(--accent),var(--accent2));
-  color:#fff;display:flex;align-items:center;justify-content:center;
-  cursor:pointer;transition:all 0.2s;
-  box-shadow:0 5px 22px rgba(61,114,246,0.5);
-}
-#mpbPlayBtn:hover{transform:scale(1.08);box-shadow:0 8px 28px rgba(61,114,246,0.65)}
-#mpbPlayBtn svg{width:20px;height:20px;fill:currentColor;stroke:none}
-
-/* Volume */
-.mpb-vol-row{
-  display:flex;align-items:center;gap:8px;
-  margin-top:10px;
-}
-.mpb-vol-row svg{width:13px;height:13px;stroke:var(--muted);stroke-width:2;fill:none;flex-shrink:0}
-#mpbVolume{
-  flex:1;height:3px;-webkit-appearance:none;appearance:none;
-  border-radius:4px;background:rgba(255,255,255,0.15);cursor:pointer;outline:none;
-}
-body.light #mpbVolume{background:rgba(0,0,0,0.12)}
-#mpbVolume::-webkit-slider-thumb{
-  -webkit-appearance:none;width:14px;height:14px;border-radius:50%;
-  background:var(--accent);cursor:pointer;border:none;
-  box-shadow:0 0 8px rgba(61,114,246,0.5);
-}
-/* End padding for player bar */
-.mp-body-end{height:16px;flex-shrink:0}
 </style>
 </head>
 <body>
@@ -2058,7 +1702,7 @@ body.light #mpbVolume{background:rgba(0,0,0,0.12)}
 
   <div class="sb-div"></div>
   <div class="sb-nav">
-    <a href="https://whatsapp.com/channel/0029Vb8PPb16BIEmq6TCZh22" target="_blank" rel="noopener" class="sb-nav-item" style="text-decoration:none;color:#25d366;background:rgba(37,211,102,0.07);border:1px solid rgba(37,211,102,0.18);">
+    <a href="https://whatsapp.com/channel/0029Vb80IkiIXnlvarQtbg0V" target="_blank" rel="noopener" class="sb-nav-item" style="text-decoration:none;color:#25d366;background:rgba(37,211,102,0.07);border:1px solid rgba(37,211,102,0.18);">
       <svg viewBox="0 0 24 24" fill="#25d366" style="width:15px;height:15px;flex-shrink:0;opacity:1;stroke:none;filter:drop-shadow(0 0 5px rgba(37,211,102,0.6));"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/></svg>
       <span style="font-weight:600;letter-spacing:0.3px;">Saluran WA</span>
     </a>
@@ -2070,120 +1714,34 @@ body.light #mpbVolume{background:rgba(0,0,0,0.12)}
       <svg viewBox="0 0 24 24" fill="none"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
       Support Me
     </div>
-    <!-- Music Button — inside nav so it's always visible & clickable -->
-    <div id="sbMusicNavBtn" onclick="openMusicPage();closeSidebar()" style="
-      display:flex;align-items:center;gap:9px;
-      padding:10px 12px;border-radius:12px;cursor:pointer;
-      background:linear-gradient(135deg,rgba(61,114,246,0.12),rgba(114,72,245,0.08));
-      border:1px solid rgba(61,114,246,0.22);
-      transition:all 0.2s;margin-top:2px;
-    "
-    onmouseover="this.style.background='linear-gradient(135deg,rgba(61,114,246,0.22),rgba(114,72,245,0.16))';this.style.borderColor='rgba(61,114,246,0.45)';this.style.transform='translateX(3px)'"
-    onmouseout="this.style.background='linear-gradient(135deg,rgba(61,114,246,0.12),rgba(114,72,245,0.08))';this.style.borderColor='rgba(61,114,246,0.22)';this.style.transform=''"
-    >
-      <svg viewBox="0 0 24 24" fill="none" style="width:15px;height:15px;flex-shrink:0;stroke:rgba(139,174,255,0.9);stroke-width:1.8;filter:drop-shadow(0 0 4px rgba(61,114,246,0.5))">
-        <path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>
-      </svg>
-      <span id="sbMusicSub" style="font-size:13px;font-weight:600;color:rgba(180,200,255,0.85);flex:1;letter-spacing:0.2px">Music</span>
-      <div class="music-eq" id="sbMusicEq"><span></span><span></span><span></span></div>
+  </div>
+  <!-- Sidebar Profile -->
+  <div class="sb-profile" id="sbProfileSection" style="position:relative">
+    <div class="sb-profile-wrap">
+      <div class="sb-profile-card">
+        <div class="sb-profile-avatar" id="sbProfileAvatar">
+          <div class="sb-profile-avatar-bg" id="sbProfileAvatarBg"></div>
+          <div class="sb-profile-avatar-shine"></div>
+          <div class="sb-profile-avatar-ring"></div>
+          <div class="sb-profile-avatar-initials" id="sbProfileInitials">?</div>
+        </div>
+        <div class="sb-profile-info">
+          <div class="sb-profile-name" id="sbProfileName">—</div>
+          <div class="sb-profile-status">
+            <div class="sb-profile-status-dot"></div>
+            <div class="sb-profile-status-text">ONLINE</div>
+          </div>
+        </div>
+        <div class="sb-profile-edit-btn" onclick="toggleProfileEdit(event)" title="Ganti nama">
+          <svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+        </div>
+      </div>
     </div>
   </div>
 
   <div class="sb-footer">
     <div class="sb-beta">BETA</div><br>
     <div class="sb-version">AIVA 3.5 — In Development</div>
-  </div>
-</div>
-
-<!-- MUSIC PAGE -->
-<div id="musicPage">
-  <div class="mp-hdr">
-    <div class="mp-back" onclick="closeMusicPage()">
-      <svg viewBox="0 0 24 24" fill="none"><polyline points="15 18 9 12 15 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
-    </div>
-    <div class="mp-hdr-title"><span>Music</span></div>
-  </div>
-  <div class="mp-search-sticky">
-    <div class="mp-search-wrap">
-      <div class="mp-search-inner">
-        <svg class="mp-search-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="22" y2="22"/></svg>
-        <input class="mp-search-input" id="mpSearchInput" type="text" placeholder="Cari lagu, artis, genre..." maxlength="80" autocomplete="off">
-        <div class="mp-search-clear" id="mpSearchClear" onclick="musicClearSearch()" style="display:none">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-        </div>
-      </div>
-      <button class="mp-search-btn" id="mpSearchBtn" onclick="musicSearch()">Cari</button>
-    </div>
-  </div>
-  <div class="mp-body" id="mpBody">
-    <div id="mpSearchSection" style="display:none">
-      <div class="mp-tracklist-wrap" id="mpTrackList"></div>
-      <div class="mp-divider"></div>
-    </div>
-    <div class="mp-section-label">Sedang Trending</div>
-    <div class="mp-trending-wrap" id="mpTrendingWrap">
-      <div class="mp-trending-card">
-        <div class="mp-trending-thumb mp-skel" style="height:150px"></div>
-        <div class="mp-skel" style="height:12px;width:105px;margin-top:9px;border-radius:6px"></div>
-        <div class="mp-skel" style="height:10px;width:72px;margin-top:5px;border-radius:5px"></div>
-      </div>
-      <div class="mp-trending-card">
-        <div class="mp-trending-thumb mp-skel" style="height:150px"></div>
-        <div class="mp-skel" style="height:12px;width:115px;margin-top:9px;border-radius:6px"></div>
-        <div class="mp-skel" style="height:10px;width:80px;margin-top:5px;border-radius:5px"></div>
-      </div>
-      <div class="mp-trending-card">
-        <div class="mp-trending-thumb mp-skel" style="height:150px"></div>
-        <div class="mp-skel" style="height:12px;width:90px;margin-top:9px;border-radius:6px"></div>
-        <div class="mp-skel" style="height:10px;width:65px;margin-top:5px;border-radius:5px"></div>
-      </div>
-    </div>
-    <div class="mp-section-label">Top Charts</div>
-    <div class="mp-charts-wrap" id="mpChartsWrap"></div>
-    <div class="mp-body-end"></div>
-  </div>
-  <div id="mpPlayerBar">
-    <div class="mpb-top">
-      <div class="mpb-art-wrap">
-        <img class="mpb-art" id="mpbArt" src="" alt="">
-        <div class="mpb-art-pulse" id="mpbArtPulse"></div>
-      </div>
-      <div class="mpb-info">
-        <div class="mpb-title" id="mpbTitle">Pilih lagu untuk diputar</div>
-        <div class="mpb-artist" id="mpbArtist"></div>
-      </div>
-      <div class="mpb-full-tag">FULL</div>
-    </div>
-    <div class="mpb-progress-wrap" id="mpbProgress" onclick="musicSeek(event)">
-      <div class="mpb-progress-bg"></div>
-      <div class="mpb-progress-fill" id="mpbProgressFill"></div>
-    </div>
-    <div class="mpb-time-row">
-      <span id="mpbCurTime">0:00</span>
-      <span id="mpbDurTime">0:00</span>
-    </div>
-    <div class="mpb-controls">
-      <button class="mpb-ctrl" id="mpbShuffleBtn" onclick="musicToggleShuffle()" title="Shuffle">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/></svg>
-      </button>
-      <button class="mpb-ctrl mpb-prev" onclick="musicPrev()" title="Sebelumnya">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="19 20 9 12 19 4 19 20" fill="currentColor" stroke="none"/><line x1="5" y1="19" x2="5" y2="5" stroke-width="2.5"/></svg>
-      </button>
-      <button id="mpbPlayBtn" onclick="musicTogglePlay()">
-        <svg id="mpbPlayIcon" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-      </button>
-      <button class="mpb-ctrl mpb-next" onclick="musicNext()" title="Berikutnya">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 4 15 12 5 20 5 4" fill="currentColor" stroke="none"/><line x1="19" y1="5" x2="19" y2="19" stroke-width="2.5"/></svg>
-      </button>
-      <button class="mpb-ctrl" id="mpbRepeatBtn" onclick="musicToggleRepeat()" title="Ulangi">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
-      </button>
-    </div>
-    <div class="mpb-vol-row">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" fill="currentColor" stroke="none"/></svg>
-      <input type="range" id="mpbVolume" min="0" max="100" value="80" oninput="musicSetVolume(this.value)">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" fill="currentColor" stroke="none"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
-    </div>
   </div>
 </div>
 
@@ -2238,8 +1796,8 @@ body.light #mpbVolume{background:rgba(0,0,0,0.12)}
     <div class="fp-card"><div class="fp-card-title">Function</div><p>AIVA berfungsi sebagai asisten digital yang dapat membantu menjawab pertanyaan, memberikan ide, membantu coding, serta mendukung aktivitas kreatif pengguna secara real-time.</p></div>
     <div class="fp-card"><div class="fp-card-title">Multi Chat</div><p>Fitur Multi Chat memungkinkan kamu membandingkan jawaban dari 3 model AI sekaligus: Qwen (Smart), Aiva, dan GLM (z.ai) — dalam satu pertanyaan di infinite canvas.</p></div>
     <div class="fp-card"><div class="fp-card-title">Status</div><p>Sistem ini masih dalam tahap pengembangan (beta), sehingga beberapa fitur mungkin belum sepenuhnya stabil dan akan terus diperbarui secara berkala.</p></div>
-    <div class="fp-card"><div class="fp-card-title">Admin</div><p>Jika anda tertarik dengan source AIVA -BETA Chat WhatsApp Admin +6289654756943</p></div>
-    <div class="fp-footer">Created by Andre — AIVA is still in development</div>
+    <div class="fp-card"><div class="fp-card-title">Admin</div><p>Jika anda tertarik dengan script AIVA -BETA Chat WhatsApp Admin 083848086955 atau via email opetxd8@gmail.com.</p></div>
+    <div class="fp-footer">Created by OpetXdy — AIVA is still in development</div>
   </div>
 </div>
 
@@ -2248,13 +1806,13 @@ body.light #mpbVolume{background:rgba(0,0,0,0.12)}
   <div class="fp-inner">
     <div class="fp-back" onclick="closeSupport()"><svg viewBox="0 0 24 24" fill="none"><polyline points="15 18 9 12 15 6"/></svg></div>
     <div class="fp-card" style="text-align:center;padding:28px 20px">
-      <div class="qris-wrap"><img class="qris-img" src="https://i.ibb.co.com/5WDwBDHN/IMG-20260607-WA0005.jpg" alt="QRIS"></div>
+      <div class="qris-wrap"><img class="qris-img" src="https://i.ibb.co.com/nMyRhYN0/Picsart-26-04-15-11-19-47-389-2.jpg" alt="QRIS"></div>
       <div class="supp-title">Support Me</div>
       <p class="supp-text">Terima kasih atas dukungan kamu. Dukungan ini membantu saya untuk terus berkembang dan berkarya membangun AIVA menjadi lebih baik.</p>
       <div class="supp-badge">Payment via Indonesia E-Wallet</div><br><br>
       <div class="payment-row">DANA — GoPay — OVO — LinkAja — BCA — BRI — Mandiri</div>
     </div>
-    <div class="fp-footer">Andre — Thank you for your support</div>
+    <div class="fp-footer">OpetXdy — Thank you for your support</div>
   </div>
 </div>
 
@@ -3499,6 +3057,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (e.dataTransfer.files.length) handleFileSelect(e.dataTransfer.files);
   });
   renderHistory();
+  initSbProfile();
 });
 
 function buildFileContext() {
@@ -5177,6 +4736,147 @@ function newChat(){
    ════════════════════════════════════════════════════════ */
 function getAivaUserName(){ return localStorage.getItem("aivaUserName") || ""; }
 
+/* ── Sidebar Profile ─────────────────────────────── */
+const AVATAR_PALETTES = [
+  {a:"#3d72f6",b:"#7248f5"},  // blue-purple
+  {a:"#f05d23",b:"#f5485a"},  // orange-red
+  {a:"#0fba81",b:"#0d8cf0"},  // teal-blue
+  {a:"#c840e9",b:"#7248f5"},  // pink-purple
+  {a:"#f5a623",b:"#f56323"},  // amber-orange
+  {a:"#00c6ff",b:"#3d52f6"},  // cyan-blue
+  {a:"#43e97b",b:"#38b2ac"},  // green-teal
+  {a:"#f857a6",b:"#ff5858"},  // pink-red
+];
+
+function getAvatarPalette(name){
+  if(!name) return AVATAR_PALETTES[0];
+  const hash = name.split("").reduce((a,c)=>a+c.charCodeAt(0),0);
+  return AVATAR_PALETTES[Math.abs(hash) % AVATAR_PALETTES.length];
+}
+
+function renderAvatar(name){
+  const bgEl = document.getElementById("sbProfileAvatarBg");
+  const initEl = document.getElementById("sbProfileInitials");
+  if(!bgEl || !initEl) return;
+
+  if(!name){ initEl.textContent = "?"; bgEl.style.background = "linear-gradient(135deg,#3d72f6,#7248f5)"; return; }
+
+  const words = name.trim().split(/\s+/);
+  let initials;
+  if(words.length >= 2){
+    initials = (words[0][0] + words[words.length-1][0]).toUpperCase();
+  } else {
+    initials = name.slice(0,2).toUpperCase();
+  }
+  initEl.textContent = initials;
+
+  const {a,b} = getAvatarPalette(name);
+  bgEl.style.background = `linear-gradient(145deg,${a},${b})`;
+
+  // Glow warna sesuai palette
+  const avatarEl = document.getElementById("sbProfileAvatar");
+  if(avatarEl) avatarEl.style.boxShadow = `0 3px 16px ${a}55,0 0 0 1px ${a}33`;
+}
+
+function initSbProfile(){
+  const name = getAivaUserName();
+  const nameEl = document.getElementById("sbProfileName");
+  if(nameEl) nameEl.textContent = name || "Belum diset";
+  renderAvatar(name);
+}
+
+let _sbAutoSaveTimer = null;
+
+function toggleProfileEdit(e){
+  if(e) e.stopPropagation();
+  const section = document.getElementById("sbProfileSection");
+  if(!section) return;
+  const existing = section.querySelector(".sb-profile-edit-modal");
+  if(existing){ existing.remove(); return; }
+
+  const currentName = getAivaUserName();
+  const modal = document.createElement("div");
+  modal.className = "sb-profile-edit-modal";
+  modal.innerHTML = `
+    <div class="sb-profile-edit-header">
+      <div class="sb-profile-edit-headleft">
+        <div class="sb-profile-edit-dot"></div>
+        <div class="sb-profile-edit-title">Ganti Nama</div>
+      </div>
+      <div class="sb-profile-edit-autosave" id="sbAutoSaveLabel">auto-save</div>
+    </div>
+    <input class="sb-profile-edit-input" id="sbProfileEditInput" type="text"
+      placeholder="Ketik nama kamu…" value="${currentName.replace(/"/g,'&quot;')}" maxlength="32" autocomplete="off" spellcheck="false">
+    <div class="sb-profile-edit-hint">Tekan <span>Enter</span> untuk simpan · <span>Esc</span> untuk tutup</div>`;
+  section.appendChild(modal);
+
+  const input = modal.querySelector("#sbProfileEditInput");
+  setTimeout(()=>{ if(input){ input.focus(); input.select(); } }, 60);
+
+  // Auto-save saat ngetik (debounce 500ms)
+  input.addEventListener("input", ()=>{
+    const label = document.getElementById("sbAutoSaveLabel");
+    if(label){ label.textContent = "menyimpan…"; label.classList.remove("saved"); }
+    clearTimeout(_sbAutoSaveTimer);
+    _sbAutoSaveTimer = setTimeout(()=>{
+      const val = input.value.trim();
+      if(val){
+        localStorage.setItem("aivaUserName", val);
+        localStorage.setItem("aivaNameSet","1");
+        initSbProfile();
+        if(label){ label.textContent = "✓ tersimpan"; label.classList.add("saved"); }
+        setTimeout(()=>{ if(label){ label.textContent="auto-save"; label.classList.remove("saved"); } }, 1800);
+      }
+    }, 500);
+  });
+
+  input.addEventListener("keydown", e2=>{
+    if(e2.key==="Enter"){
+      const val = input.value.trim();
+      if(val){
+        clearTimeout(_sbAutoSaveTimer);
+        localStorage.setItem("aivaUserName", val);
+        localStorage.setItem("aivaNameSet","1");
+        initSbProfile();
+      }
+      closeSbProfileEdit();
+    }
+    if(e2.key==="Escape") closeSbProfileEdit();
+  });
+
+  setTimeout(()=>{
+    document.addEventListener("click", function outsideHandler(ev){
+      if(!section.contains(ev.target)){
+        // Auto-save sisa input sebelum tutup
+        const inp = document.getElementById("sbProfileEditInput");
+        if(inp){ const v=inp.value.trim(); if(v){ clearTimeout(_sbAutoSaveTimer); localStorage.setItem("aivaUserName",v); localStorage.setItem("aivaNameSet","1"); initSbProfile(); } }
+        closeSbProfileEdit();
+        document.removeEventListener("click", outsideHandler);
+      }
+    });
+  }, 120);
+}
+
+function saveSbProfileName(){
+  const input = document.getElementById("sbProfileEditInput");
+  if(!input) return;
+  const name = input.value.trim();
+  if(!name) return;
+  clearTimeout(_sbAutoSaveTimer);
+  localStorage.setItem("aivaUserName", name);
+  localStorage.setItem("aivaNameSet", "1");
+  closeSbProfileEdit();
+  initSbProfile();
+}
+
+function closeSbProfileEdit(){
+  clearTimeout(_sbAutoSaveTimer);
+  const section = document.getElementById("sbProfileSection");
+  if(!section) return;
+  const modal = section.querySelector(".sb-profile-edit-modal");
+  if(modal) modal.remove();
+}
+
 function showNameScreen(){
   const ns = document.getElementById("nameScreen");
   if(!ns) return;
@@ -5221,6 +4921,7 @@ function submitName(){
   localStorage.setItem("aivaNameSet", "1");
   const btn=document.getElementById("nameBtn");
   if(btn){ btn.disabled=true; btn.textContent="Masuk ke AIVA…"; }
+  initSbProfile();
   exitNameScreen();
 }
 
@@ -5403,411 +5104,6 @@ function startNameCanvas(){
     if(e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
     e.preventDefault();
   });
-})();
-</script>
-<script>
-/* ============================================================
-   AIVA MUSIC PLAYER v3
-   Data  : Deezer API (no key) via corsproxy.io
-   Audio : YouTube IFrame API (full, no key)
-   - Trending tetap tampil saat search
-   - Search section muncul di atas trending
-   - Repeat / Shuffle / Prev / Next
-   - Tanpa emoji, semua pakai SVG
-   ============================================================ */
-
-/* Inject hidden YouTube iframe container */
-(function(){
-  var d=document.createElement('div');
-  d.id='ytWrap';
-  d.style.cssText='position:fixed;width:1px;height:1px;opacity:0;pointer-events:none;z-index:-1;bottom:0;left:0';
-  d.innerHTML='<div id="ytFrame"></div>';
-  document.body.appendChild(d);
-  var s=document.createElement('script');
-  s.src='https://www.youtube.com/iframe_api';
-  document.head.appendChild(s);
-})();
-
-(function(){
-'use strict';
-
-/* ── State ── */
-var S={
-  homeQ:[],searchQ:[],q:[],
-  i:-1,
-  repeat:false,shuffle:false,
-  playing:false,
-  ytReady:false,yt:null,
-  trendDone:false,
-};
-var PROXY='https://corsproxy.io/?url=';
-var DZ='https://api.deezer.com';
-var FB="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 80'%3E%3Crect width='80' height='80' fill='%231a1a2e'/%3E%3Ccircle cx='40' cy='32' r='14' fill='%2328284a'/%3E%3Crect x='16' y='50' width='48' height='34' rx='24' fill='%2328284a'/%3E%3C/svg%3E";
-
-function $i(id){return document.getElementById(id);}
-function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
-function fmt(s){if(!s||isNaN(s))return'0:00';var m=Math.floor(s/60),sec=Math.floor(s%60);return m+':'+(sec<10?'0':'')+sec;}
-
-/* ── Deezer via CORS proxy ── */
-async function dz(path){
-  var url=PROXY+encodeURIComponent(DZ+path);
-  var r=await fetch(url);
-  return r.json();
-}
-
-function norm(t){
-  return{
-    id:t.id,
-    title:t.title||'Unknown',
-    artist:(t.artist&&t.artist.name)?t.artist.name:(typeof t.artist==='string'?t.artist:'Unknown'),
-    album:(t.album&&t.album.title)||'',
-    cover:(t.album&&(t.album.cover_medium||t.album.cover_big||t.album.cover))||'',
-    duration:t.duration||0,
-    ytId:null,
-  };
-}
-
-/* ── YouTube ID scrape via proxy (no key) ── */
-async function getYtId(query){
-  try{
-    var q=encodeURIComponent(query+' official audio');
-    var url=PROXY+encodeURIComponent('https://www.youtube.com/results?search_query='+q);
-    var r=await fetch(url,{headers:{'User-Agent':'Mozilla/5.0'}});
-    var html=await r.text();
-    var m=html.match(/"videoId":"([a-zA-Z0-9_-]{11})"/);
-    return m?m[1]:null;
-  }catch(e){return null;}
-}
-
-/* Enrich array of tracks with ytId in parallel */
-async function enrich(tracks,limit){
-  limit=limit||15;
-  var slice=tracks.slice(0,limit);
-  var results=await Promise.allSettled(
-    slice.map(async function(t){
-      t.ytId=await getYtId(t.artist+' '+t.title);
-      return t;
-    })
-  );
-  results.forEach(function(r,i){if(r.status==='fulfilled')slice[i]=r.value;});
-  return tracks;
-}
-
-/* ── YouTube IFrame ── */
-window.onYouTubeIframeAPIReady=function(){
-  S.yt=new YT.Player('ytFrame',{
-    height:'1',width:'1',
-    playerVars:{autoplay:0,controls:0,disablekb:1,fs:0,rel:0,modestbranding:1},
-    events:{
-      onReady:function(){S.ytReady=true;},
-      onStateChange:function(e){
-        if(e.data===1){S.playing=true;updAllUI();startTick();}
-        else if(e.data===2){S.playing=false;updAllUI();stopTick();}
-        else if(e.data===0){S.repeat?S.yt.playVideo():musicNext();}
-      },
-      onError:function(){setTimeout(musicNext,800);}
-    }
-  });
-};
-
-var _tick;
-function startTick(){
-  stopTick();
-  _tick=setInterval(function(){
-    if(!S.yt||!S.playing)return;
-    var c=S.yt.getCurrentTime()||0,d=S.yt.getDuration()||1;
-    var p=(c/d)*100;
-    var f=$i('mpbProgressFill');if(f)f.style.width=p+'%';
-    var ct=$i('mpbCurTime');if(ct)ct.textContent=fmt(c);
-    var dt=$i('mpbDurTime');if(dt)dt.textContent=fmt(d);
-  },500);
-}
-function stopTick(){clearInterval(_tick);}
-
-/* ── Load Trending (always stays visible) ── */
-async function loadTrendingAndCharts(){
-  if(S.trendDone)return;
-  try{
-    var d=await dz('/chart/0/tracks?limit=30');
-    var tracks=(d.data||[]).map(norm);
-    S.homeQ=tracks;
-    S.trendDone=true;
-    renderTrending(tracks.slice(0,8));
-    renderCharts(tracks.slice(0,15));
-    /* enrich with YouTube IDs in background then re-render */
-    enrich(tracks,20).then(function(enriched){
-      S.homeQ=enriched;
-      renderTrending(enriched.slice(0,8));
-      renderCharts(enriched.slice(0,15));
-    });
-  }catch(e){
-    var w=$i('mpTrendingWrap');
-    if(w)w.innerHTML='<div class="mp-empty">Gagal memuat. Cek koneksi.</div>';
-  }
-}
-
-function renderTrending(tracks){
-  var w=$i('mpTrendingWrap');
-  if(!w||!tracks.length)return;
-  w.innerHTML=tracks.map(function(t,i){
-    var cov=esc(t.cover||FB);
-    var isA=S.q===S.homeQ&&S.i===i;
-    return '<div class="mp-trending-card'+(isA?' active':'')+'" onclick="musicPlayHome('+i+')" id="mpTr_'+i+'">'
-      +'<div class="mp-trending-thumb">'
-      +'<img src="'+cov+'" alt="" onerror="this.src=\''+FB+'\'" style="width:100%;height:100%;object-fit:cover;border-radius:18px;display:block;">'
-      +'<div class="mp-trending-thumb-overlay"></div>'
-      +'<div class="mp-trending-play-btn"><svg viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg></div>'
-      +'<div class="mp-trending-playing-badge'+(isA&&S.playing?' show':'')+'"><div class="music-eq'+(isA&&S.playing?' active':'')+'"><span></span><span></span><span></span></div></div>'
-      +'</div>'
-      +'<div class="mp-trending-name">'+esc(t.title)+'</div>'
-      +'<div class="mp-trending-artist">'+esc(t.artist)+'</div>'
-      +'</div>';
-  }).join('');
-}
-
-function renderCharts(tracks){
-  var w=$i('mpChartsWrap');
-  if(!w)return;
-  if(!tracks.length){w.innerHTML='';return;}
-  w.innerHTML=tracks.map(function(t,i){
-    var cov=esc(t.cover||FB);
-    var isA=S.q===S.homeQ&&S.i===i;
-    return '<div class="mp-charts-item'+(isA?' active':'')+'" onclick="musicPlayHome('+i+')" id="mpCh_'+i+'">'
-      +'<div class="mp-charts-num">'+(i+1)+'</div>'
-      +'<img class="mp-charts-art" src="'+cov+'" alt="" onerror="this.src=\''+FB+'\'">'
-      +'<div class="mp-charts-info"><div class="mp-charts-title">'+esc(t.title)+'</div><div class="mp-charts-artist">'+esc(t.artist)+'</div></div>'
-      +'<div class="mp-charts-eq">'+(isA?'<div class="music-eq'+(S.playing?' active':'')+'"><span></span><span></span><span></span></div>':'')+'</div>'
-      +'</div>';
-  }).join('');
-}
-
-/* ── Search — trending TETAP tampil di bawah ── */
-window.musicSearch=async function(){
-  var inp=$i('mpSearchInput');
-  var q=inp?inp.value.trim():'';
-  if(!q)return;
-  var btn=$i('mpSearchBtn');
-  var sec=$i('mpSearchSection');
-  var list=$i('mpTrackList');
-  var clr=$i('mpSearchClear');
-
-  if(btn){btn.textContent='...';btn.disabled=true;}
-  if(sec)sec.style.display='block';
-  if(list)list.innerHTML='<div class="mp-empty">Mencari "'+esc(q)+'"...</div>';
-  if(clr)clr.style.display='flex';
-
-  try{
-    var d=await dz('/search?q='+encodeURIComponent(q)+'&limit=30');
-    var tracks=(d.data||[]).map(norm);
-    if(!tracks.length){
-      if(list)list.innerHTML='<div class="mp-empty">Tidak ada hasil untuk "'+esc(q)+'"</div>';
-      if(btn){btn.textContent='Cari';btn.disabled=false;}
-      return;
-    }
-    S.searchQ=tracks;
-    renderSearchList(tracks,q);
-    if(btn){btn.textContent='Cari';btn.disabled=false;}
-    var body=$i('mpBody');if(body)body.scrollTop=0;
-    /* enrich search results in bg */
-    enrich(tracks,20).then(function(enriched){S.searchQ=enriched;});
-  }catch(e){
-    if(list)list.innerHTML='<div class="mp-empty">Gagal terhubung. Cek koneksi.</div>';
-    if(btn){btn.textContent='Cari';btn.disabled=false;}
-  }
-};
-
-function renderSearchList(tracks,q){
-  var list=$i('mpTrackList');
-  if(!list)return;
-  var label='<div class="mp-list-label">'+tracks.length+' HASIL — '+esc(q)+'</div>';
-  var items=tracks.map(function(t,i){
-    var cov=esc(t.cover||FB);
-    var isP=S.q===S.searchQ&&S.i===i;
-    var dur=t.duration?fmt(t.duration):'';
-    return '<div class="mp-track'+(isP?' playing':'')+'" onclick="musicLoadSearch('+i+')" id="mpSr_'+i+'">'
-      +'<img class="mp-track-art" src="'+cov+'" alt="" onerror="this.src=\''+FB+'\'">'
-      +'<div class="mp-track-info"><div class="mp-track-title">'+esc(t.title)+'</div><div class="mp-track-artist">'+esc(t.artist)+'</div></div>'
-      +'<div class="mp-track-dur">'+dur+'</div>'
-      +'<div class="mp-track-play-icon"><svg viewBox="0 0 24 24" fill="currentColor">'
-      +(isP&&S.playing?'<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>'
-                      :'<polygon points="5 3 19 12 5 21 5 3"/>')
-      +'</svg></div>'
-      +'</div>';
-  }).join('');
-  list.innerHTML=label+items;
-}
-
-window.musicClearSearch=function(){
-  var inp=$i('mpSearchInput');
-  var sec=$i('mpSearchSection');
-  var clr=$i('mpSearchClear');
-  if(inp)inp.value='';
-  if(sec)sec.style.display='none';
-  if(clr)clr.style.display='none';
-};
-
-/* ── Play engine ── */
-function play(qi){
-  if(qi<0||qi>=S.q.length)return;
-  var t=S.q[qi];
-  S.i=qi;
-  updPlayerBar(t);
-  updAllUI();
-  if(!t.ytId){
-    /* ytId belum ada — tunggu enrich selesai */
-    var tries=0;
-    var poll=setInterval(function(){
-      tries++;
-      var cur=S.q[S.i];
-      if(cur&&cur.ytId){clearInterval(poll);if(S.i===qi)doPlay(cur);}
-      else if(tries>24){clearInterval(poll);var a=$i('mpbArtist');if(a)a.textContent='Audio tidak tersedia';}
-    },500);
-    return;
-  }
-  doPlay(t);
-}
-
-function doPlay(t){
-  if(!S.ytReady||!S.yt)return;
-  S.yt.loadVideoById(t.ytId);
-}
-
-window.musicPlayHome=function(i){S.q=S.homeQ;play(i);};
-window.musicLoadSearch=function(i){S.q=S.searchQ;play(i);};
-
-window.musicTogglePlay=function(){
-  if(!S.yt||S.i<0)return;
-  S.playing?S.yt.pauseVideo():S.yt.playVideo();
-};
-
-window.musicNext=function(){
-  if(!S.q.length)return;
-  var n=S.shuffle?Math.floor(Math.random()*S.q.length):(S.i+1)%S.q.length;
-  play(n);
-};
-
-window.musicPrev=function(){
-  if(!S.q.length)return;
-  if(S.yt&&S.yt.getCurrentTime&&S.yt.getCurrentTime()>3){S.yt.seekTo(0);return;}
-  play((S.i-1+S.q.length)%S.q.length);
-};
-
-window.musicSeek=function(e){
-  var bar=$i('mpbProgress');
-  if(!bar||!S.yt||!S.ytReady)return;
-  var rect=bar.getBoundingClientRect();
-  var p=Math.max(0,Math.min(1,(e.clientX-rect.left)/rect.width));
-  var d=S.yt.getDuration?S.yt.getDuration():0;
-  if(d)S.yt.seekTo(p*d);
-};
-
-window.musicSetVolume=function(v){if(S.yt&&S.ytReady)S.yt.setVolume(parseInt(v));};
-
-window.musicToggleRepeat=function(){
-  S.repeat=!S.repeat;
-  var b=$i('mpbRepeatBtn');
-  if(b)b.classList.toggle('active',S.repeat);
-};
-
-window.musicToggleShuffle=function(){
-  S.shuffle=!S.shuffle;
-  var b=$i('mpbShuffleBtn');
-  if(b)b.classList.toggle('active',S.shuffle);
-};
-
-/* ── UI helpers ── */
-function updPlayerBar(t){
-  var bar=$i('mpPlayerBar');if(bar)bar.classList.add('has-track');
-  var art=$i('mpbArt');if(art){art.src=t.cover||FB;art.onerror=function(){this.src=FB;};}
-  var ti=$i('mpbTitle');if(ti)ti.textContent=t.title||'—';
-  var ar=$i('mpbArtist');if(ar)ar.textContent=t.artist||'';
-  var f=$i('mpbProgressFill');if(f)f.style.width='0%';
-  var c=$i('mpbCurTime');if(c)c.textContent='0:00';
-  var d=$i('mpbDurTime');if(d)d.textContent=t.duration?fmt(t.duration):'0:00';
-}
-
-function updPlayBtn(){
-  var ic=$i('mpbPlayIcon');
-  if(!ic)return;
-  ic.innerHTML=S.playing
-    ?'<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>'
-    :'<polygon points="5 3 19 12 5 21 5 3"/>';
-}
-
-function updAllUI(){
-  updPlayBtn();
-  /* trending cards */
-  document.querySelectorAll('.mp-trending-card').forEach(function(el,i){
-    var a=S.q===S.homeQ&&S.i===i;
-    el.classList.toggle('active',a);
-    var badge=el.querySelector('.mp-trending-playing-badge');
-    var eq=el.querySelector('.music-eq');
-    if(badge)badge.classList.toggle('show',a&&S.playing);
-    if(eq)eq.classList.toggle('active',a&&S.playing);
-  });
-  /* charts */
-  document.querySelectorAll('.mp-charts-item').forEach(function(el,i){
-    var a=S.q===S.homeQ&&S.i===i;
-    el.classList.toggle('active',a);
-    var ew=el.querySelector('.mp-charts-eq');
-    if(ew)ew.innerHTML=a?'<div class="music-eq'+(S.playing?' active':'')+'"><span></span><span></span><span></span></div>':'';
-  });
-  /* search tracks */
-  document.querySelectorAll('.mp-track').forEach(function(el,i){
-    var p=S.q===S.searchQ&&S.i===i;
-    el.classList.toggle('playing',p);
-    var svg=el.querySelector('.mp-track-play-icon svg');
-    if(svg)svg.innerHTML=(p&&S.playing)
-      ?'<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>'
-      :'<polygon points="5 3 19 12 5 21 5 3"/>';
-  });
-  /* sidebar eq */
-  var eq=$i('sbMusicEq'),sub=$i('sbMusicSub');
-  if(S.i>=0&&S.q[S.i]){
-    if(sub)sub.textContent=S.q[S.i].title;
-    if(eq)eq.classList.toggle('active',S.playing);
-  }else{
-    if(sub)sub.textContent='Music';
-    if(eq)eq.classList.remove('active');
-  }
-}
-
-/* ── Page open/close ── */
-window.openMusicPage=function(){
-  var p=$i('musicPage');
-  if(!p)return;
-  p.classList.remove('out','show');
-  p.style.display='flex';
-  void p.offsetWidth;
-  p.classList.add('show');
-  loadTrendingAndCharts();
-};
-window.closeMusicPage=function(){
-  var p=$i('musicPage');
-  if(!p)return;
-  p.classList.remove('show');
-  p.classList.add('out');
-  setTimeout(function(){p.style.display='none';p.classList.remove('show','out');},260);
-};
-
-/* ── Init ── */
-document.addEventListener('DOMContentLoaded',function(){
-  var inp=$i('mpSearchInput');
-  if(inp){
-    inp.addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();window.musicSearch();}});
-    inp.addEventListener('input',function(){
-      var clr=$i('mpSearchClear');
-      if(clr)clr.style.display=this.value?'flex':'none';
-    });
-  }
-  var vol=$i('mpbVolume');
-  if(vol)vol.value=80;
-});
-
-window.addEventListener('beforeunload',function(){
-  if(S.yt&&S.ytReady)try{S.yt.stopVideo();}catch(e){}
-});
-
 })();
 </script>
 </body>
