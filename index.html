@@ -233,11 +233,31 @@ body.light .ns-input:focus{background:#fff;border-color:rgba(114,72,245,0.5)}
 /* HEADER */
 header{position:relative;z-index:1000;height:var(--hdr);display:flex;align-items:center;justify-content:center;padding:0 14px;background:var(--surface);border-bottom:1px solid var(--gb);backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);flex-shrink:0;transition:background 0.35s}
 .hdr-title{font-size:14px;font-weight:700;letter-spacing:5px;background:linear-gradient(90deg,#3d72f6,#a78bf5);-webkit-background-clip:text;-webkit-text-fill-color:transparent;user-select:none}
-.menu-btn{position:absolute;left:12px;width:38px;height:38px;border-radius:11px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;cursor:pointer;transition:background 0.2s}
+.menu-btn{width:38px;height:38px;border-radius:11px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;cursor:pointer;transition:background 0.2s}
 .menu-btn:hover{background:var(--glass)}
 .menu-btn span{display:block;height:1.8px;border-radius:2px;background:var(--accent);transition:width 0.25s var(--ease)}
 .menu-btn span:nth-child(1){width:18px}.menu-btn span:nth-child(2){width:12px}.menu-btn span:nth-child(3){width:16px}
 .menu-btn:hover span{width:18px!important}
+
+/* ====== MODEL SWITCHER (hamburger area, single mode only) ====== */
+#menuArea{position:absolute;left:8px;display:flex;align-items:center;gap:0;z-index:9998}
+#modelSwitcherBtn{height:30px;display:none;align-items:center;gap:6px;cursor:pointer;border-radius:20px;transition:background 0.2s,border-color 0.2s,box-shadow 0.2s;padding:0 9px 0 7px;border:1px solid rgba(61,114,246,0.35);background:var(--glass);box-shadow:0 0 8px rgba(61,114,246,0.25),0 0 16px rgba(61,114,246,0.1)}
+#modelSwitcherBtn:hover{border-color:rgba(61,114,246,0.6);background:rgba(61,114,246,0.08);box-shadow:0 0 12px rgba(61,114,246,0.4),0 0 24px rgba(61,114,246,0.15)}
+#modelSwitcherBtn.open{border-color:rgba(61,114,246,0.7);background:rgba(61,114,246,0.12);box-shadow:0 0 14px rgba(61,114,246,0.5),0 0 28px rgba(61,114,246,0.18)}
+#msb-icon{width:15px;height:15px;border-radius:4px;flex-shrink:0;object-fit:cover}
+#msb-icon.svg-icon{width:15px;height:15px;flex-shrink:0}
+#msb-label{font-family:var(--F);font-size:11.5px;font-weight:600;color:var(--text);white-space:nowrap;max-width:80px;overflow:hidden;text-overflow:ellipsis}
+#msb-chevron{width:10px;height:10px;stroke:var(--muted);flex-shrink:0;transition:transform 0.2s,stroke 0.2s;margin-left:1px}
+#modelSwitcherBtn:hover #msb-chevron{stroke:var(--accent)}
+#modelSwitcherBtn.open #msb-chevron{transform:rotate(180deg);stroke:var(--accent)}
+#modelDropdown{display:none;position:absolute;top:calc(100% + 6px);left:0;min-width:170px;background:var(--surface);border:1px solid var(--gb);border-radius:14px;padding:8px;box-shadow:0 16px 40px rgba(0,0,0,0.5);backdrop-filter:blur(22px);z-index:99999;animation:popIn 0.17s var(--ease)}
+#modelDropdown.show{display:block}
+.mdrop-item{display:flex;align-items:center;gap:9px;width:100%;padding:9px 11px;border:none;border-radius:10px;background:transparent;color:var(--text);font-family:var(--F);font-size:13px;cursor:pointer;transition:background 0.15s;text-align:left}
+.mdrop-item:hover{background:rgba(61,114,246,0.12)}
+.mdrop-item.active-model{background:rgba(61,114,246,0.18);color:var(--accent)}
+.mdrop-item img,.mdrop-item svg{width:16px;height:16px;border-radius:4px;flex-shrink:0}
+.mdrop-check{margin-left:auto;width:13px;height:13px;opacity:0;stroke:var(--accent);flex-shrink:0}
+.mdrop-item.active-model .mdrop-check{opacity:1}
 .settings-btn{position:absolute;right:12px;width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background 0.2s}
 .settings-btn:hover{background:var(--glass)}
 .settings-btn svg{width:17px;height:17px;stroke:var(--muted);transition:stroke 0.2s}
@@ -1747,7 +1767,32 @@ line-height:1.8;
 
 <!-- HEADER -->
 <header>
-  <div class="menu-btn" onclick="toggleSidebar()"><span></span><span></span><span></span></div>
+  <div id="menuArea">
+    <div class="menu-btn" onclick="toggleSidebar()"><span></span><span></span><span></span></div>
+    <div id="modelSwitcherBtn" onclick="toggleModelDropdown(event)" title="Pilih Model">
+      <img id="msb-icon" src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/qwen.svg" onerror="this.style.display='none'">
+      <span id="msb-label">Qwen</span>
+      <svg id="msb-chevron" viewBox="0 0 24 24" fill="none" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
+    <div id="modelDropdown">
+      <button class="mdrop-item" data-api="groq" onclick="setAPIFromDropdown('groq')">
+        <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/qwen.svg" onerror="this.style.display='none'"> Qwen
+        <svg class="mdrop-check" viewBox="0 0 24 24" fill="none" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      </button>
+      <button class="mdrop-item" data-api="qwen" onclick="setAPIFromDropdown('qwen')">
+        <img src="https://i.ibb.co.com/dw9zhBFG/Picsart-26-05-03-07-15-14-213.png" onerror="this.style.display='none'"> Aiva-4o-mini
+        <svg class="mdrop-check" viewBox="0 0 24 24" fill="none" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      </button>
+      <button class="mdrop-item" data-api="glm" onclick="setAPIFromDropdown('glm')">
+        <img src="https://logo.svgcdn.com/token-branded/glm.png" style="background:#10b981" onerror="this.style.display='none'"> GLM (z.ai)
+        <svg class="mdrop-check" viewBox="0 0 24 24" fill="none" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      </button>
+      <button class="mdrop-item" data-api="gpt" onclick="setAPIFromDropdown('gpt')">
+        <svg viewBox="0 0 24 24" style="width:16px;height:16px;flex-shrink:0" fill="currentColor"><path d="M22.282 9.821a5.985 5.985 0 0 0-.516-4.91 6.046 6.046 0 0 0-6.51-2.9A6.065 6.065 0 0 0 4.981 4.18a5.985 5.985 0 0 0-3.998 2.9 6.046 6.046 0 0 0 .743 7.097 5.98 5.98 0 0 0 .51 4.911 6.051 6.051 0 0 0 6.515 2.9A5.985 5.985 0 0 0 13.26 24a6.056 6.056 0 0 0 5.772-4.206 5.99 5.99 0 0 0 3.997-2.9 6.056 6.056 0 0 0-.747-7.073zM13.26 22.43a4.476 4.476 0 0 1-2.876-1.04l.141-.081 4.779-2.758a.795.795 0 0 0 .392-.681v-6.737l2.02 1.168a.071.071 0 0 1 .038.052v5.583a4.504 4.504 0 0 1-4.494 4.494zM3.6 18.304a4.47 4.47 0 0 1-.535-3.014l.142.085 4.783 2.759a.771.771 0 0 0 .78 0l5.843-3.369v2.332a.08.08 0 0 1-.033.062L9.74 19.95a4.5 4.5 0 0 1-6.14-1.646zM2.34 7.896a4.485 4.485 0 0 1 2.366-1.973V11.6a.766.766 0 0 0 .388.676l5.815 3.355-2.02 1.168a.076.076 0 0 1-.071 0l-4.83-2.786A4.504 4.504 0 0 1 2.34 7.872zm16.597 3.855l-5.833-3.387L15.119 7.2a.076.076 0 0 1 .071 0l4.83 2.791a4.494 4.494 0 0 1-.676 8.105v-5.678a.79.79 0 0 0-.407-.667zm2.01-3.023l-.141-.085-4.774-2.782a.776.776 0 0 0-.785 0L9.409 9.23V6.897a.066.066 0 0 1 .028-.061l4.83-2.787a4.5 4.5 0 0 1 6.68 4.66zm-12.64 4.135l-2.02-1.164a.08.08 0 0 1-.038-.057V6.075a4.5 4.5 0 0 1 7.375-3.453l-.142.08-4.778 2.758a.795.795 0 0 0-.393.681zm1.097-2.365l2.602-1.5 2.607 1.5v2.999l-2.597 1.5-2.607-1.5z" fill="#10a37f"/></svg> GPT-OSS 20B
+        <svg class="mdrop-check" viewBox="0 0 24 24" fill="none" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      </button>
+    </div>
+  </div>
   <div class="hdr-title">AIVA</div>
   <div id="modeBadge">
     <div class="mode-badge-inner" id="modeBadgeInner">
@@ -1771,20 +1816,7 @@ line-height:1.8;
     <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="4" fill="currentColor" stroke="none"/><line x1="12" y1="2" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="22"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="2" y1="12" x2="4" y2="12"/><line x1="20" y1="12" x2="22" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
     Light Mode
   </button>
-  <div class="panel-label" style="margin-top:6px">API (Single Mode)</div>
-  <button onclick="setAPI('groq')">
-    <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/qwen.svg" style="width:15px;height:15px;border-radius:4px"> Qwen
-  </button>
-  <button onclick="setAPI('qwen')">
-    <img src="https://i.ibb.co.com/dw9zhBFG/Picsart-26-05-03-07-15-14-213.png" style="width:15px;height:15px;border-radius:4px"> Aiva-4o-mini
-  </button>
-  <button onclick="setAPI('glm')">
-    <img src="https://logo.svgcdn.com/token-branded/glm.png" style="width:15px;height:15px;border-radius:4px;background:#10b981"> GLM (z.ai)
-  </button>
-  <button onclick="setAPI('gpt')">
-    <svg viewBox="0 0 24 24" style="width:15px;height:15px;flex-shrink:0" fill="currentColor"><path d="M22.282 9.821a5.985 5.985 0 0 0-.516-4.91 6.046 6.046 0 0 0-6.51-2.9A6.065 6.065 0 0 0 4.981 4.18a5.985 5.985 0 0 0-3.998 2.9 6.046 6.046 0 0 0 .743 7.097 5.98 5.98 0 0 0 .51 4.911 6.051 6.051 0 0 0 6.515 2.9A5.985 5.985 0 0 0 13.26 24a6.056 6.056 0 0 0 5.772-4.206 5.99 5.99 0 0 0 3.997-2.9 6.056 6.056 0 0 0-.747-7.073zM13.26 22.43a4.476 4.476 0 0 1-2.876-1.04l.141-.081 4.779-2.758a.795.795 0 0 0 .392-.681v-6.737l2.02 1.168a.071.071 0 0 1 .038.052v5.583a4.504 4.504 0 0 1-4.494 4.494zM3.6 18.304a4.47 4.47 0 0 1-.535-3.014l.142.085 4.783 2.759a.771.771 0 0 0 .78 0l5.843-3.369v2.332a.08.08 0 0 1-.033.062L9.74 19.95a4.5 4.5 0 0 1-6.14-1.646zM2.34 7.896a4.485 4.485 0 0 1 2.366-1.973V11.6a.766.766 0 0 0 .388.676l5.815 3.355-2.02 1.168a.076.076 0 0 1-.071 0l-4.83-2.786A4.504 4.504 0 0 1 2.34 7.872zm16.597 3.855l-5.833-3.387L15.119 7.2a.076.076 0 0 1 .071 0l4.83 2.791a4.494 4.494 0 0 1-.676 8.105v-5.678a.79.79 0 0 0-.407-.667zm2.01-3.023l-.141-.085-4.774-2.782a.776.776 0 0 0-.785 0L9.409 9.23V6.897a.066.066 0 0 1 .028-.061l4.83-2.787a4.5 4.5 0 0 1 6.68 4.66zm-12.64 4.135l-2.02-1.164a.08.08 0 0 1-.038-.057V6.075a4.5 4.5 0 0 1 7.375-3.453l-.142.08-4.778 2.758a.795.795 0 0 0-.393.681zm1.097-2.365l2.602-1.5 2.607 1.5v2.999l-2.597 1.5-2.607-1.5z" style="fill:#10a37f"/></svg>
-    GPT-OSS 20B
-  </button>
+
 </div>
 
 <!-- ABOUT PAGE -->
@@ -2321,6 +2353,8 @@ window.addEventListener("load", () => {
   const mode = localStorage.getItem("chatMode") || "single";
   chatMode = mode;
   applyModeUI();
+  updateModelSwitcherVisibility();
+  updateModelDropdownActive();
   loadSessions();
   renderHistory();
   if(chatMode === "multimind") buildMultiMindWelcome();
@@ -2446,6 +2480,7 @@ function setMode(m){
   chatMode = m;
   localStorage.setItem("chatMode", m);
   applyModeUI();
+  updateModelSwitcherVisibility();
   newChat();
 }
 
@@ -2587,6 +2622,7 @@ function loadSession(id){
     chatMode = sess.type;
     localStorage.setItem("chatMode", chatMode);
     applyModeUI();
+    updateModelSwitcherVisibility();
   }
 
   if(chatMode === "multi"){
@@ -2770,6 +2806,69 @@ function setAPI(api){
   localStorage.setItem("api", api);
   panel.style.display = "none";
 }
+
+/* ====== MODEL SWITCHER DROPDOWN (hamburger area) ====== */
+function updateModelSwitcherVisibility(){
+  const btn = document.getElementById("modelSwitcherBtn");
+  if(!btn) return;
+  btn.style.display = chatMode === "single" ? "flex" : "none";
+  if(chatMode !== "single") closeModelDropdown();
+}
+
+const MODEL_PILL = {
+  groq: { label:"Qwen",        icon:"https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/qwen.svg" },
+  qwen: { label:"Aiva-4o",     icon:"https://i.ibb.co.com/dw9zhBFG/Picsart-26-05-03-07-15-14-213.png" },
+  glm:  { label:"GLM",         icon:"https://logo.svgcdn.com/token-branded/glm.png" },
+  gpt:  { label:"GPT-OSS",     icon:null }
+};
+
+function updateModelDropdownActive(){
+  document.querySelectorAll(".mdrop-item").forEach(el => {
+    el.classList.toggle("active-model", el.dataset.api === currentAPI);
+  });
+  // Update pill
+  const pill = MODEL_PILL[currentAPI] || MODEL_PILL.groq;
+  const iconEl = document.getElementById("msb-icon");
+  const labelEl = document.getElementById("msb-label");
+  if(iconEl){
+    if(pill.icon){ iconEl.src = pill.icon; iconEl.style.display = ""; }
+    else { iconEl.style.display = "none"; }
+  }
+  if(labelEl) labelEl.textContent = pill.label;
+}
+
+function toggleModelDropdown(e){
+  e.stopPropagation();
+  const btn = document.getElementById("modelSwitcherBtn");
+  const drop = document.getElementById("modelDropdown");
+  const isOpen = drop.classList.contains("show");
+  if(isOpen){
+    closeModelDropdown();
+  } else {
+    drop.classList.add("show");
+    btn.classList.add("open");
+    updateModelDropdownActive();
+  }
+}
+
+function closeModelDropdown(){
+  const drop = document.getElementById("modelDropdown");
+  const btn = document.getElementById("modelSwitcherBtn");
+  if(drop) drop.classList.remove("show");
+  if(btn) btn.classList.remove("open");
+}
+
+function setAPIFromDropdown(api){
+  setAPI(api);
+  currentAPI = api;
+  updateModelDropdownActive();
+  closeModelDropdown();
+}
+
+document.addEventListener("click", function(e){
+  const area = document.getElementById("menuArea");
+  if(area && !area.contains(e.target)) closeModelDropdown();
+});
 
 /* ======================== MULTI MODEL SELECT ======================== */
 function toggleMultiModel(api){
@@ -4709,6 +4808,8 @@ document.addEventListener("DOMContentLoaded", ()=>{
   updateSend();
   cvInit();
   updateMultiModelUI();
+  updateModelSwitcherVisibility();
+  updateModelDropdownActive();
 });
 
 // Also patch newChat to reset canvas when switching
