@@ -41,6 +41,15 @@ body.light::before{
   background:radial-gradient(ellipse 80% 55% at 10% 0%,rgba(61,114,246,0.08) 0%,transparent 60%),
     radial-gradient(ellipse 60% 50% at 90% 100%,rgba(114,72,245,0.06) 0%,transparent 55%);
 }
+/* Worm — latar belakang glow ikut merah */
+body.worm-active::before{
+  background:radial-gradient(ellipse 80% 55% at 10% 0%,rgba(240,68,68,0.17) 0%,transparent 60%),
+    radial-gradient(ellipse 60% 50% at 90% 100%,rgba(255,94,58,0.13) 0%,transparent 55%);
+}
+body.light.worm-active::before{
+  background:radial-gradient(ellipse 80% 55% at 10% 0%,rgba(240,68,68,0.08) 0%,transparent 60%),
+    radial-gradient(ellipse 60% 50% at 90% 100%,rgba(255,94,58,0.06) 0%,transparent 55%);
+}
 body{display:flex;flex-direction:column;position:relative;z-index:1}
 
 /* SPLASH */
@@ -273,6 +282,11 @@ header{position:relative;z-index:1000;height:var(--hdr);display:flex;align-items
 .mode-badge-inner.multimind .mode-dot{background:linear-gradient(135deg,#f59e0b,#ef4444);animation:rotateDot 1.5s linear infinite}
 @keyframes rotateDot{from{filter:hue-rotate(0deg)}to{filter:hue-rotate(360deg)}}
 
+/* Worm — header & badge ikut merah */
+body.worm-active .hdr-title{background:linear-gradient(90deg,#f04444,#ff8c66)}
+body.worm-active .menu-btn span{background:#f04444}
+body.worm-active .mode-dot{background:#f04444}
+
 /* ====== MULTIMIND STYLES ====== */
 /* Debate bubble */
 .mm-debate-wrap{align-self:flex-start;width:100%;max-width:98%;display:flex;flex-direction:column;gap:8px;animation:msgIn 0.28s var(--ease)}
@@ -487,12 +501,17 @@ body.light .mm-final-meta    { border-top-color: rgba(0,0,0,0.07); }
 #sidebar{position:fixed;top:0;left:calc(-1 * var(--sidebar-w));width:var(--sidebar-w);height:100%;z-index:99999;display:flex;flex-direction:column;overflow:hidden;transition:left 0.38s var(--ease);background:rgba(5,7,18,0.98);border-right:1px solid rgba(255,255,255,0.05);backdrop-filter:blur(28px);box-shadow:14px 0 55px rgba(0,0,0,0.75)}
 #sidebar.active{left:0}
 #sidebar::after{content:'';position:absolute;top:0;right:0;width:1px;height:100%;background:linear-gradient(to bottom,transparent 5%,rgba(61,114,246,0.55) 50%,transparent 95%)}
+body.worm-active #sidebar::after{background:linear-gradient(to bottom,transparent 5%,rgba(240,68,68,0.55) 50%,transparent 95%)}
 
 .sb-top{padding:20px 16px 16px;border-bottom:1px solid rgba(255,255,255,0.05);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
 .sb-brand{font-size:19px;font-weight:800;letter-spacing:5px;background:linear-gradient(90deg,#3d72f6,#a78bf5);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+body.worm-active .sb-brand{background:linear-gradient(90deg,#f04444,#ff8c66)}
 .sb-new-btn{width:30px;height:30px;border-radius:8px;background:rgba(61,114,246,0.12);border:1px solid rgba(61,114,246,0.22);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all 0.2s}
 .sb-new-btn:hover{background:rgba(61,114,246,0.26);border-color:rgba(61,114,246,0.45);transform:scale(1.08)}
 .sb-new-btn svg{width:14px;height:14px;stroke:#7aa8f7;stroke-width:2.2}
+body.worm-active .sb-new-btn{background:rgba(240,68,68,0.12);border-color:rgba(240,68,68,0.22)}
+body.worm-active .sb-new-btn:hover{background:rgba(240,68,68,0.26);border-color:rgba(240,68,68,0.45)}
+body.worm-active .sb-new-btn svg{stroke:#ff9a85}
 
 /* Mode Switch in sidebar */
 .sb-mode-switch{padding:12px 12px 8px;flex-shrink:0}
@@ -501,6 +520,7 @@ body.light .mm-final-meta    { border-top-color: rgba(0,0,0,0.07); }
 .sb-mode-btn svg{width:12px;height:12px;stroke:currentColor;stroke-width:2;fill:none;flex-shrink:0}
 .sb-mode-btn.active{background:rgba(61,114,246,0.2);color:#a8c0ff;box-shadow:0 2px 10px rgba(61,114,246,0.2)}
 .sb-mode-btn.active.multi{background:rgba(114,72,245,0.2);color:#c4a8ff}
+body.worm-active .sb-mode-btn.active:not(.multi){background:rgba(240,68,68,0.2);color:#ffb3a8;box-shadow:0 2px 10px rgba(240,68,68,0.2)}
 
 .sb-section-label{padding:14px 18px 5px;font-size:9.5px;letter-spacing:2px;font-weight:700;color:rgba(255,255,255,0.2);text-transform:uppercase;flex-shrink:0}
 .sb-history{flex:1;overflow-y:auto;overflow-x:hidden;padding:0 8px}
@@ -639,6 +659,23 @@ body.light .mm-final-meta    { border-top-color: rgba(0,0,0,0.07); }
 
 /* Hide logo glow in multi mode */
 #welcomeChat.multi-mode .wc-img{animation:none;box-shadow:none}
+
+/* Worm mode — logo glow turns merah */
+@keyframes wcGlowBreatheWorm{
+  0%,100%{
+    box-shadow:
+      0 0 14px 3px rgba(240,68,68,0.35),
+      0 0 28px 6px rgba(255,94,58,0.2);
+  }
+  50%{
+    box-shadow:
+      0 0 22px 6px rgba(240,68,68,0.6),
+      0 0 42px 12px rgba(255,94,58,0.35),
+      0 0 60px 16px rgba(255,138,101,0.15);
+  }
+}
+.wc-img.worm-glow{animation:wcGlowBreatheWorm 3s ease-in-out infinite}
+
 .wc-title{font-size:22px;font-weight:800;letter-spacing:5px;background:linear-gradient(90deg,#3d72f6,#a78bf5);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
 .wc-sub{font-size:13px;color:var(--muted);letter-spacing:1px}
 .chips{display:flex;flex-wrap:wrap;gap:7px;justify-content:center;margin-top:8px}
@@ -654,6 +691,12 @@ body.light .mm-final-meta    { border-top-color: rgba(0,0,0,0.07); }
 .user{background:var(--user-grad);color:#fff;align-self:flex-end;border-radius:var(--r-md) var(--r-md) 4px var(--r-md);box-shadow:0 4px 22px rgba(61,114,246,0.28);font-weight:500;width:fit-content;max-width:80%}
 .ai{background:var(--ai-bg);color:var(--text);align-self:flex-start;border:1px solid var(--gb);border-radius:var(--r-md) var(--r-md) var(--r-md) 4px;backdrop-filter:blur(14px);transition:box-shadow 0.2s}
 .ai:hover{box-shadow:0 0 28px rgba(61,114,246,0.14)}
+
+/* Worm — judul welcome, chip, dan bubble chat ikut merah */
+body.worm-active .wc-title{background:linear-gradient(90deg,#f04444,#ff8c66);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+body.worm-active .chip:hover{background:rgba(240,68,68,0.12);border-color:rgba(240,68,68,0.35)}
+body.worm-active .user{background:linear-gradient(135deg,#f04444,#ff7a45);box-shadow:0 4px 22px rgba(240,68,68,0.28)}
+body.worm-active .ai:hover{box-shadow:0 0 28px rgba(240,68,68,0.14)}
 .msg-time{font-size:10px;color:rgba(255,255,255,0.32);margin-top:4px;text-align:right;letter-spacing:0.5px;display:block}
 .ai .msg-time{color:var(--muted);text-align:left}
 .text{line-height:1.7}
@@ -1441,14 +1484,52 @@ body.light .ctb-input-wrap{background:rgba(0,0,0,0.04);border-color:rgba(0,0,0,0
   opacity:0.65;
 }
 
+/* Worm — merah/ember spin glow (single mode only) */
+.input-glow-wrap.worm-mode::before{
+  background:conic-gradient(
+    from var(--glow-angle, 0deg),
+    transparent 0deg,
+    #f04444 40deg,
+    #ff5e3a 80deg,
+    #ff8c42 110deg,
+    #ffb199 140deg,
+    #fff1e6 165deg,
+    #ffb199 190deg,
+    #ff8c42 220deg,
+    #ff5e3a 250deg,
+    #f04444 280deg,
+    transparent 330deg,
+    transparent 360deg
+  );
+  opacity:0.9;
+}
+.input-glow-wrap.worm-mode::after{
+  background:conic-gradient(
+    from var(--glow-angle, 0deg),
+    transparent 0deg,
+    rgba(240,68,68,0.5) 40deg,
+    rgba(255,140,66,0.65) 110deg,
+    rgba(255,177,153,0.55) 165deg,
+    rgba(255,140,66,0.65) 220deg,
+    rgba(240,68,68,0.5) 280deg,
+    transparent 330deg,
+    transparent 360deg
+  );
+  opacity:0.65;
+}
+
 .input-wrap{display:flex;align-items:center;gap:8px;background:var(--surface2);border:1px solid rgba(61,114,246,0.15);border-radius:var(--r-lg);padding:4px 8px 4px 12px;transition:border-color 0.25s,box-shadow 0.25s;position:relative}
 .input-wrap:focus-within{border-color:rgba(61,114,246,0.3);box-shadow:0 8px 28px rgba(0,0,0,0.18)}
 .input-wrap.multi-mode{border-color:rgba(168,85,247,0.35)}
 .input-wrap.multi-mode:focus-within{border-color:rgba(168,85,247,0.55);box-shadow:0 0 0 3px rgba(168,85,247,0.1),0 8px 28px rgba(0,0,0,0.18)}
+.input-wrap.worm-mode{border-color:rgba(240,68,68,0.35);background:linear-gradient(180deg,rgba(240,68,68,0.05),var(--surface2) 60%)}
+.input-wrap.worm-mode:focus-within{border-color:rgba(240,68,68,0.55);box-shadow:0 0 0 3px rgba(240,68,68,0.1),0 8px 28px rgba(0,0,0,0.18)}
+.input-wrap.worm-mode #text::placeholder{color:rgba(240,68,68,0.5)}
 
 /* FILE UPLOAD */
 .attach-btn{width:36px;height:36px;border-radius:11px;border:1px solid var(--gb);background:transparent;color:var(--muted);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:all 0.2s;margin-bottom:2px}
 .attach-btn:hover{background:rgba(61,114,246,0.1);color:var(--accent);border-color:rgba(61,114,246,0.3)}
+body.worm-active .attach-btn:hover{background:rgba(240,68,68,0.1);color:#f04444;border-color:rgba(240,68,68,0.3)}
 .attach-btn svg{width:16px;height:16px}
 #filePreviewBar{display:none;flex-wrap:wrap;gap:6px;padding:8px 14px 4px;align-items:center}
 #filePreviewBar.has-files{display:flex}
@@ -1467,13 +1548,53 @@ body.light .ctb-input-wrap{background:rgba(0,0,0,0.04);border-color:rgba(0,0,0,0
 #text::placeholder{color:var(--muted)}
 .send-btn{width:40px;height:40px;border-radius:13px;border:none;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:all 0.22s var(--ease);box-shadow:0 4px 16px rgba(61,114,246,0.36)}
 .send-btn.multi{background:linear-gradient(135deg,var(--groq),var(--qwen));box-shadow:0 4px 16px rgba(114,72,245,0.36)}
+.send-btn.worm-mode{background:linear-gradient(135deg,#f04444,#ff7a45);box-shadow:0 4px 16px rgba(240,68,68,0.4)}
+.send-btn.worm-mode:not(:disabled):hover{box-shadow:0 6px 24px rgba(240,68,68,0.55)}
 .send-btn:disabled{background:rgba(61,114,246,0.2)!important;box-shadow:none!important;cursor:default;opacity:0.5}
+body.worm-active .send-btn:disabled{background:rgba(240,68,68,0.2)!important}
 .send-btn:not(:disabled):hover{transform:scale(1.07) translateY(-1px);box-shadow:0 6px 24px rgba(61,114,246,0.5)}
 .send-btn:not(:disabled):active{transform:scale(0.95)}
 .send-btn svg{width:17px;height:17px}
 .stop-btn{display:none;width:40px;height:40px;border-radius:13px;border:none;background:rgba(240,68,68,0.1);border:1px solid rgba(240,68,68,0.26);color:var(--red);align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:all 0.2s var(--ease)}
 .stop-btn:hover{background:rgba(240,68,68,0.2);box-shadow:0 0 18px rgba(240,68,68,0.3);transform:scale(1.06)}
 .stop-btn svg{width:14px;height:14px}
+/* Worm — semua serba merah, jadi tombol stop dibedakan pakai amber */
+body.worm-active .stop-btn{background:rgba(255,176,32,0.12);border-color:rgba(255,176,32,0.35);color:#ffb020}
+body.worm-active .stop-btn:hover{background:rgba(255,176,32,0.22);box-shadow:0 0 18px rgba(255,176,32,0.35)}
+
+/* ===== NORMAL / WORM MODE SWITCH (single chat, above input) ===== */
+.mode-switch-row{display:flex;justify-content:flex-start;padding:0 2px 8px}
+.mode-switch{
+  position:relative;display:flex;align-items:stretch;
+  background:var(--surface2);border:1px solid rgba(61,114,246,0.25);
+  border-radius:999px;padding:2px;cursor:pointer;user-select:none;
+  transition:border-color 0.35s var(--ease),box-shadow 0.35s var(--ease),transform 0.15s var(--ease);
+  box-shadow:0 0 10px rgba(61,114,246,0.1);
+}
+.mode-switch:hover{box-shadow:0 0 16px rgba(61,114,246,0.22)}
+.mode-switch:active{transform:scale(0.97)}
+.mode-switch.worm-active{border-color:rgba(240,68,68,0.35);box-shadow:0 0 10px rgba(240,68,68,0.2)}
+.mode-switch.worm-active:hover{box-shadow:0 0 16px rgba(240,68,68,0.32)}
+.mode-switch-thumb{
+  position:absolute;top:2px;left:2px;bottom:2px;
+  width:calc(50% - 2px);border-radius:999px;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  box-shadow:0 2px 10px rgba(61,114,246,0.4);
+  transition:transform 0.45s var(--ease),background 0.45s var(--ease),box-shadow 0.45s var(--ease);
+  z-index:0;
+}
+.mode-switch.worm-active .mode-switch-thumb{
+  transform:translateX(100%);
+  background:linear-gradient(135deg,#f04444,#ff7a45);
+  box-shadow:0 2px 10px rgba(240,68,68,0.45);
+}
+.mode-switch-opt{
+  position:relative;z-index:1;display:flex;align-items:center;justify-content:center;gap:4px;
+  padding:5px 11px;font-size:11px;font-weight:600;color:var(--muted);letter-spacing:0.2px;
+  border-radius:999px;white-space:nowrap;transition:color 0.35s var(--ease);font-family:var(--F);
+}
+.mode-switch-opt svg{width:11px;height:11px;flex-shrink:0;transition:stroke 0.35s var(--ease)}
+.mode-switch-opt.active{color:#fff}
 
 /* Mode hint below input */
 #modeHint{text-align:center;font-size:11px;color:var(--muted);padding:4px 0 0;letter-spacing:0.5px;height:18px;transition:opacity 0.2s}
@@ -1964,7 +2085,6 @@ line-height:1.8;
     <div class="fp-h1">AIVA</div>
     <p class="fp-lead">Artificial Intelligence Virtual Assistant — sistem AI modern yang dirancang untuk memberikan pengalaman interaksi yang cepat, ringan, dan futuristik di berbagai perangkat.</p>
     <div class="fp-card"><div class="fp-card-title">Function</div><p>AIVA berfungsi sebagai asisten digital yang dapat membantu menjawab pertanyaan, memberikan ide, membantu coding, serta mendukung aktivitas kreatif pengguna secara real-time.</p></div>
-    <div class="fp-card"><div class="fp-card-title">Multi Chat</div><p>Fitur Multi Chat memungkinkan kamu membandingkan jawaban dari 3 model AI sekaligus: Qwen (Smart), Aiva, dan GLM (z.ai) — dalam satu pertanyaan di infinite canvas.</p></div>
     <div class="fp-card"><div class="fp-card-title">Status</div><p>Sistem ini masih dalam tahap pengembangan (beta), sehingga beberapa fitur mungkin belum sepenuhnya stabil dan akan terus diperbarui secara berkala.</p></div>
     <div class="fp-card"><div class="fp-card-title">Admin</div><p>Jika anda tertarik dengan script AIVA -BETA Chat WhatsApp Admin 083848086955 atau via email opetxd8@gmail.com.</p></div>
     <div class="fp-footer">Created by OpetXdy — AIVA is still in development</div>
@@ -2111,6 +2231,21 @@ line-height:1.8;
 
 <!-- INPUT (single chat mode) -->
 <div id="inputBox">
+  <!-- Normal / Worm mode switch (single chat only) -->
+  <div class="mode-switch-row" id="modeSwitchRow">
+    <div class="mode-switch" id="modeSwitch" onclick="toggleWormMode()" title="Ganti mode AIVA">
+      <div class="mode-switch-thumb"></div>
+      <div class="mode-switch-opt active" id="modeSwitchNormal">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8z"/></svg>
+        Normal
+      </div>
+      <div class="mode-switch-opt" id="modeSwitchWorm">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
+        Worm
+      </div>
+    </div>
+  </div>
+
   <!-- Upload Preview Panel (shown above input when files attached) -->
   <div id="uploadPreviewPanel">
     <div class="upl-panel-header">
@@ -2133,6 +2268,7 @@ line-height:1.8;
   </div>
   <div id="modeHint"></div>
 </div>
+
 
 <script>
 
@@ -2364,6 +2500,8 @@ MENGAKSES WEBSITE INI
 /* ======================== CONFIG ======================== */
 const DARK_LOGO      = "https://i.ibb.co.com/SD7LZgmv/Picsart-26-04-29-23-27-26-445.jpg";
 const LIGHT_LOGO     = "https://i.ibb.co.com/XrH4nnQy/file-0000000005a87208a1ebd9aff2438f5f.png";
+const WORM_DARK_LOGO  = "https://i.ibb.co.com/99tJgJhS/file-00000000329c71fa9276e0523e9d3280.png";
+const WORM_LIGHT_LOGO = "https://i.ibb.co.com/DfwHjQWQ/file-00000000dd60720b981ce0fea0b8b9b5.png";
 const MODEL_LABELS   = { groq:"Qwen (Smart)", qwen:"Aiva", glm:"GLM (z.ai)", gpt:"GPT-OSS 20B" };
 
 // Active models for multi-chat (min 2 selected)
@@ -2426,12 +2564,27 @@ async function callGpt(message, history, signal) {
   return d.reply;
 }
 
+// Worm Aiva — backend custom OpetxDy
+async function callWorm(message, history, signal) {
+  const resp = await fetch("/api/worm-chat", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ message, history, userName: localStorage.getItem("aivaUserName")||"" }),
+    signal: signal || undefined
+  });
+  if (!resp.ok) throw new Error("Server HTTP " + resp.status);
+  const d = await resp.json();
+  if (d.reply && d.reply.startsWith("Server error:")) throw new Error(d.reply);
+  return d.reply;
+}
+
 // callAPI biasa (single chat — tanpa signal)
 async function callAPI(api, message, history) {
   if (api === "groq") return callGroq(message, history);
   if (api === "qwen") return callQwen(message, history);
   if (api === "glm")  return callGlm(message, history);
   if (api === "gpt")  return callGpt(message, history);
+  if (api === "worm") return callWorm(message, history);
   throw new Error("Unknown API: " + api);
 }
 
@@ -2441,6 +2594,7 @@ async function callAPISignal(api, message, history, signal) {
   if (api === "qwen") return callQwen(message, history, signal);
   if (api === "glm")  return callGlm(message, history, signal);
   if (api === "gpt")  return callGpt(message, history, signal);
+  if (api === "worm") return callWorm(message, history, signal);
   throw new Error("Unknown API: " + api);
 }
 
@@ -2464,6 +2618,7 @@ let typingTimer = null, controller = null;
 let autoScrollEnabled = true;
 let currentAPI = "groq";
 let chatMode = "single"; // "single" | "multi" | "multimind"
+let wormMode = false; // false = Normal, true = Worm (single chat only)
 let mmIsGenerating = false; // MultiMind generating flag
 let mmStopRequested = false; // MultiMind stop flag
 let mmCallId = 0;        // Unique counter per sendMultiMind call — prevents duplicate element IDs
@@ -2487,6 +2642,7 @@ const modeHint  = document.getElementById("modeHint");
 window.addEventListener("load", () => {
   const t = localStorage.getItem("theme") || "dark";
   if(t === "light") document.body.classList.add("light");
+  wormMode = localStorage.getItem("aivaWormMode") === "1";
   updateWcLogo();
   const api = localStorage.getItem("api") || "groq";
   currentAPI = api;
@@ -2612,7 +2768,9 @@ window.addEventListener("load", () => {
 
 function updateWcLogo(){
   const el = document.getElementById("welcomeLogo");
-  if(el) el.src = document.body.classList.contains("light") ? LIGHT_LOGO : DARK_LOGO;
+  if(!el) return;
+  el.src = getCurrentLogo();
+  el.classList.toggle("worm-glow", chatMode === "single" && wormMode);
 }
 
 /* ======================== MODE ======================== */
@@ -2647,6 +2805,10 @@ function applyModeUI(){
   const badge = document.getElementById("modeBadgeInner");
   const badgeText = document.getElementById("modeBadgeText");
 
+  // Normal/Worm switch — only shown in single chat
+  const switchRow = document.getElementById("modeSwitchRow");
+  if(switchRow) switchRow.style.display = isSingle ? "flex" : "none";
+
   if(isSingle){
     badge.classList.remove("multi","multimind");
     badgeText.textContent = "Single";
@@ -2678,6 +2840,50 @@ function applyModeUI(){
     inputEl.placeholder = "Tanya MultiMind — 4 AI debat & voting...";
     modeHint.textContent = "4 AI debat & voting jawaban terbaik";
   }
+
+  syncWormUI();
+}
+
+/* ======================== WORM MODE ======================== */
+// Sub-mode of "single" chat: Normal (biru, model switcher aktif) vs
+// Worm (merah, pakai backend Worm Aiva, model switcher disembunyikan).
+// Pesan tetap disimpan di sesi single chat yang sama (gabung).
+function toggleWormMode(){
+  if(chatMode !== "single") return;
+  wormMode = !wormMode;
+  localStorage.setItem("aivaWormMode", wormMode ? "1" : "0");
+  syncWormUI();
+}
+
+function getCurrentLogo(){
+  const isLight = document.body.classList.contains("light");
+  if(chatMode === "single" && wormMode) return isLight ? WORM_LIGHT_LOGO : WORM_DARK_LOGO;
+  return isLight ? LIGHT_LOGO : DARK_LOGO;
+}
+
+function syncWormUI(){
+  const active = chatMode === "single" && wormMode;
+
+  const glowWrap  = document.getElementById("inputGlowWrap");
+  const wrap      = document.getElementById("inputWrap");
+  const switchEl  = document.getElementById("modeSwitch");
+  const optNormal = document.getElementById("modeSwitchNormal");
+  const optWorm   = document.getElementById("modeSwitchWorm");
+
+  if(glowWrap)  glowWrap.classList.toggle("worm-mode", active);
+  if(wrap)      wrap.classList.toggle("worm-mode", active);
+  if(sendBtn)   sendBtn.classList.toggle("worm-mode", active);
+  if(switchEl)  switchEl.classList.toggle("worm-active", wormMode);
+  if(optNormal) optNormal.classList.toggle("active", !wormMode);
+  if(optWorm)   optWorm.classList.toggle("active", wormMode);
+  document.body.classList.toggle("worm-active", active);
+
+  if(chatMode === "single"){
+    inputEl.placeholder = wormMode ? "Message Worm Aiva..." : "Message AIVA...";
+  }
+
+  updateModelSwitcherVisibility();
+  updateWcLogo();
 }
 
 /* ======================== SESSIONS ======================== */
@@ -2905,7 +3111,7 @@ function buildWelcome(){
   if(chatMode === "multi") wc.classList.add("multi-mode");
   wc.innerHTML = `
     <div class="wc-logo-wrap" id="wcLogoWrap">
-      <img id="welcomeLogo" class="wc-img" src="${document.body.classList.contains("light") ? LIGHT_LOGO : DARK_LOGO}" alt="">
+      <img id="welcomeLogo" class="wc-img" src="${getCurrentLogo()}" alt="">
     </div>
     <div class="wc-title">AIVA</div>
     <div class="wc-sub">${chatMode === "multi" ? "Bandingkan 2 AI sekaligus" : "Ask me anything"}</div>
@@ -2916,6 +3122,7 @@ function buildWelcome(){
       <div class="chip" onclick="suggest('Jelaskan machine learning')">Machine learning</div>
     </div>`;
   chatEl.appendChild(wc);
+  updateWcLogo();
 }
 
 /* ======================== SIDEBAR ======================== */
@@ -2960,8 +3167,9 @@ function setAPI(api){
 function updateModelSwitcherVisibility(){
   const btn = document.getElementById("modelSwitcherBtn");
   if(!btn) return;
-  btn.style.display = chatMode === "single" ? "flex" : "none";
-  if(chatMode !== "single") closeModelDropdown();
+  const show = chatMode === "single" && !wormMode;
+  btn.style.display = show ? "flex" : "none";
+  if(!show) closeModelDropdown();
 }
 
 const GPT_SVG = `<svg viewBox="0 0 24 24" style="width:15px;height:15px" fill="currentColor"><path d="M22.282 9.821a5.985 5.985 0 0 0-.516-4.91 6.046 6.046 0 0 0-6.51-2.9A6.065 6.065 0 0 0 4.981 4.18a5.985 5.985 0 0 0-3.998 2.9 6.046 6.046 0 0 0 .743 7.097 5.98 5.98 0 0 0 .51 4.911 6.051 6.051 0 0 0 6.515 2.9A5.985 5.985 0 0 0 13.26 24a6.056 6.056 0 0 0 5.772-4.206 5.99 5.99 0 0 0 3.997-2.9 6.056 6.056 0 0 0-.747-7.073zM13.26 22.43a4.476 4.476 0 0 1-2.876-1.04l.141-.081 4.779-2.758a.795.795 0 0 0 .392-.681v-6.737l2.02 1.168a.071.071 0 0 1 .038.052v5.583a4.504 4.504 0 0 1-4.494 4.494zM3.6 18.304a4.47 4.47 0 0 1-.535-3.014l.142.085 4.783 2.759a.771.771 0 0 0 .78 0l5.843-3.369v2.332a.08.08 0 0 1-.033.062L9.74 19.95a4.5 4.5 0 0 1-6.14-1.646zM2.34 7.896a4.485 4.485 0 0 1 2.366-1.973V11.6a.766.766 0 0 0 .388.676l5.815 3.355-2.02 1.168a.076.076 0 0 1-.071 0l-4.83-2.786A4.504 4.504 0 0 1 2.34 7.872zm16.597 3.855l-5.833-3.387L15.119 7.2a.076.076 0 0 1 .071 0l4.83 2.791a4.494 4.494 0 0 1-.676 8.105v-5.678a.79.79 0 0 0-.407-.667zm2.01-3.023l-.141-.085-4.774-2.782a.776.776 0 0 0-.785 0L9.409 9.23V6.897a.066.066 0 0 1 .028-.061l4.83-2.787a4.5 4.5 0 0 1 6.68 4.66zm-12.64 4.135l-2.02-1.164a.08.08 0 0 1-.038-.057V6.075a4.5 4.5 0 0 1 7.375-3.453l-.142.08-4.778 2.758a.795.795 0 0 0-.393.681zm1.097-2.365l2.602-1.5 2.607 1.5v2.999l-2.597 1.5-2.607-1.5z" fill="#10a37f"/></svg>`;
@@ -3864,8 +4072,9 @@ function sendSingle(msg, displayMsg, filesSnap){
 
   const loader = showThinking();
   const history = buildHistory();
+  const apiToUse = wormMode ? "worm" : currentAPI;
 
-  callAPI(currentAPI, msg, history)
+  callAPI(apiToUse, msg, history)
   .then(reply => {
     loader.remove();
     if(!isGenerating) return; // stopped

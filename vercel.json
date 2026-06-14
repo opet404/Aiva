@@ -10,6 +10,7 @@
   "rewrites": [
     { "source": "/api/chat",       "destination": "/api/chat" },
     { "source": "/api/multi-chat", "destination": "/api/multi-chat" },
+    { "source": "/api/worm-chat",  "destination": "/api/worm-chat" },
     { "source": "/api/status",     "destination": "/api/status" },
     { "source": "/(.*)",           "destination": "/api/serve" }
   ],
