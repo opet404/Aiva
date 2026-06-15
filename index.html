@@ -690,6 +690,7 @@ body.worm-active .sb-mode-btn.active:not(.multi){background:rgba(240,68,68,0.2);
 .msg.ai{white-space:normal}
 @keyframes msgIn{from{opacity:0;transform:translateY(10px) scale(0.97)}to{opacity:1;transform:none}}
 .user{background:var(--user-grad);color:#fff;align-self:flex-end;border-radius:var(--r-md) var(--r-md) 4px var(--r-md);box-shadow:0 4px 22px rgba(61,114,246,0.28);font-weight:500;width:fit-content;max-width:80%}
+.user .md-body{color:#fff}
 .ai{background:var(--ai-bg);color:var(--text);align-self:flex-start;border:1px solid var(--gb);border-radius:var(--r-md) var(--r-md) var(--r-md) 4px;backdrop-filter:blur(14px);transition:box-shadow 0.2s}
 .ai:hover{box-shadow:0 0 28px rgba(61,114,246,0.14)}
 
@@ -1529,12 +1530,6 @@ body.light .ctb-input-wrap{background:rgba(0,0,0,0.04);border-color:rgba(0,0,0,0
     transparent 360deg
   );
   opacity:0.65;
-}
-/* Worm — glow cuma di sisi kiri & kanan kotak chat, bukan ring penuh */
-.input-glow-wrap.worm-mode::before,
-.input-glow-wrap.worm-mode::after{
-  -webkit-mask:linear-gradient(to right,#fff 0,#fff 12px,transparent 12px,transparent calc(100% - 12px),#fff calc(100% - 12px),#fff 100%);
-  mask:linear-gradient(to right,#fff 0,#fff 12px,transparent 12px,transparent calc(100% - 12px),#fff calc(100% - 12px),#fff 100%);
 }
 
 .input-wrap{display:flex;align-items:center;gap:8px;background:var(--surface2);border:1px solid rgba(61,114,246,0.15);border-radius:var(--r-lg);padding:4px 8px 4px 12px;transition:border-color 0.25s,box-shadow 0.25s;position:relative}
