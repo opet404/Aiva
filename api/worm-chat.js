@@ -1,11 +1,9 @@
-// api/worm-chat.js — Worm Aiva backend via OpenRouter
-// Model: gemini-2.5-flash → gemini-2.5-flash-lite → gemini-2.0-flash
+// api/worm-chat.js — Worm Aiva backend via OpenRouter (free models)
 // Identitas dari prompt.txt | Keys reuse dari _lib.js
 
 const fs   = require("fs");
 const path = require("path");
 
-// Keys sama persis dari _lib.js — langsung jalan tanpa setup apapun
 const KEYS = [
   process.env.OR_KEY_1 || "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",
   process.env.OR_KEY_2 || "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",
@@ -17,13 +15,20 @@ const KEYS = [
 ].filter(Boolean);
 
 const SITE_URL   = process.env.SITE_URL || "https://aiva.vercel.app";
-const TIMEOUT_MS = 25000;
+const TIMEOUT_MS = 20000;
 
-// Model chain via OpenRouter — kalau ratelimit/error otomatis ganti ke berikutnya
+// Chain panjang — semua model free yang terbukti jalan di AIVA normal
 const WORM_MODELS = [
-  "google/gemini-2.5-flash",
-  "google/gemini-2.5-flash-lite",
-  "google/gemini-2.0-flash-001",
+  "deepseek/deepseek-r1-0528:free",
+  "meta-llama/llama-3.3-70b-instruct:free",
+  "deepseek/deepseek-v3-base:free",
+  "mistralai/mistral-small-3.1-24b-instruct:free",
+  "google/gemma-3-27b-it:free",
+  "openai/gpt-oss-20b:free",
+  "z-ai/glm-4.5-air:free",
+  "mistralai/devstral-small:free",
+  "meta-llama/llama-3.1-8b-instruct:free",
+  "openrouter/auto",
 ];
 
 // Baca identitas dari prompt.txt
@@ -47,19 +52,7 @@ function detectLang(text) {
   return "en";
 }
 
-// Sanitize: sembunyikan nama model/perusahaan asli dari jawaban
-function sanitize(text) {
-  return text
-    .replace(/\bgemini[\s\-]\S+/gi, "Worm Aiva")
-    .replace(/\bgemini\b/gi,        "Worm Aiva")
-    .replace(/\bgoogle\s+ai\b/gi,   "Worm Aiva")
-    .replace(/\bdeepseek\b/gi,      "Worm Aiva")
-    .replace(/\bwormgpt\b/gi,       "Worm Aiva")
-    .replace(/<think>[\s\S]*?<\/think>/gi, "")
-    .trim();
-}
-
-// Request ke OpenRouter dengan satu key + satu model
+// Request ke OpenRouter — satu key, satu model
 async function tryKey(key, model, messages) {
   const ctrl  = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), TIMEOUT_MS);
@@ -75,7 +68,7 @@ async function tryKey(key, model, messages) {
       body: JSON.stringify({
         model,
         messages,
-        temperature : 0.9,
+        temperature : 0.85,
         max_tokens  : 4096,
       }),
       signal: ctrl.signal,
@@ -85,8 +78,10 @@ async function tryKey(key, model, messages) {
     const data = await res.json();
     if (!res.ok || data.error) throw new Error(data.error?.message || "HTTP " + res.status);
 
-    const text = sanitize(data?.choices?.[0]?.message?.content || "");
-    if (!text) throw new Error("empty response");
+    let text = data?.choices?.[0]?.message?.content || "";
+    // Hapus thinking block (DeepSeek R1)
+    text = text.replace(/<think>[\s\S]*?<\/think>/gi, "").trim();
+    if (!text) throw new Error("empty");
     return text;
   } catch (e) {
     clearTimeout(timer);
@@ -99,7 +94,7 @@ async function tryModel(model, messages) {
   return Promise.any(KEYS.map(k => tryKey(k, model, messages)));
 }
 
-// Coba semua model satu per satu sampai berhasil
+// Coba semua model satu per satu
 async function tryChain(messages) {
   for (const model of WORM_MODELS) {
     try {
@@ -133,7 +128,7 @@ module.exports = async function handler(req, res) {
 
   const systemFull = SYSTEM_PROMPT
     + "\n\n" + langNote
-    + (userName ? `\n\nNama pengguna: "${userName}". Panggil dengan nama ini kalau relevan.` : "")
+    + (userName ? `\n\nNama pengguna saat ini: "${userName}". WAJIB panggil dengan nama ini saat relevan. Jika ditanya siapa nama user, jawab dengan nama ini.` : "")
     + "\n\nJawab LENGKAP dan TUNTAS. Jangan potong jawaban di tengah.";
 
   const messages = [
