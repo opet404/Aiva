@@ -17,15 +17,11 @@ const KEYS = [
 const SITE_URL   = process.env.SITE_URL || "https://aiva.vercel.app";
 const TIMEOUT_MS = 20000;
 
-// Chain panjang — semua model free yang terbukti jalan di AIVA normal
 const WORM_MODELS = [
-  "openrouter/auto",
-  "google/gemma-4-31b-it:free",
   "google/gemma-4-26b-a4b-it:free",
+  "google/gemma-3-27b-it:free",
   "google/gemma-3-12b-it:free",
-  "google/gemma-3-4b-it:free",
-  "google/gemma-3n-e4b-it:free",
-  "google/gemma-3n-e2b-it:free"
+  "openrouter/auto"
 ];
 
 // Baca identitas dari prompt.txt
