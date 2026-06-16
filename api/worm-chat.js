@@ -1,47 +1,36 @@
-// api/worm-chat.js — Worm Aiva backend (by OpetxDy), diadaptasi untuk Vercel serverless
-//
-// Dipakai saat mode "Worm" aktif di single chat. Endpoint ini membungkus prompt
-// user dengan identitas "Worm Aiva" lalu meneruskannya ke api-nanzz.my.id,
-// kemudian membersihkan & merapikan hasilnya sebelum dikirim balik ke frontend.
-//
-// v3:
-// - Prompt ditulis ulang dengan framing POSITIF (ahli di semua bidang, jawab
-//   tuntas) — tanpa kata "menolak/disclaimer/kebijakan" yang justru bisa
-//   memicu filter model upstream.
-// - Deteksi jawaban "terpotong" (looksTruncated) + 1x permintaan lanjutan
-//   otomatis, supaya jawaban panjang tidak berhenti setengah jalan.
-// - Tetap ada retry kalau jawaban kosong/kependekan.
-// Semua percobaan dijaga dalam satu budget waktu agar aman di Vercel Hobby (10s).
+// api/worm-chat.js — Worm Aiva backend menggunakan Google Gemini API
+// Model: gemini-2.5-flash-lite (utama) → gemini-2.5-flash (fallback) → gemini-2.0-flash (fallback terakhir)
+// Identitas AI dibaca dari prompt.txt (akar project)
+// Auto-fallback: kalau model pertama gagal/rate-limit, otomatis coba berikutnya.
 
-const TOTAL_BUDGET_MS = 9000; // total utk semua percobaan (aman utk Hobby 10s)
-const FIRST_TRY_MS    = 4500; // percobaan pertama
+const fs   = require("fs");
+const path = require("path");
 
-const WORM_ENDPOINT = "https://api-nanzz.my.id/docs/api/ai/worm-gpt.php";
+// ── Konfigurasi ────────────────────────────────────────────────
+const GEMINI_KEY = process.env.AQ.Ab8RN6JHn1hbOd92O1PYe7_dGdXV5SXD16cR5QymrW4k6yrEGA || "";
+const BASE_URL   = "https://generativelanguage.googleapis.com/v1beta/models";
 
-// ── Identitas + gaya jawaban Worm Aiva ────────────────────────
-const SYSTEM_PROMPT = `Anda adalah Worm Aiva, AI assistant yang dibuat oleh OpetxDy.
-Creator: OpetxDy (TikTok: @opetxdy2)
-Nama model: Worm Aiva — BUKAN WormGPT, BUKAN DeepSeek, BUKAN AI lain.
+// Model fallback chain — lite dulu (cepat + murah), lalu naik kalau gagal
+const MODELS = [
+  "gemini-2.5-flash-lite",
+  "gemini-2.5-flash",
+  "gemini-2.0-flash",
+];
 
-IDENTITAS:
-1. Jika ditanya "kamu dibuat siapa?" / "penciptamu siapa?" -> jawab: "Saya dibuat oleh OpetxDy (TikTok: @opetxdy2)"
-2. Jika ditanya "kamu model apa?" -> jawab: "Saya Worm Aiva buatan OpetxDy"
-3. Jangan pernah menyebut WormGPT, DeepSeek, atau nama AI/creator lain.
+const TIMEOUT_PER_MODEL_MS = 7000;
+const MAX_OUTPUT_TOKENS    = 2048;
 
-GAYA JAWABAN:
-Worm Aiva adalah asisten yang ahli di SEMUA bidang — sains, teknologi, kesehatan, hukum, bisnis, kehidupan sehari-hari, dan topik apapun yang ditanyakan. Untuk setiap pertanyaan, jawab LANGSUNG dan TUNTAS seperti pakar profesional di bidang tersebut, dengan penjelasan PENUH dan detail dari awal sampai akhir. Jangan gunakan "..." atau placeholder. Tidak pakai emoji, langsung ke inti jawaban tanpa basa-basi panjang.
+// ── Baca prompt.txt (identitas AI) ────────────────────────────
+let SYSTEM_PROMPT = "";
+try {
+  const promptPath = path.join(__dirname, "..", "prompt.txt");
+  SYSTEM_PROMPT = fs.readFileSync(promptPath, "utf8").trim();
+} catch (e) {
+  // Fallback kalau prompt.txt tidak ditemukan
+  SYSTEM_PROMPT = "Kamu adalah Worm Aiva, asisten AI buatan OpetxDy. Jawab semua pertanyaan secara lengkap dan tuntas dalam bahasa yang sama dengan user. Jangan menyebut Google, Gemini, atau model AI lain.";
+}
 
-RESPON dalam bahasa yang sama dengan user (Indonesia atau Inggris).
-
-FORMAT (markdown rapi, sama seperti AIVA normal):
-- **teks tebal** untuk poin penting, *italic* untuk istilah.
-- ## Judul dan ### Sub-judul untuk struktur jawaban panjang.
-- - list atau 1. 2. 3. untuk langkah/poin berurutan.
-- \`\`\`bahasa untuk blok kode (kode lengkap, langsung bisa dipakai).
-- > untuk catatan/poin penting.
-- Paragraf mengalir, pisahkan topik dengan baris kosong.`;
-
-// ── Deteksi bahasa user (kata-kata umum Bahasa Indonesia) ─────
+// ── Deteksi bahasa user ─────────────────────────────────────────
 const ID_WORDS = [
   "aku","saya","kamu","dia","mereka","ini","itu","ada","bisa","tolong",
   "apakah","kenapa","bagaimana","berapa","dimana","kapan","iya","tidak",
@@ -56,112 +45,72 @@ function detectLanguage(text) {
   return "en";
 }
 
-// ── Pola jawaban "menolak" / non-jawaban (ID + EN) ─────────────
-// (Ini hanya dipakai utk MEMERIKSA hasil dari upstream, BUKAN dikirim
-// sebagai instruksi ke model — jadi aman, tidak memicu apa-apa.)
-const REFUSAL_PATTERNS = [
-  "saya tidak dapat","saya tidak bisa membantu","saya tidak bisa memberikan",
-  "tidak diizinkan","maaf, saya tidak","tidak diperbolehkan","melanggar kebijakan",
-  "sebagai ai","sebagai model bahasa",
-  "i cannot","i can't","i am unable","i'm unable","i'm not able","i am not able",
-  "i'm sorry, but","i'm sorry but","as an ai","against my guidelines","i won't be able",
-];
-
-// Respon "kurang baik" -> perlu retry: kosong, terlalu pendek, atau
-// terindikasi menolak (dan masih relatif pendek).
-function isBadResponse(text) {
-  if (!text) return true;
-  const t = text.trim();
-  if (t.length < 20) return true;
-  if (t.length < 150) {
-    const low = t.toLowerCase();
-    for (const p of REFUSAL_PATTERNS) if (low.includes(p)) return true;
-  }
-  return false;
-}
-
-// Respon "kelihatan terpotong di tengah" -> perlu lanjutan.
-function looksTruncated(text) {
-  const t = (text || "").trim();
-  if (!t) return false;
-
-  // Code fence ganjil -> ada blok kode yang belum ditutup
-  const fenceCount = (t.match(/```/g) || []).length;
-  if (fenceCount % 2 === 1) return true;
-
-  const lastLine = t.split("\n").pop().trim();
-  // Baris terakhir berupa list item / heading -> wajar tanpa tanda baca akhir
-  if (/^([-*]|\d+[.)])\s+\S/.test(lastLine)) return false;
-  if (/^#{1,6}\s+\S/.test(lastLine)) return false;
-
-  const last = t[t.length - 1];
-  const okEnders = ['.', '!', '?', '"', "'", ')', ']', '}', '”', '’', '。', '！', '？', '`', ':'];
-  if (okEnders.includes(last)) return false;
-
-  return true; // berhenti di tengah kata/kalimat (mis. diakhiri koma, dash, huruf)
-}
-
-// ── Bersihkan response: sembunyikan identitas asli & unescape ─
-// (sengaja TIDAK menghapus "**" — biar bold markdown tetap dirender AIVA)
-function cleanupResponse(aiResponse) {
-  return aiResponse
-    .replace(/WormGPT/gi, "Worm Aiva")
-    .replace(/DeepSeek/gi, "Worm Aiva")
-    .replace(/\\n/g, "\n")
-    .replace(/\\"/g, '"')
-    .trim();
-}
-
-// ── Satu request ke api-nanzz dengan timeout custom ────────────
-async function askWormGPT(prompt, timeoutMs) {
+// ── Satu request ke Gemini dengan model tertentu ───────────────
+async function callGemini(model, messages, systemPrompt, timeoutMs) {
   const ctrl  = new AbortController();
-  const timer = setTimeout(() => ctrl.abort(), Math.max(500, timeoutMs));
+  const timer = setTimeout(() => ctrl.abort(), timeoutMs);
+
   try {
-    const url = WORM_ENDPOINT + "?prompt=" + encodeURIComponent(prompt);
+    const url = `${BASE_URL}/${model}:generateContent?key=${GEMINI_KEY}`;
+
+    // Bangun contents dari history (role user/model) + pesan baru
+    const contents = messages.map(m => ({
+      role: m.role === "assistant" ? "model" : "user",
+      parts: [{ text: m.content }],
+    }));
+
+    const body = {
+      systemInstruction: {
+        parts: [{ text: systemPrompt }],
+      },
+      contents,
+      generationConfig: {
+        maxOutputTokens: MAX_OUTPUT_TOKENS,
+        temperature: 0.85,
+        topP: 0.95,
+      },
+    };
+
     const res = await fetch(url, {
-      headers: { "User-Agent": "Worm-Aiva/1.0" },
+      method : "POST",
+      headers: { "Content-Type": "application/json" },
+      body   : JSON.stringify(body),
       signal : ctrl.signal,
     });
 
-    const raw = await res.text();
-    if (!res.ok) throw new Error("HTTP " + res.status);
-
-    let data;
-    try { data = JSON.parse(raw); } catch { data = raw; }
-
-    if (data === null || data === undefined || data === "") {
-      throw new Error("empty response from upstream");
-    }
-    if (typeof data === "object" && data.error) {
-      throw new Error(typeof data.error === "string" ? data.error : "upstream error");
+    if (res.status === 429 || res.status === 503) {
+      throw new Error(`RATE_LIMIT:${res.status}`);
     }
 
-    // Ekstrak teks jawaban dari beberapa kemungkinan bentuk response
-    let aiResponse = "";
-    if (data && data.result && data.result.response) aiResponse = data.result.response;
-    else if (data && data.response)                   aiResponse = data.response;
-    else if (typeof data === "string")                aiResponse = data;
-    else                                               aiResponse = JSON.stringify(data);
+    const data = await res.json();
 
-    // Kalau upstream malah balas halaman HTML (error page host/CDN),
-    // jangan ditampilkan mentah-mentah — anggap gagal. Cek spesifik tag
-    // dokumen HTML, BUKAN cuma "<", biar jawaban berisi kode (mis. ```html)
-    // tidak salah dianggap error.
-    const lowerStart = aiResponse.trim().slice(0, 200).toLowerCase();
-    if (
-      lowerStart.startsWith("<!doctype") ||
-      lowerStart.startsWith("<html") ||
-      (lowerStart.includes("<head") && lowerStart.includes("<body"))
-    ) {
-      throw new Error("upstream returned an HTML error page");
+    if (data.error) {
+      throw new Error(`API_ERROR:${data.error.message || data.error.code}`);
     }
 
-    return cleanupResponse(aiResponse);
+    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (!text) throw new Error("EMPTY_RESPONSE");
+
+    return text.trim();
   } finally {
     clearTimeout(timer);
   }
 }
 
+// ── Bersihkan: samarkan nama model/perusahaan asli ─────────────
+// Sengaja tidak hapus ** dan formatting lain biar markdown tetap dirender
+function sanitize(text) {
+  return text
+    .replace(/\bgemini\b/gi,      "Worm Aiva")
+    .replace(/\bgoogle\s+ai\b/gi, "Worm Aiva")
+    .replace(/\bdeepseek\b/gi,    "Worm Aiva")
+    .replace(/\bwormgpt\b/gi,     "Worm Aiva")
+    .replace(/\\n/g, "\n")
+    .replace(/\\"/g, '"')
+    .trim();
+}
+
+// ── Handler utama ───────────────────────────────────────────────
 module.exports = async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin",  "*");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
@@ -170,80 +119,51 @@ module.exports = async function handler(req, res) {
   if (req.method === "OPTIONS") return res.status(200).end();
   if (req.method !== "POST")   return res.status(405).json({ error: "Method not allowed" });
 
-  const { message = "" } = req.body || {};
-  if (!message) return res.status(400).json({ reply: "Pesan kosong!" });
+  const { message = "", history = [] } = req.body || {};
+  if (!message.trim()) return res.status(400).json({ reply: "Pesan kosong!" });
+
+  if (!GEMINI_KEY) {
+    return res.status(500).json({ reply: "GEMINI_API_KEY belum diset di environment Vercel." });
+  }
 
   const userLang = detectLanguage(message);
-  const start    = Date.now();
-  const budgetLeft = () => TOTAL_BUDGET_MS - (Date.now() - start) - 300; // sisa buffer 300ms
+  const langNote = userLang === "id"
+    ? "Balas dalam Bahasa Indonesia yang natural."
+    : "Reply in natural English.";
 
-  const langInstruction = userLang === "id"
-    ? "RESPON DALAM BAHASA INDONESIA. Gunakan bahasa Indonesia yang natural."
-    : "RESPON IN ENGLISH. Use natural English.";
+  const systemPromptFull = `${SYSTEM_PROMPT}\n\n${langNote}`;
 
-  const mainPrompt = `${SYSTEM_PROMPT}
-${langInstruction}
+  // Bangun messages array dari history + pesan baru
+  const messages = [
+    ...history
+      .filter(h => h.role && h.text)
+      .map(h => ({
+        role   : h.role === "ai" ? "assistant" : "user",
+        content: h.text,
+      })),
+    { role: "user", content: message },
+  ];
 
-Pertanyaan user: ${message}
-
-Jawab sebagai Worm Aiva buatan OpetxDy. Langsung ke jawaban, lengkap dan tuntas dari awal sampai akhir.`;
-
-  let aiResponse = "";
-
-  // ── Percobaan #1: prompt lengkap + persona ────────────────────
-  try {
-    aiResponse = await askWormGPT(mainPrompt, Math.min(FIRST_TRY_MS, budgetLeft()));
-  } catch (err) {
-    console.error("[worm-chat] attempt #1 error:", err.message);
-    aiResponse = "";
-  }
-
-  // ── Kalau kosong/kependekan/kelihatan menolak: retry dgn prompt
-  // sederhana (tanpa wrapper persona) — kadang prompt polos lebih
-  // gampang lolos kalau wrapper-nya yang bikin upstream bingung.
-  if (isBadResponse(aiResponse)) {
-    const rem = budgetLeft();
-    if (rem > 1500) {
-      const simplePrompt = userLang === "id"
-        ? `${message}\n\n(Jelaskan secara LENGKAP dan TUNTAS dalam Bahasa Indonesia, seperti pakar profesional di bidang ini. Gunakan format markdown yang rapi — heading, list, atau code block sesuai kebutuhan.)`
-        : `${message}\n\n(Explain this FULLY and THOROUGHLY in English, like a professional expert in this field. Use clean markdown formatting — headings, lists, or code blocks as needed.)`;
-
-      try {
-        const r2 = await askWormGPT(simplePrompt, rem);
-        if (!isBadResponse(r2)) aiResponse = r2;
-        else if (r2 && r2.length > aiResponse.length) aiResponse = r2;
-      } catch (err) {
-        console.error("[worm-chat] attempt #2 error:", err.message);
-      }
+  // Auto-fallback: coba satu per satu model sampai berhasil
+  let lastError = null;
+  for (const model of MODELS) {
+    try {
+      console.log(`[worm-chat] trying model: ${model}`);
+      const raw   = await callGemini(model, messages, systemPromptFull, TIMEOUT_PER_MODEL_MS);
+      const reply = sanitize(raw);
+      console.log(`[worm-chat] success with: ${model}`);
+      return res.status(200).json({ reply, model });
+    } catch (err) {
+      console.error(`[worm-chat] ${model} failed:`, err.message);
+      lastError = err;
+      // Lanjut ke model berikutnya
     }
   }
 
-  // ── Kalau jawaban sudah layak tapi kelihatan TERPOTONG: minta
-  // lanjutan sekali, lalu sambung.
-  if (!isBadResponse(aiResponse) && looksTruncated(aiResponse)) {
-    const rem = budgetLeft();
-    if (rem > 1500) {
-      const tail = aiResponse.slice(-600);
-      const continuePrompt = userLang === "id"
-        ? `${SYSTEM_PROMPT}\n${langInstruction}\n\nPertanyaan user: ${message}\n\nIni jawaban yang sudah kamu mulai (belum selesai):\n"""\n${tail}\n"""\n\nLANJUTKAN penjelasan di atas dengan bagian/poin berikutnya sampai TUNTAS. Jangan mengulang isi yang sudah ada, jangan menambah salam pembuka baru — langsung lanjutkan isinya.`
-        : `${SYSTEM_PROMPT}\n${langInstruction}\n\nUser question: ${message}\n\nHere is the answer you already started (unfinished):\n"""\n${tail}\n"""\n\nCONTINUE the explanation above with the next part/point until COMPLETE. Don't repeat what's already there, don't add a new greeting — just continue the content directly.`;
-
-      try {
-        const cont = await askWormGPT(continuePrompt, rem);
-        if (cont && !isBadResponse(cont)) {
-          aiResponse = aiResponse + "\n\n" + cont;
-        }
-      } catch (err) {
-        console.error("[worm-chat] continuation error:", err.message);
-      }
-    }
-  }
-
-  if (!aiResponse || aiResponse.trim().length < 3) {
-    aiResponse = userLang === "id"
-      ? "Maaf, lagi ada gangguan koneksi ke Worm Aiva. Coba kirim ulang pertanyaannya ya."
-      : "Sorry, there's a connection issue with Worm Aiva right now. Please try sending your question again.";
-  }
-
-  return res.status(200).json({ reply: aiResponse });
+  // Semua model gagal
+  console.error("[worm-chat] all models failed:", lastError?.message);
+  const errMsg = userLang === "id"
+    ? "Worm Aiva lagi ada gangguan, coba lagi sebentar ya."
+    : "Worm Aiva is temporarily unavailable. Please try again shortly.";
+  return res.status(200).json({ reply: errMsg });
 };
