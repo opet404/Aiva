@@ -20,14 +20,8 @@ const TIMEOUT_MS = 20000;
 // Chain panjang — semua model free yang terbukti jalan di AIVA normal
 const WORM_MODELS = [
   "deepseek/deepseek-r1-0528:free",
-  "meta-llama/llama-3.3-70b-instruct:free",
   "deepseek/deepseek-v3-base:free",
-  "mistralai/mistral-small-3.1-24b-instruct:free",
   "google/gemma-3-27b-it:free",
-  "openai/gpt-oss-20b:free",
-  "z-ai/glm-4.5-air:free",
-  "mistralai/devstral-small:free",
-  "meta-llama/llama-3.1-8b-instruct:free",
   "openrouter/auto",
 ];
 
