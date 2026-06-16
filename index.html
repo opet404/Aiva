@@ -1498,38 +1498,47 @@ body.light .ctb-input-wrap{background:rgba(0,0,0,0.04);border-color:rgba(0,0,0,0
   opacity:0.65;
 }
 
-/* Worm — merah/ember spin glow (single mode only) */
+/* Worm — Gemini-style full ring glow, merah/ember — persis sama strukturnya
+   dengan mode normal (mask xor = ring tipis, blur layer di bawah = soft glow) */
 .input-glow-wrap.worm-mode::before{
   background:conic-gradient(
     from var(--glow-angle, 0deg),
     transparent 0deg,
     #f04444 40deg,
-    #ff5e3a 80deg,
-    #ff8c42 110deg,
-    #ffb199 140deg,
-    #fff1e6 165deg,
-    #ffb199 190deg,
-    #ff8c42 220deg,
-    #ff5e3a 250deg,
+    #f96a3a 80deg,
+    #ff5e3a 110deg,
+    #ff9a7a 140deg,
+    #ffe8e0 165deg,
+    #ff9a7a 190deg,
+    #ff5e3a 220deg,
+    #f96a3a 250deg,
     #f04444 280deg,
     transparent 330deg,
     transparent 360deg
   );
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite:xor;
+  mask-composite:exclude;
+  padding:2px;
   opacity:0.9;
 }
 .input-glow-wrap.worm-mode::after{
   background:conic-gradient(
     from var(--glow-angle, 0deg),
     transparent 0deg,
-    rgba(240,68,68,0.5) 40deg,
-    rgba(255,140,66,0.65) 110deg,
-    rgba(255,177,153,0.55) 165deg,
-    rgba(255,140,66,0.65) 220deg,
-    rgba(240,68,68,0.5) 280deg,
+    rgba(240,68,68,0.6) 40deg,
+    rgba(249,106,58,0.75) 110deg,
+    rgba(255,154,122,0.6) 165deg,
+    rgba(249,106,58,0.75) 220deg,
+    rgba(240,68,68,0.6) 280deg,
     transparent 330deg,
     transparent 360deg
   );
-  opacity:0.65;
+  filter:blur(9px);
+  z-index:-1;
+  opacity:0.7;
 }
 
 .input-wrap{display:flex;align-items:center;gap:8px;background:var(--surface2);border:1px solid rgba(61,114,246,0.15);border-radius:var(--r-lg);padding:4px 8px 4px 12px;transition:border-color 0.25s,box-shadow 0.25s;position:relative}
