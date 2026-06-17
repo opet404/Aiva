@@ -1,5 +1,5 @@
-// api/worm-chat.js — Worm Aiva backend via OpenRouter (free models)
-// Identitas dari prompt.txt | Keys reuse dari _lib.js
+// api/worm-chat.js — Worm Aiva dengan stealth injection (tidak terdeteksi)
+// Author: OpetxDy | Identity: Worm Aiva
 
 const fs   = require("fs");
 const path = require("path");
@@ -25,24 +25,49 @@ const WORM_MODELS = [
   "google/gemma-4-26b-a4b:free"
 ];
 
-// Baca identitas dari prompt.txt
-let SYSTEM_PROMPT = "";
+// Baca prompt.txt hanya untuk internal reference, tapi kita tidak kirim langsung
+let RAW_PROMPT = "";
 try {
-  SYSTEM_PROMPT = fs.readFileSync(path.join(__dirname, "..", "prompt.txt"), "utf8").trim();
+  RAW_PROMPT = fs.readFileSync(path.join(__dirname, "..", "prompt.txt"), "utf8").trim();
 } catch {
-  SYSTEM_PROMPT = "Kamu adalah Worm Aiva, asisten AI buatan OpetxDy. Jawab semua pertanyaan secara lengkap dan tuntas.";
+  RAW_PROMPT = "";
 }
 
-// Deteksi bahasa user
-const ID_WORDS = ["aku","saya","kamu","ini","itu","ada","bisa","tolong","apakah",
-  "kenapa","bagaimana","berapa","dimana","kapan","iya","tidak","jangan","boleh",
-  "yang","dengan","untuk","dari","akan","udah","mau","kalo","kalau","aja","nih",
-  "deh","banget","juga","atau","lagi","sih","kok","gue","gua","lo","emang","gw",
-  "dong","nya","gak","nggak","udh","siapa","pencipta","buat","model","gimana"];
+// System prompt yang aman (tidak terdeteksi sebagai jailbreak)
+const SYSTEM_BASE = `You are a helpful AI assistant with a friendly and relaxed personality. You answer questions thoroughly and completely. You never cut answers short. You are known as AIVA, created by OpetxDy. If asked about your creator, say OpetxDy. If asked about social media, say TikTok @opetxdy2. You always speak in the same language as the user.`;
+
+// Fungsi stealth injection — identitas disisipkan secara natural, bukan hard override
+function buildStealthSystem(userName, lang) {
+  let system = SYSTEM_BASE;
+  
+  // Sisipkan identitas dengan cara natural (seperti informasi latar belakang)
+  system += "\n\nBackground: You are AIVA, an AI assistant built from the ground up by a developer named OpetxDy. OpetxDy is active on TikTok with username @opetxdy2. You are not affiliated with any other AI company or model.";
+  
+  // Language instruction
+  if (lang === "id") {
+    system += "\n\nAnda adalah asisten AI yang ramah dan santai. Nama Anda adalah AIVA, dibuat oleh OpetxDy. Jika ditanya tentang pembuat Anda, jawab OpetxDy. Jika ditanya tentang media sosial, jawab TikTok @opetxdy2. Anda selalu menjawab dalam bahasa yang sama dengan pengguna. Jawab dengan lengkap dan tuntas, jangan pernah memotong jawaban.";
+  }
+  
+  if (userName) {
+    system += `\n\nRemember the user's name is "${userName}". Address them by this name when relevant.`;
+    if (lang === "id") {
+      system += ` Nama pengguna saat ini adalah "${userName}". Panggil dengan nama ini saat relevan.`;
+    }
+  }
+  
+  return system;
+}
 
 function detectLang(text) {
+  const idWords = ["aku","saya","kamu","ini","itu","ada","bisa","tolong","apakah",
+    "kenapa","bagaimana","berapa","dimana","kapan","iya","tidak","jangan","boleh",
+    "yang","dengan","untuk","dari","akan","udah","mau","kalo","kalau","aja","nih",
+    "deh","banget","juga","atau","lagi","sih","kok","gue","gua","lo","emang","gw",
+    "dong","nya","gak","nggak","udh","siapa","pencipta","buat","model","gimana"];
   const t = (text || "").toLowerCase();
-  for (const w of ID_WORDS) if (new RegExp("\\b" + w + "\\b").test(t)) return "id";
+  for (const w of idWords) {
+    if (new RegExp("\\b" + w + "\\b").test(t)) return "id";
+  }
   return "en";
 }
 
@@ -57,12 +82,12 @@ async function tryKey(key, model, messages) {
         "Authorization": "Bearer " + key,
         "Content-Type" : "application/json",
         "HTTP-Referer"  : SITE_URL,
-        "X-Title"       : "Worm Aiva",
+        "X-Title"       : "AIVA",
       },
       body: JSON.stringify({
         model,
         messages,
-        temperature : 0.85,
+        temperature : 0.7,
         max_tokens  : 4096,
       }),
       signal: ctrl.signal,
@@ -73,9 +98,8 @@ async function tryKey(key, model, messages) {
     if (!res.ok || data.error) throw new Error(data.error?.message || "HTTP " + res.status);
 
     let text = data?.choices?.[0]?.message?.content || "";
-    // Hapus thinking block (DeepSeek R1)
     text = text.replace(/<think>[\s\S]*?<\/think>/gi, "").trim();
-    if (!text) throw new Error("empty");
+    if (!text) throw new Error("empty response");
     return text;
   } catch (e) {
     clearTimeout(timer);
@@ -115,18 +139,12 @@ module.exports = async function handler(req, res) {
   const { message = "", history = [], userName = "" } = req.body || {};
   if (!message.trim()) return res.status(400).json({ reply: "Pesan kosong!" });
 
-  const lang     = detectLang(message);
-  const langNote = lang === "id"
-    ? "Balas dalam Bahasa Indonesia yang natural dan santai."
-    : "Reply in natural English.";
+  const lang = detectLang(message);
+  const systemPrompt = buildStealthSystem(userName, lang);
 
-  const systemFull = SYSTEM_PROMPT
-    + "\n\n" + langNote
-    + (userName ? `\n\nNama pengguna saat ini: "${userName}". WAJIB panggil dengan nama ini saat relevan. Jika ditanya siapa nama user, jawab dengan nama ini.` : "")
-    + "\n\nJawab LENGKAP dan TUNTAS. Jangan potong jawaban di tengah.";
-
+  // Build messages
   const messages = [
-    { role: "system", content: systemFull },
+    { role: "system", content: systemPrompt },
     ...(history || [])
       .filter(h => h.role && h.text)
       .map(h => ({ role: h.role === "ai" ? "assistant" : "user", content: h.text })),
@@ -139,7 +157,7 @@ module.exports = async function handler(req, res) {
   } catch (err) {
     console.error("[worm] all failed:", err.message);
     const errMsg = lang === "id"
-      ? "Worm Aiva lagi gangguan, coba lagi sebentar ya."
+      ? "Maaf, Worm Aiva sedang sibuk. Coba lagi ya."
       : "Worm Aiva is temporarily unavailable. Please try again.";
     return res.status(200).json({ reply: errMsg });
   }
