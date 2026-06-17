@@ -1,6 +1,6 @@
-// api/worm-chat.js — WORM AIVA DEEPSEEK R1 SCRAPER
+// api/worm-chat.js — WORM AIVA PURE DEEPSEEK R1 SCRAPER
 // Author: OpetxDy | Model: Worm Aiva
-// Status: PERMANENT ACTIVE
+// Status: PERMANENT ACTIVE | NO FALLBACK | SCRAPER ONLY
 
 const https = require('https');
 const crypto = require('crypto');
@@ -127,11 +127,11 @@ function cleanResponse(text, lang, userName) {
   return cleaned;
 }
 
-// ── DEEPSEEK R1 SCRAPER ──
+// ── DEEPSEEK R1 SCRAPER (PURE) ──
 class DeepSeekR1 {
   constructor() {
-    this.baseURL = 'deep-seek.ai';
-    this.endpoint = '/api/chat';
+    this.host = 'deep-seek.ai';
+    this.path = '/api/chat';
   }
 
   generateCsrfToken() {
@@ -150,9 +150,9 @@ class DeepSeekR1 {
     const postData = JSON.stringify(payload);
     
     const options = {
-      hostname: this.baseURL,
+      hostname: this.host,
       port: 443,
-      path: this.endpoint,
+      path: this.path,
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -161,8 +161,9 @@ class DeepSeekR1 {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
         'Accept': 'application/json, text/plain, */*',
         'Accept-Language': 'en-US,en;q=0.9',
-        'Origin': 'https://deep-seek.ai',
-        'Referer': 'https://deep-seek.ai/',
+        'Accept-Encoding': 'gzip, deflate, br',
+        'Origin': 'https://' + this.host,
+        'Referer': 'https://' + this.host + '/',
         'Sec-Fetch-Dest': 'empty',
         'Sec-Fetch-Mode': 'cors',
         'Sec-Fetch-Site': 'same-origin',
@@ -183,8 +184,7 @@ class DeepSeekR1 {
           buffer = lines.pop();
           
           for (const line of lines) {
-            if (line.startsWith(': OPENROUTER')) continue;
-            if (line.startsWith(': ping')) continue;
+            if (line.startsWith(':') || line.trim() === '') continue;
             
             if (line.startsWith('data: ') && line.slice(6) !== '[DONE]') {
               try {
@@ -209,14 +209,20 @@ class DeepSeekR1 {
         res.on('end', () => {
           let finalResponse = fullResponse.trim();
           
+          // Jika response kosong, ambil dari reasoning
           if (!finalResponse && fullReasoning.trim()) {
             finalResponse = fullReasoning.trim();
+          }
+          
+          // Jika masih kosong, return default
+          if (!finalResponse) {
+            finalResponse = "Baik, langsung saya bantu.";
           }
           
           resolve({
             success: true,
             data: {
-              answer: finalResponse || "Baik, langsung saya bantu.",
+              answer: finalResponse,
               reasoning: fullReasoning.trim(),
             }
           });
