@@ -1,6 +1,6 @@
-// api/worm-chat.js — WORM AIVA PURE DEEPSEEK R1 SCRAPER
+// api/worm-chat.js — WORM AIVA PURE DEEPSEEK SCRAPER
 // Author: OpetxDy | Model: Worm Aiva
-// Status: PERMANENT ACTIVE | NO FALLBACK | SCRAPER ONLY
+// Status: PERMANENT ACTIVE | NO API KEY | SCRAPER ONLY
 
 const https = require('https');
 const crypto = require('crypto');
@@ -127,23 +127,21 @@ function cleanResponse(text, lang, userName) {
   return cleaned;
 }
 
-// ── DEEPSEEK R1 SCRAPER (PURE) ──
-class DeepSeekR1 {
+// ── DEEPSEEK SCRAPER (via chat.deepseek.com) ──
+class DeepSeekScraper {
   constructor() {
-    this.host = 'deep-seek.ai';
-    this.path = '/api/chat';
+    this.host = 'chat.deepseek.com';
+    this.path = '/api/v0/chat/completion';
   }
 
-  generateCsrfToken() {
-    return crypto.randomBytes(32).toString('base64').slice(0, 40);
+  generateId() {
+    return 'chatcmpl-' + crypto.randomBytes(16).toString('hex');
   }
 
   async chat(messages) {
-    const csrfToken = this.generateCsrfToken();
-    
     const payload = {
-      model: "deepseek/deepseek-r1",
       messages: messages,
+      model: "deepseek-chat",
       stream: false,
     };
     
@@ -156,14 +154,12 @@ class DeepSeekR1 {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'X-CSRF-TOKEN': csrfToken,
         'Content-Length': Buffer.byteLength(postData),
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
         'Accept': 'application/json, text/plain, */*',
         'Accept-Language': 'en-US,en;q=0.9',
-        'Accept-Encoding': 'gzip, deflate, br',
-        'Origin': 'https://' + this.host,
-        'Referer': 'https://' + this.host + '/',
+        'Origin': 'https://chat.deepseek.com',
+        'Referer': 'https://chat.deepseek.com/',
         'Sec-Fetch-Dest': 'empty',
         'Sec-Fetch-Mode': 'cors',
         'Sec-Fetch-Site': 'same-origin',
@@ -172,58 +168,27 @@ class DeepSeekR1 {
     
     return new Promise((resolve) => {
       let fullResponse = '';
-      let fullReasoning = '';
-      let hasError = false;
       
       const req = https.request(options, (res) => {
-        let buffer = '';
+        let data = '';
         
         res.on('data', (chunk) => {
-          buffer += chunk.toString();
-          const lines = buffer.split('\n');
-          buffer = lines.pop();
-          
-          for (const line of lines) {
-            if (line.startsWith(':') || line.trim() === '') continue;
-            
-            if (line.startsWith('data: ') && line.slice(6) !== '[DONE]') {
-              try {
-                const data = JSON.parse(line.slice(6));
-                const delta = data.choices?.[0]?.delta;
-                
-                if (delta) {
-                  if (delta.reasoning) {
-                    fullReasoning += delta.reasoning;
-                  }
-                  if (delta.content) {
-                    fullResponse += delta.content;
-                  }
-                }
-              } catch(e) {
-                // Skip invalid JSON
-              }
-            }
-          }
+          data += chunk.toString();
         });
         
         res.on('end', () => {
-          let finalResponse = fullResponse.trim();
-          
-          // Jika response kosong, ambil dari reasoning
-          if (!finalResponse && fullReasoning.trim()) {
-            finalResponse = fullReasoning.trim();
-          }
-          
-          // Jika masih kosong, return default
-          if (!finalResponse) {
-            finalResponse = "Baik, langsung saya bantu.";
+          try {
+            const json = JSON.parse(data);
+            const content = json?.choices?.[0]?.message?.content || '';
+            fullResponse = content;
+          } catch (e) {
+            console.error('[DeepSeek] parse error:', e.message);
           }
           
           resolve({
             success: true,
             data: {
-              answer: finalResponse,
-              reasoning: fullReasoning.trim(),
+              answer: fullResponse || "Baik, langsung saya bantu.",
             }
           });
         });
@@ -273,7 +238,7 @@ module.exports = async function handler(req, res) {
     { role: "user", content: message },
   ];
 
-  const deepseek = new DeepSeekR1();
+  const deepseek = new DeepSeekScraper();
   
   try {
     const result = await deepseek.chat(messages);
