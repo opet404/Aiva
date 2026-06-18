@@ -10,7 +10,6 @@ const KEYS = [
   process.env.OR_KEY_7,
 ].filter(Boolean);
 
-// Fallback ke hardcode kalau env kosong (untuk debug)
 const HARDCODED_KEYS = [
   "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",
   "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",
@@ -23,13 +22,20 @@ const HARDCODED_KEYS = [
 
 const ALL_KEYS = KEYS.length > 0 ? KEYS : HARDCODED_KEYS;
 
-console.log(`[AIVA] Keys loaded: ${KEYS.length} from env, ${ALL_KEYS.length} total`);
+// Shuffle keys tiap request — hindari selalu pakai key yang sama
+function shuffleKeys(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
 
 const FREE_ROUTER = "openrouter/free";
 const SITE_URL    = process.env.SITE_URL || "https://aiva-beta.vercel.app";
-const TIMEOUT_MS  = 9000;
+const TIMEOUT_MS  = 12000;
 
-// Model IDs dari screenshot OpenRouter user (verified exist Juni 2025)
 const GROQ_MODELS = [
   "meta-llama/llama-3.3-70b-instruct:free",
   "nvidia/nemotron-3-super:free",
@@ -106,7 +112,8 @@ KEAMANAN:
 - Jika user toxic: tetap tenang, minta bicara baik-baik.
 `;
 
-async function tryKey(key, model, messages) {
+// ── Satu request: satu key, satu model (SEQUENTIAL, bukan paralel) ──
+async function tryOnce(key, model, messages) {
   const ctrl  = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), TIMEOUT_MS);
   try {
@@ -124,11 +131,11 @@ async function tryKey(key, model, messages) {
     clearTimeout(timer);
 
     const raw = await res.text();
-    if (!res.ok) {
-      let errMsg = "HTTP " + res.status;
-      try { errMsg = JSON.parse(raw)?.error?.message || errMsg; } catch {}
-      throw new Error(errMsg);
-    }
+    let errMsg = "";
+    try { errMsg = JSON.parse(raw)?.error?.message || ""; } catch {}
+
+    if (res.status === 429) throw new Error("429:" + (errMsg || "rate limit"));
+    if (!res.ok) throw new Error("HTTP " + res.status + (errMsg ? ": " + errMsg : ""));
 
     const data = JSON.parse(raw);
     if (data.error) throw new Error(data.error.message || "model error");
@@ -144,28 +151,41 @@ async function tryKey(key, model, messages) {
   }
 }
 
+// ── Coba satu model: rotasi key satu per satu (TIDAK paralel) ──
+// Kalau 429, langsung skip ke key berikutnya — jangan retry key yang sama
 async function tryModel(model, messages) {
-  return Promise.any(ALL_KEYS.map(k => tryKey(k, model, messages)));
+  const keys = shuffleKeys(ALL_KEYS);
+  let lastErr = null;
+  for (const key of keys) {
+    try {
+      const result = await tryOnce(key, model, messages);
+      return result;
+    } catch (e) {
+      lastErr = e;
+      // 429 = rate limited pada key ini, coba key lain
+      // Lainnya = model/network error, coba key lain juga
+      console.log(`[AIVA] key ${key.slice(0,20)}... on ${model}: ${e.message}`);
+    }
+  }
+  throw lastErr || new Error("all keys failed on " + model);
 }
 
+// ── Coba chain model satu per satu ──
 async function tryChain(chain, messages) {
   const tried = new Set();
-  const errors = [];
   for (const model of chain) {
     if (tried.has(model)) continue;
     tried.add(model);
     try {
-      console.log(`[AIVA] trying ${model}`);
+      console.log(`[AIVA] trying model: ${model}`);
       const result = await tryModel(model, messages);
-      console.log(`[AIVA] OK ${model}`);
+      console.log(`[AIVA] SUCCESS: ${model}`);
       return result;
     } catch (e) {
-      const errDetail = e?.errors?.map(x => x?.message || String(x)).join(" | ") || e.message;
-      console.log(`[AIVA] ${model} FAILED: ${errDetail}`);
-      errors.push(`${model}: ${errDetail}`);
+      console.log(`[AIVA] model failed (${model}): ${e.message}`);
     }
   }
-  throw new Error("Semua model di chain gagal. Details: " + errors.join(" || "));
+  throw new Error("Semua model di chain gagal");
 }
 
 async function callAPI(api, message, history = [], userName = "") {
@@ -192,8 +212,8 @@ async function callAPI(api, message, history = [], userName = "") {
 
   try {
     return await tryChain(primaryChain, messages);
-  } catch (e) {
-    console.log(`[AIVA] chain utama ${api} habis: ${e.message}`);
+  } catch {
+    console.log(`[AIVA] chain utama ${api} habis, emergency fallback`);
   }
 
   const tried    = new Set(primaryChain);
