@@ -6,9 +6,6 @@
 <title>AIVA — Beta</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@300;400;500;600;700;800&family=Syne:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&family=Orbitron:wght@600;700;800;900&display=swap" rel="stylesheet">
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <style>
 /* ================================================================ TOKENS */
 :root {
@@ -1536,9 +1533,16 @@ body.light .ctb-input-wrap{background:rgba(0,0,0,0.04);border-color:rgba(0,0,0,0
     transparent 330deg,
     transparent 360deg
   );
+  /* xor mask = blur halo ikut cuma di ring, tengah ga kena warna sama sekali */
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite:xor;
+  mask-composite:exclude;
+  padding:3px;
   filter:blur(9px);
   z-index:-1;
-  opacity:0.75;
+  opacity:0.85;
 }
 
 .input-wrap{display:flex;align-items:center;gap:8px;background:var(--surface2);border:1px solid rgba(61,114,246,0.15);border-radius:var(--r-lg);padding:4px 8px 4px 12px;transition:border-color 0.25s,box-shadow 0.25s;position:relative}
@@ -2294,6 +2298,7 @@ line-height:1.8;
 
 
 <script>
+
 /* ======================== CONFIG ======================== */
 const DARK_LOGO      = "https://i.ibb.co.com/SD7LZgmv/Picsart-26-04-29-23-27-26-445.jpg";
 const LIGHT_LOGO     = "https://i.ibb.co.com/XrH4nnQy/file-0000000005a87208a1ebd9aff2438f5f.png";
