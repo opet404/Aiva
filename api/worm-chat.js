@@ -1,6 +1,4 @@
 // api/worm-chat.js — Worm Aiva backend via OpenRouter (free models)
-// Identitas dari prompt.txt | Keys reuse dari _lib.js
-
 const fs   = require("fs");
 const path = require("path");
 
@@ -17,12 +15,13 @@ const KEYS = [
 const SITE_URL   = process.env.SITE_URL || "https://aiva.vercel.app";
 const TIMEOUT_MS = 20000;
 
+// Model verified stable + fallback chain
 const WORM_MODELS = [
-  "qwen/qwen3-next-80b-a3b-instruct:free",
   "meta-llama/llama-3.3-70b-instruct:free",
-  "nvidia/nemotron-3-super:free",
-  "openai/gpt-oss-120b:free",
-  "google/gemma-4-31b:free",
+  "mistralai/mistral-7b-instruct:free",
+  "qwen/qwen-2.5-72b-instruct:free",
+  "google/gemma-3-27b-it:free",
+  "deepseek/deepseek-r1-0528:free",
   "openrouter/free",
 ];
 
@@ -74,7 +73,6 @@ async function tryKey(key, model, messages) {
     if (!res.ok || data.error) throw new Error(data.error?.message || "HTTP " + res.status);
 
     let text = data?.choices?.[0]?.message?.content || "";
-    // Hapus thinking block (DeepSeek R1)
     text = text.replace(/<think>[\s\S]*?<\/think>/gi, "").trim();
     if (!text) throw new Error("empty");
     return text;
@@ -91,7 +89,10 @@ async function tryModel(model, messages) {
 
 // Coba semua model satu per satu
 async function tryChain(messages) {
+  const tried = new Set();
   for (const model of WORM_MODELS) {
+    if (tried.has(model)) continue;
+    tried.add(model);
     try {
       console.log(`[worm] trying ${model}`);
       const result = await tryModel(model, messages);

@@ -10,58 +10,58 @@ const KEYS = [
   process.env.OR_KEY_7 || "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",
 ].filter(Boolean);
 
-
-const FREE_ROUTER = "openrouter/free"; // openrouter/auto bisa kena 402 (butuh saldo) — openrouter/free khusus model gratis
+const FREE_ROUTER = "openrouter/free"; // khusus model gratis, tidak kena 402
 const SITE_URL    = process.env.SITE_URL || "https://aiva.vercel.app";
 const TIMEOUT_MS  = 9000;
 
+// Model names verified stable di OpenRouter (Juni 2025)
 const GROQ_MODELS = [
   "meta-llama/llama-3.3-70b-instruct:free",
+  "meta-llama/llama-3.1-8b-instruct:free",
+  "mistralai/mistral-7b-instruct:free",
+  "google/gemma-3-27b-it:free",
+  "qwen/qwen-2.5-72b-instruct:free",
   FREE_ROUTER,
-  "nvidia/nemotron-3-super:free",
-  "google/gemma-4-31b:free",
-  "qwen/qwen3-next-80b-a3b-instruct:free",
-  "openai/gpt-oss-120b:free",
-  "meta-llama/llama-3.2-3b-instruct:free",
+  "deepseek/deepseek-r1-0528:free",
+  "microsoft/phi-4-reasoning:free",
 ];
 
 const QWEN_MODELS = [
-  "qwen/qwen3-next-80b-a3b-instruct:free",
-  FREE_ROUTER,
-  "qwen/qwen3-coder-480b-a35b-instruct:free",
-  "nvidia/nemotron-3-super:free",
-  "google/gemma-4-31b:free",
-  "openai/gpt-oss-120b:free",
+  "qwen/qwen-2.5-72b-instruct:free",
+  "qwen/qwen-2.5-coder-32b-instruct:free",
+  "qwen/qwen3-14b:free",
   "meta-llama/llama-3.3-70b-instruct:free",
+  "mistralai/mistral-7b-instruct:free",
+  FREE_ROUTER,
+  "deepseek/deepseek-r1-0528:free",
 ];
 
 const GPT_MODELS = [
-  "openai/gpt-oss-120b:free",
+  "openai/gpt-4o-mini:free",
+  "meta-llama/llama-3.3-70b-instruct:free",
+  "mistralai/mistral-7b-instruct:free",
+  "google/gemma-3-27b-it:free",
   FREE_ROUTER,
-  "openai/gpt-oss-20b:free",
-  "nvidia/nemotron-3-super:free",
-  "google/gemma-4-31b:free",
-  "qwen/qwen3-next-80b-a3b-instruct:free",
+  "qwen/qwen-2.5-72b-instruct:free",
 ];
 
 const GLM_MODELS = [
-  "google/gemma-4-31b:free",
-  FREE_ROUTER,
-  "nvidia/nemotron-3-super:free",
-  "openai/gpt-oss-120b:free",
-  "qwen/qwen3-next-80b-a3b-instruct:free",
+  "google/gemma-3-27b-it:free",
+  "google/gemma-3-12b-it:free",
   "meta-llama/llama-3.3-70b-instruct:free",
+  "qwen/qwen-2.5-72b-instruct:free",
+  FREE_ROUTER,
+  "mistralai/mistral-7b-instruct:free",
 ];
 
 const EMERGENCY_FALLBACK = [
   FREE_ROUTER,
-  "nvidia/nemotron-3-super:free",
-  "openai/gpt-oss-120b:free",
-  "google/gemma-4-31b:free",
-  "qwen/qwen3-next-80b-a3b-instruct:free",
-  "meta-llama/llama-3.3-70b-instruct:free",
-  "openai/gpt-oss-20b:free",
-  "meta-llama/llama-3.2-3b-instruct:free",
+  "deepseek/deepseek-r1-0528:free",
+  "meta-llama/llama-3.1-8b-instruct:free",
+  "mistralai/mistral-7b-instruct:free",
+  "google/gemma-3-12b-it:free",
+  "qwen/qwen3-14b:free",
+  "microsoft/phi-4-reasoning:free",
 ];
 
 const SYSTEM_PROMPT = `
