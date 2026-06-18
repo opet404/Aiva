@@ -1,44 +1,66 @@
-// api/status.js — live test semua keys ke OpenRouter
+// api/status.js — live test tiap model dengan satu key
 module.exports = async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
   if (req.method === "OPTIONS") return res.status(200).end();
 
   const KEYS = [
-    process.env.OR_KEY_1 || "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",
-    process.env.OR_KEY_2 || "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",
-    process.env.OR_KEY_3 || "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",
-    process.env.OR_KEY_4 || "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",
-    process.env.OR_KEY_5 || "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",
-    process.env.OR_KEY_6 || "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",
-    process.env.OR_KEY_7 || "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",
+    process.env.OR_KEY_1,
+    process.env.OR_KEY_2,
+    process.env.OR_KEY_3,
+    process.env.OR_KEY_4,
+    process.env.OR_KEY_5,
+    process.env.OR_KEY_6,
+    process.env.OR_KEY_7,
   ].filter(Boolean);
 
-  // Test tiap key — cek credits/auth via OR API
-  const results = await Promise.all(KEYS.map(async (key, i) => {
+  const HARDCODED = [
+    "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",
+    "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",
+  ];
+
+  const ALL_KEYS = KEYS.length > 0 ? KEYS : HARDCODED;
+  const testKey  = ALL_KEYS[0]; // pakai key pertama buat test model
+
+  const MODELS = [
+    "google/gemma-4-31b:free",
+    "meta-llama/llama-3.3-70b-instruct:free",
+    "nvidia/nemotron-3-super:free",
+    "openai/gpt-oss-120b:free",
+    "openai/gpt-oss-20b:free",
+    "qwen/qwen3-next-80b-a3b-instruct:free",
+    "qwen/qwen3-coder-480b-a35b-instruct:free",
+    "meta-llama/llama-3.2-3b-instruct:free",
+    "openrouter/free",
+  ];
+
+  const MSG = [{ role: "user", content: "Hi" }];
+
+  const results = await Promise.all(MODELS.map(async model => {
     try {
-      const r = await fetch("https://openrouter.ai/api/v1/auth/key", {
-        headers: { "Authorization": "Bearer " + key }
+      const ctrl  = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), 8000);
+      const r = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+        method : "POST",
+        headers: {
+          "Authorization": "Bearer " + testKey,
+          "Content-Type" : "application/json",
+          "HTTP-Referer"  : "https://aiva-beta.vercel.app",
+          "X-Title"       : "AIVA-test",
+        },
+        body  : JSON.stringify({ model, messages: MSG, max_tokens: 10 }),
+        signal: ctrl.signal,
       });
-      const data = await r.json();
-      if (!r.ok) return { key: i+1, preview: key.slice(0,24)+"...", status: "❌ " + (data?.error?.message || "HTTP "+r.status) };
-      return {
-        key: i+1,
-        preview: key.slice(0,24)+"...",
-        status: "✅ OK",
-        label: data?.data?.label || "-",
-        usage: data?.data?.usage ?? "-",
-        limit: data?.data?.limit ?? "unlimited",
-        is_free_tier: data?.data?.is_free_tier ?? "-",
-      };
+      clearTimeout(timer);
+      const d = await r.json();
+      if (r.status === 429) return { model, status: "⛔ 429 rate limit" };
+      if (!r.ok || d.error) return { model, status: "❌ " + (d.error?.message || "HTTP "+r.status) };
+      const txt = d?.choices?.[0]?.message?.content || "";
+      return { model, status: txt ? "✅ OK: "+txt.slice(0,30) : "⚠️ empty" };
     } catch(e) {
-      return { key: i+1, preview: key.slice(0,24)+"...", status: "❌ " + e.message };
+      return { model, status: "❌ " + e.message };
     }
   }));
 
-  const alive = results.filter(r => r.status.startsWith("✅")).length;
-
-  return res.status(200).json({
-    summary: `${alive}/${KEYS.length} keys aktif`,
-    keys: results
-  });
+  const ok = results.filter(r => r.status.startsWith("✅")).length;
+  return res.status(200).json({ working: `${ok}/${MODELS.length}`, models: results });
 };
