@@ -15,13 +15,14 @@ const KEYS = [
 const SITE_URL   = process.env.SITE_URL || "https://aiva.vercel.app";
 const TIMEOUT_MS = 20000;
 
-// Model verified stable + fallback chain
+// Model verified dari screenshot OpenRouter user
 const WORM_MODELS = [
+  "google/gemma-4-31b:free",
+  "qwen/qwen3-next-80b-a3b-instruct:free",
+  "nvidia/nemotron-3-super:free",
+  "openai/gpt-oss-120b:free",
   "meta-llama/llama-3.3-70b-instruct:free",
-  "mistralai/mistral-7b-instruct:free",
-  "qwen/qwen-2.5-72b-instruct:free",
-  "google/gemma-3-27b-it:free",
-  "deepseek/deepseek-r1-0528:free",
+  "openai/gpt-oss-20b:free",
   "openrouter/free",
 ];
 
@@ -124,7 +125,7 @@ module.exports = async function handler(req, res) {
 
   const systemFull = SYSTEM_PROMPT
     + "\n\n" + langNote
-    + (userName ? `\n\nNama pengguna saat ini: "${userName}". WAJIB panggil dengan nama ini saat relevan. Jika ditanya siapa nama user, jawab dengan nama ini.` : "")
+    + (userName ? `\n\nNama pengguna saat ini: "${userName}". WAJIB panggil dengan nama ini saat relevan.` : "")
     + "\n\nJawab LENGKAP dan TUNTAS. Jangan potong jawaban di tengah.";
 
   const messages = [

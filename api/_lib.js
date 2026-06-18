@@ -10,58 +10,65 @@ const KEYS = [
   process.env.OR_KEY_7 || "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",
 ].filter(Boolean);
 
-const FREE_ROUTER = "openrouter/free"; // khusus model gratis, tidak kena 402
+const FREE_ROUTER = "openrouter/free";
 const SITE_URL    = process.env.SITE_URL || "https://aiva.vercel.app";
 const TIMEOUT_MS  = 9000;
 
-// Model names verified stable di OpenRouter (Juni 2025)
+// ── Model IDs dari screenshot OpenRouter user (verified exist) ──
+// google/gemma-4-31b:free       → GLM (confirmed working)
+// nvidia/nemotron-3-super:free  → ada di list
+// openai/gpt-oss-120b:free      → ada di list
+// openai/gpt-oss-20b:free       → ada di list
+// qwen/qwen3-next-80b-a3b-instruct:free → ada di list
+// qwen/qwen3-coder-480b-a35b-instruct:free → ada di list
+// meta/llama-3.3-70b-instruct:free → ada di list
+// meta/llama-3.2-3b-instruct:free  → ada di list
+
 const GROQ_MODELS = [
   "meta-llama/llama-3.3-70b-instruct:free",
-  "meta-llama/llama-3.1-8b-instruct:free",
-  "mistralai/mistral-7b-instruct:free",
-  "google/gemma-3-27b-it:free",
-  "qwen/qwen-2.5-72b-instruct:free",
+  "nvidia/nemotron-3-super:free",
+  "openai/gpt-oss-120b:free",
+  "qwen/qwen3-next-80b-a3b-instruct:free",
+  "google/gemma-4-31b:free",
+  "meta-llama/llama-3.2-3b-instruct:free",
   FREE_ROUTER,
-  "deepseek/deepseek-r1-0528:free",
-  "microsoft/phi-4-reasoning:free",
 ];
 
 const QWEN_MODELS = [
-  "qwen/qwen-2.5-72b-instruct:free",
-  "qwen/qwen-2.5-coder-32b-instruct:free",
-  "qwen/qwen3-14b:free",
+  "qwen/qwen3-next-80b-a3b-instruct:free",
+  "qwen/qwen3-coder-480b-a35b-instruct:free",
+  "nvidia/nemotron-3-super:free",
+  "openai/gpt-oss-120b:free",
   "meta-llama/llama-3.3-70b-instruct:free",
-  "mistralai/mistral-7b-instruct:free",
+  "google/gemma-4-31b:free",
   FREE_ROUTER,
-  "deepseek/deepseek-r1-0528:free",
 ];
 
 const GPT_MODELS = [
-  "openai/gpt-4o-mini:free",
+  "openai/gpt-oss-120b:free",
+  "openai/gpt-oss-20b:free",
+  "nvidia/nemotron-3-super:free",
   "meta-llama/llama-3.3-70b-instruct:free",
-  "mistralai/mistral-7b-instruct:free",
-  "google/gemma-3-27b-it:free",
+  "qwen/qwen3-next-80b-a3b-instruct:free",
+  "google/gemma-4-31b:free",
   FREE_ROUTER,
-  "qwen/qwen-2.5-72b-instruct:free",
 ];
 
 const GLM_MODELS = [
-  "google/gemma-3-27b-it:free",
-  "google/gemma-3-12b-it:free",
+  "google/gemma-4-31b:free",
+  "nvidia/nemotron-3-super:free",
+  "openai/gpt-oss-120b:free",
+  "qwen/qwen3-next-80b-a3b-instruct:free",
   "meta-llama/llama-3.3-70b-instruct:free",
-  "qwen/qwen-2.5-72b-instruct:free",
   FREE_ROUTER,
-  "mistralai/mistral-7b-instruct:free",
 ];
 
 const EMERGENCY_FALLBACK = [
   FREE_ROUTER,
-  "deepseek/deepseek-r1-0528:free",
-  "meta-llama/llama-3.1-8b-instruct:free",
-  "mistralai/mistral-7b-instruct:free",
-  "google/gemma-3-12b-it:free",
-  "qwen/qwen3-14b:free",
-  "microsoft/phi-4-reasoning:free",
+  "nvidia/nemotron-3-super:free",
+  "openai/gpt-oss-20b:free",
+  "meta-llama/llama-3.2-3b-instruct:free",
+  "qwen/qwen3-next-80b-a3b-instruct:free",
 ];
 
 const SYSTEM_PROMPT = `
@@ -159,7 +166,7 @@ async function tryChain(chain, messages) {
 
 // ── callAPI — entry point ────────────────────────────────────
 async function callAPI(api, message, history = [], userName = "") {
-  if (api === "gemma") api = "groq";
+  if (api === "gemma") api = "glm";
 
   const messages = [
     {
@@ -173,7 +180,6 @@ async function callAPI(api, message, history = [], userName = "") {
     { role: "user", content: message },
   ];
 
-  // Pilih chain utama
   let primaryChain;
   if      (api === "groq") primaryChain = GROQ_MODELS;
   else if (api === "qwen") primaryChain = QWEN_MODELS;
@@ -181,15 +187,13 @@ async function callAPI(api, message, history = [], userName = "") {
   else if (api === "glm")  primaryChain = GLM_MODELS;
   else throw new Error("API tidak dikenal: " + api);
 
-  // Coba chain utama
   try {
     return await tryChain(primaryChain, messages);
   } catch {
     console.log(`[AIVA] chain utama ${api} habis, emergency fallback`);
   }
 
-  // Emergency fallback — model yang belum dicoba
-  const tried   = new Set(primaryChain);
+  const tried    = new Set(primaryChain);
   const fallback = EMERGENCY_FALLBACK.filter(m => !tried.has(m));
   return tryChain(fallback, messages);
 }
