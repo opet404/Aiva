@@ -145,7 +145,12 @@ async function tryChain(chain, messages) {
       console.log(`[AIVA] OK ${model}`);
       return result;
     } catch (e) {
-      console.log(`[AIVA] ${model} failed: ${e.message}`);
+      if (e && Array.isArray(e.errors) && e.errors.length) {
+        const detail = e.errors.map(err => err?.message || String(err)).join(" | ");
+        console.log(`[AIVA] ${model} failed (${e.errors.length} keys): ${detail}`);
+      } else {
+        console.log(`[AIVA] ${model} failed: ${e.message}`);
+      }
     }
   }
   throw new Error("Semua model di chain gagal");
