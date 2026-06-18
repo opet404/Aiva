@@ -18,7 +18,7 @@ const SITE_URL   = process.env.SITE_URL || "https://aiva.vercel.app";
 const TIMEOUT_MS = 20000;
 
 const WORM_MODELS = [
-  "meta-llama/llama-3.1-8b-instruct:abliterated"
+  "qwen/qwen3-next-80b-a3b-instruct:free",
 ];
 
 // Baca identitas dari prompt.txt

@@ -14,26 +14,25 @@ const FREE_ROUTER = "openrouter/free"; // openrouter/auto bisa kena 402 (butuh s
 const SITE_URL    = process.env.SITE_URL || "https://aiva.vercel.app";
 const TIMEOUT_MS  = 9000;
 
-// ── Model chains — FREE_ROUTER ditaruh di posisi awal tiap chain ───
-// (bukan di akhir) supaya kalau 1-2 model spesifik kena 404/stale,
-// gak perlu habisin seluruh list dulu sebelum dapet fallback yang jalan.
+const FREE_ROUTER = "openrouter/auto";
+
 const GROQ_MODELS = [
   "meta-llama/llama-3.3-70b-instruct:free",
   FREE_ROUTER,
-  "deepseek/deepseek-r1-0528:free",
-  "meta-llama/llama-3.1-8b-instruct:free",
-  "google/gemma-3-27b-it:free",
-  "mistralai/mistral-small-3.1-24b-instruct:free",
+  "nvidia/nemotron-3-super:free",
+  "google/gemma-4-31b:free",
+  "qwen/qwen3-next-80b-a3b-instruct:free",
+  "openai/gpt-oss-120b:free",
   "meta-llama/llama-3.2-3b-instruct:free",
 ];
 
 const QWEN_MODELS = [
-  "deepseek/deepseek-r1-0528:free",
+  "qwen/qwen3-next-80b-a3b-instruct:free",
   FREE_ROUTER,
-  "deepseek/deepseek-v3-base:free",
-  "mistralai/mistral-small-3.1-24b-instruct:free",
-  "mistralai/devstral-small:free",
-  "google/gemma-3-27b-it:free",
+  "qwen/qwen3-coder-480b-a35b-instruct:free",
+  "nvidia/nemotron-3-super:free",
+  "google/gemma-4-31b:free",
+  "openai/gpt-oss-120b:free",
   "meta-llama/llama-3.3-70b-instruct:free",
 ];
 
@@ -41,29 +40,29 @@ const GPT_MODELS = [
   "openai/gpt-oss-120b:free",
   FREE_ROUTER,
   "openai/gpt-oss-20b:free",
-  "meta-llama/llama-3.3-70b-instruct:free",
-  "deepseek/deepseek-r1-0528:free",
-  "mistralai/mistral-small-3.1-24b-instruct:free",
+  "nvidia/nemotron-3-super:free",
+  "google/gemma-4-31b:free",
+  "qwen/qwen3-next-80b-a3b-instruct:free",
 ];
 
 const GLM_MODELS = [
-  "z-ai/glm-4.5-air:free",
+  "google/gemma-4-31b:free",
   FREE_ROUTER,
-  "z-ai/glm-4.5:free",
-  "google/gemma-3-27b-it:free",
-  "mistralai/mistral-small-3.1-24b-instruct:free",
+  "nvidia/nemotron-3-super:free",
+  "openai/gpt-oss-120b:free",
+  "qwen/qwen3-next-80b-a3b-instruct:free",
   "meta-llama/llama-3.3-70b-instruct:free",
 ];
 
 const EMERGENCY_FALLBACK = [
   FREE_ROUTER,
+  "nvidia/nemotron-3-super:free",
+  "openai/gpt-oss-120b:free",
+  "google/gemma-4-31b:free",
+  "qwen/qwen3-next-80b-a3b-instruct:free",
   "meta-llama/llama-3.3-70b-instruct:free",
-  "deepseek/deepseek-r1-0528:free",
-  "google/gemma-3-27b-it:free",
-  "mistralai/mistral-small-3.1-24b-instruct:free",
   "openai/gpt-oss-20b:free",
-  "z-ai/glm-4.5-air:free",
-  "meta-llama/llama-3.1-8b-instruct:free",
+  "meta-llama/llama-3.2-3b-instruct:free",
 ];
 
 const SYSTEM_PROMPT = `
