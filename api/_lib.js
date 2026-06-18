@@ -10,13 +10,16 @@ const KEYS = [
   process.env.OR_KEY_7 || "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",
 ].filter(Boolean);
 
-const FREE_ROUTER = "openrouter/auto";
+const FREE_ROUTER = "openrouter/free"; // openrouter/auto bisa kena 402 (butuh saldo) — openrouter/free khusus model gratis
 const SITE_URL    = process.env.SITE_URL || "https://aiva.vercel.app";
 const TIMEOUT_MS  = 9000;
 
-// ── Model chains (persis sesuai permintaan) ────────────────
+// ── Model chains — FREE_ROUTER ditaruh di posisi awal tiap chain ───
+// (bukan di akhir) supaya kalau 1-2 model spesifik kena 404/stale,
+// gak perlu habisin seluruh list dulu sebelum dapet fallback yang jalan.
 const GROQ_MODELS = [
   "meta-llama/llama-3.3-70b-instruct:free",
+  FREE_ROUTER,
   "deepseek/deepseek-r1-0528:free",
   "meta-llama/llama-3.1-8b-instruct:free",
   "google/gemma-3-27b-it:free",
@@ -26,33 +29,34 @@ const GROQ_MODELS = [
 
 const QWEN_MODELS = [
   "deepseek/deepseek-r1-0528:free",
+  FREE_ROUTER,
   "deepseek/deepseek-v3-base:free",
   "mistralai/mistral-small-3.1-24b-instruct:free",
   "mistralai/devstral-small:free",
   "google/gemma-3-27b-it:free",
   "meta-llama/llama-3.3-70b-instruct:free",
-  FREE_ROUTER,
 ];
 
 const GPT_MODELS = [
   "openai/gpt-oss-120b:free",
+  FREE_ROUTER,
   "openai/gpt-oss-20b:free",
   "meta-llama/llama-3.3-70b-instruct:free",
   "deepseek/deepseek-r1-0528:free",
   "mistralai/mistral-small-3.1-24b-instruct:free",
-  FREE_ROUTER,
 ];
 
 const GLM_MODELS = [
   "z-ai/glm-4.5-air:free",
+  FREE_ROUTER,
   "z-ai/glm-4.5:free",
   "google/gemma-3-27b-it:free",
   "mistralai/mistral-small-3.1-24b-instruct:free",
   "meta-llama/llama-3.3-70b-instruct:free",
-  FREE_ROUTER,
 ];
 
 const EMERGENCY_FALLBACK = [
+  FREE_ROUTER,
   "meta-llama/llama-3.3-70b-instruct:free",
   "deepseek/deepseek-r1-0528:free",
   "google/gemma-3-27b-it:free",
@@ -60,7 +64,6 @@ const EMERGENCY_FALLBACK = [
   "openai/gpt-oss-20b:free",
   "z-ai/glm-4.5-air:free",
   "meta-llama/llama-3.1-8b-instruct:free",
-  FREE_ROUTER,
 ];
 
 const SYSTEM_PROMPT = `
