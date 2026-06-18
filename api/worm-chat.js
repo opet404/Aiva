@@ -19,6 +19,11 @@ const TIMEOUT_MS = 20000;
 
 const WORM_MODELS = [
   "qwen/qwen3-next-80b-a3b-instruct:free",
+  "meta-llama/llama-3.3-70b-instruct:free",
+  "nvidia/nemotron-3-super:free",
+  "openai/gpt-oss-120b:free",
+  "google/gemma-4-31b:free",
+  "openrouter/free",
 ];
 
 // Baca identitas dari prompt.txt

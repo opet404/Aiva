@@ -15,8 +15,6 @@ const FREE_ROUTER = "openrouter/free"; // openrouter/auto bisa kena 402 (butuh s
 const SITE_URL    = process.env.SITE_URL || "https://aiva.vercel.app";
 const TIMEOUT_MS  = 9000;
 
-const FREE_ROUTER = "openrouter/auto";
-
 const GROQ_MODELS = [
   "meta-llama/llama-3.3-70b-instruct:free",
   FREE_ROUTER,
