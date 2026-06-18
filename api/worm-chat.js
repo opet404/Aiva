@@ -18,9 +18,8 @@ const SITE_URL   = process.env.SITE_URL || "https://aiva.vercel.app";
 const TIMEOUT_MS = 20000;
 
 const WORM_MODELS = [
-  "openrouter/free",
-  "google/gemma-4-31b:free",
-  "google/gemma-4-26b-a4b:free"
+  "nvidia/nemotron-3-nano-30b-a3b:free",
+  "nvidia/nemotron-3-super-120b-a12b:free"
 ];
 
 // Baca identitas dari prompt.txt
