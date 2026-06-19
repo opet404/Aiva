@@ -189,4 +189,3 @@ async function callAPI(api, message, history = [], userName = "") {
 }
 
 module.exports = { callAPI };
-        
