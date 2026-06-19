@@ -18,26 +18,15 @@ module.exports = async function handler(req, res) {
     return res.status(200).json({ reply });
 
   } catch (err) {
-    // Log detail error ke Vercel logs
-    console.error("[chat] FULL ERROR:", JSON.stringify({
-      message: err.message,
-      stack: err.stack,
-      errors: err.errors ? err.errors.map(e => e?.message || String(e)) : undefined
-    }));
-
+    console.error("[chat] error:", err.message);
     const m = err.message || "";
     let reply;
-    if (m.includes("401") || m.includes("auth") || m.includes("Unauthorized"))
-      reply = "❌ Key tidak valid / expired. Cek env OR_KEY di Vercel.";
-    else if (m.includes("402"))
-      reply = "❌ Saldo OpenRouter habis.";
-    else if (m.includes("429") || m.includes("rate") || m.includes("limit"))
-      reply = "⚠️ Rate limit. Coba lagi sebentar.";
+    if (m.includes("429") || m.includes("rate") || m.includes("limit"))
+      reply = "⚠️ Model sedang sibuk. Coba lagi dalam beberapa detik.";
     else if (m.includes("503") || m.includes("502"))
-      reply = "⚠️ Server model down.";
+      reply = "⚠️ Server model sedang down. Coba lagi sebentar.";
     else
-      reply = "❌ Error: " + m;
-
+      reply = "❌ " + m;
     return res.status(200).json({ reply });
   }
 };

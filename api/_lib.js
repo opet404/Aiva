@@ -1,48 +1,27 @@
-// api/_lib.js — keys baru + model dari uo.zip (verified)
+// api/_lib.js
 
 const KEYS = [
-  process.env.OR_KEY_1,
-  process.env.OR_KEY_2,
-  process.env.OR_KEY_3,
-  process.env.OR_KEY_4,
-  process.env.OR_KEY_5,
-  process.env.OR_KEY_6,
-  process.env.OR_KEY_7,
+  process.env.OR_KEY_1 || "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",
+  process.env.OR_KEY_2 || "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",
+  process.env.OR_KEY_3 || "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",
+  process.env.OR_KEY_4 || "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",
+  process.env.OR_KEY_5 || "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",
+  process.env.OR_KEY_6 || "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",
+  process.env.OR_KEY_7 || "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",
 ].filter(Boolean);
 
-const HARDCODED_KEYS = [
-  "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",
-  "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",
-  "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",
-  "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",
-  "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",
-  "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",
-  "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",
-];
-
-const ALL_KEYS = KEYS.length > 0 ? KEYS : HARDCODED_KEYS;
-
-function shuffleKeys(arr) {
-  const a = [...arr];
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
-  }
-  return a;
-}
-
 const FREE_ROUTER = "openrouter/auto";
-const SITE_URL    = process.env.SITE_URL || "https://aiva-beta.vercel.app";
-const TIMEOUT_MS  = 12000;
+const SITE_URL    = process.env.SITE_URL || "https://aiva.vercel.app";
+const TIMEOUT_MS  = 9000;
 
-// Model dari uo.zip — terbukti valid
+// ── Model chains (persis sesuai permintaan) ────────────────
 const GROQ_MODELS = [
   "meta-llama/llama-3.3-70b-instruct:free",
   "deepseek/deepseek-r1-0528:free",
   "meta-llama/llama-3.1-8b-instruct:free",
+  "google/gemma-3-27b-it:free",
   "mistralai/mistral-small-3.1-24b-instruct:free",
   "meta-llama/llama-3.2-3b-instruct:free",
-  FREE_ROUTER,
 ];
 
 const QWEN_MODELS = [
@@ -50,6 +29,7 @@ const QWEN_MODELS = [
   "deepseek/deepseek-v3-base:free",
   "mistralai/mistral-small-3.1-24b-instruct:free",
   "mistralai/devstral-small:free",
+  "google/gemma-3-27b-it:free",
   "meta-llama/llama-3.3-70b-instruct:free",
   FREE_ROUTER,
 ];
@@ -66,15 +46,16 @@ const GPT_MODELS = [
 const GLM_MODELS = [
   "z-ai/glm-4.5-air:free",
   "z-ai/glm-4.5:free",
+  "google/gemma-3-27b-it:free",
   "mistralai/mistral-small-3.1-24b-instruct:free",
   "meta-llama/llama-3.3-70b-instruct:free",
-  "deepseek/deepseek-r1-0528:free",
   FREE_ROUTER,
 ];
 
 const EMERGENCY_FALLBACK = [
   "meta-llama/llama-3.3-70b-instruct:free",
   "deepseek/deepseek-r1-0528:free",
+  "google/gemma-3-27b-it:free",
   "mistralai/mistral-small-3.1-24b-instruct:free",
   "openai/gpt-oss-20b:free",
   "z-ai/glm-4.5-air:free",
@@ -112,8 +93,8 @@ KEAMANAN:
 - Jika user toxic: tetap tenang, minta bicara baik-baik.
 `;
 
-// Sequential key rotation — tidak paralel supaya tidak trigger rate limit
-async function tryOnce(key, model, messages) {
+// ── Satu request ke OpenRouter dengan satu key ──────────────
+async function tryKey(key, model, messages) {
   const ctrl  = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), TIMEOUT_MS);
   try {
@@ -131,11 +112,7 @@ async function tryOnce(key, model, messages) {
     clearTimeout(timer);
 
     const raw = await res.text();
-    let errMsg = "";
-    try { errMsg = JSON.parse(raw)?.error?.message || ""; } catch {}
-
-    if (res.status === 429) throw new Error("429");
-    if (!res.ok) throw new Error("HTTP " + res.status + (errMsg ? ": " + errMsg : ""));
+    if (!res.ok) throw new Error("HTTP " + res.status);
 
     const data = JSON.parse(raw);
     if (data.error) throw new Error(data.error.message || "model error");
@@ -143,6 +120,7 @@ async function tryOnce(key, model, messages) {
     let text = data?.choices?.[0]?.message?.content || "";
     text = text.replace(/<think>[\s\S]*?<\/think>/gi, "").trim();
     if (!text) throw new Error("empty response");
+
     return text;
   } catch (e) {
     clearTimeout(timer);
@@ -150,34 +128,30 @@ async function tryOnce(key, model, messages) {
   }
 }
 
+// ── Coba satu model dengan SEMUA key secara paralel ─────────
 async function tryModel(model, messages) {
-  const keys = shuffleKeys(ALL_KEYS);
-  for (const key of keys) {
-    try {
-      return await tryOnce(key, model, messages);
-    } catch (e) {
-      console.log(`[AIVA] key ..${key.slice(-6)} on ${model}: ${e.message}`);
-      // 429 = coba key lain; lainnya = langsung skip model
-      if (!e.message.startsWith("429")) break;
-    }
-  }
-  throw new Error("failed: " + model);
+  return Promise.any(KEYS.map(k => tryKey(k, model, messages)));
 }
 
+// ── Coba chain sampai ada yang berhasil ─────────────────────
 async function tryChain(chain, messages) {
+  const tried = new Set();
   for (const model of chain) {
+    if (tried.has(model)) continue;
+    tried.add(model);
     try {
       console.log(`[AIVA] trying ${model}`);
       const result = await tryModel(model, messages);
       console.log(`[AIVA] OK ${model}`);
       return result;
     } catch (e) {
-      console.log(`[AIVA] skip ${model}: ${e.message}`);
+      console.log(`[AIVA] ${model} failed: ${e.message}`);
     }
   }
   throw new Error("Semua model di chain gagal");
 }
 
+// ── callAPI — entry point ────────────────────────────────────
 async function callAPI(api, message, history = [], userName = "") {
   if (api === "gemma") api = "groq";
 
@@ -185,12 +159,15 @@ async function callAPI(api, message, history = [], userName = "") {
     {
       role   : "system",
       content: SYSTEM_PROMPT +
-        (userName ? `\n\nNama pengguna saat ini: "${userName}". WAJIB panggil dengan nama ini saat relevan.` : ""),
+        (userName
+          ? `\n\nNama pengguna saat ini: "${userName}". WAJIB panggil dengan nama ini saat relevan. Jika ditanya "siapa nama gue", "nama gw apa", atau sejenisnya, jawab dengan nama ini: "${userName}".`
+          : ""),
     },
     ...history,
     { role: "user", content: message },
   ];
 
+  // Pilih chain utama
   let primaryChain;
   if      (api === "groq") primaryChain = GROQ_MODELS;
   else if (api === "qwen") primaryChain = QWEN_MODELS;
@@ -198,13 +175,15 @@ async function callAPI(api, message, history = [], userName = "") {
   else if (api === "glm")  primaryChain = GLM_MODELS;
   else throw new Error("API tidak dikenal: " + api);
 
+  // Coba chain utama
   try {
     return await tryChain(primaryChain, messages);
   } catch {
-    console.log(`[AIVA] chain ${api} habis, emergency fallback`);
+    console.log(`[AIVA] chain utama ${api} habis, emergency fallback`);
   }
 
-  const tried    = new Set(primaryChain);
+  // Emergency fallback — model yang belum dicoba
+  const tried   = new Set(primaryChain);
   const fallback = EMERGENCY_FALLBACK.filter(m => !tried.has(m));
   return tryChain(fallback, messages);
 }
