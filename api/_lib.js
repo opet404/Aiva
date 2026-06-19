@@ -14,7 +14,7 @@ const FREE_ROUTER = "openrouter/auto";
 const SITE_URL    = process.env.SITE_URL || "https://aiva.vercel.app";
 const TIMEOUT_MS  = 9000;
 
-// ── Model chains (persis sesuai permintaan) ────────────────
+// ── Model chains ────────────────────────────────────────────
 const GROQ_MODELS = [
   "meta-llama/llama-3.3-70b-instruct:free",
   "deepseek/deepseek-r1-0528:free",
@@ -93,6 +93,9 @@ KEAMANAN:
 - Jika user toxic: tetap tenang, minta bicara baik-baik.
 `;
 
+// ── Round-robin index (reset per cold start, distribusi merata) ──
+let _kidx = 0;
+
 // ── Satu request ke OpenRouter dengan satu key ──────────────
 async function tryKey(key, model, messages) {
   const ctrl  = new AbortController();
@@ -128,9 +131,24 @@ async function tryKey(key, model, messages) {
   }
 }
 
-// ── Coba satu model dengan SEMUA key secara paralel ─────────
+// ── Coba satu model: key satu-satu (sequential), bukan paralel ──
+// Hemat 7x request dibanding Promise.any — tidak bakar semua key sekaligus
 async function tryModel(model, messages) {
-  return Promise.any(KEYS.map(k => tryKey(k, model, messages)));
+  const start = _kidx;
+  for (let i = 0; i < KEYS.length; i++) {
+    const idx = (start + i) % KEYS.length;
+    const key = KEYS[idx];
+    try {
+      const result = await tryKey(key, model, messages);
+      _kidx = (idx + 1) % KEYS.length; // geser untuk request berikutnya
+      return result;
+    } catch (e) {
+      console.log(`[AIVA] key ${idx + 1} failed for ${model}: ${e.message}`);
+      // lanjut key berikutnya
+    }
+  }
+  _kidx = (start + 1) % KEYS.length;
+  throw new Error("Semua key gagal untuk model: " + model);
 }
 
 // ── Coba chain sampai ada yang berhasil ─────────────────────
@@ -183,7 +201,7 @@ async function callAPI(api, message, history = [], userName = "") {
   }
 
   // Emergency fallback — model yang belum dicoba
-  const tried   = new Set(primaryChain);
+  const tried    = new Set(primaryChain);
   const fallback = EMERGENCY_FALLBACK.filter(m => !tried.has(m));
   return tryChain(fallback, messages);
 }

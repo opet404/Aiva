@@ -3,7 +3,6 @@ module.exports = async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
   if (req.method === "OPTIONS") return res.status(200).end();
 
-  // Gunakan key yang sama persis dengan _lib.js & worm-chat.js
   const KEYS = [
     process.env.OR_KEY_1 || "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",
     process.env.OR_KEY_2 || "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",
@@ -24,6 +23,6 @@ module.exports = async function handler(req, res) {
     openrouter_keys: keys,
     total_or_keys: keys.length,
     deployment: "Vercel Serverless",
-    note: "Key rotation: random shuffle per request. Model fallback: loop semua model sampai berhasil.",
+    note: "Key rotation: sequential round-robin per request. Model fallback: loop semua model sampai berhasil.",
   });
 };

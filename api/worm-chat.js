@@ -42,6 +42,9 @@ function detectLang(text) {
   return "en";
 }
 
+// Round-robin index
+let _kidx = 0;
+
 // Request ke OpenRouter — satu key, satu model
 async function tryKey(key, model, messages) {
   const ctrl  = new AbortController();
@@ -79,9 +82,22 @@ async function tryKey(key, model, messages) {
   }
 }
 
-// Coba satu model dengan semua key secara paralel
+// Coba satu model dengan key sequential (bukan paralel)
 async function tryModel(model, messages) {
-  return Promise.any(KEYS.map(k => tryKey(k, model, messages)));
+  const start = _kidx;
+  for (let i = 0; i < KEYS.length; i++) {
+    const idx = (start + i) % KEYS.length;
+    const key = KEYS[idx];
+    try {
+      const result = await tryKey(key, model, messages);
+      _kidx = (idx + 1) % KEYS.length;
+      return result;
+    } catch (e) {
+      console.log(`[worm] key ${idx + 1} failed for ${model}: ${e.message}`);
+    }
+  }
+  _kidx = (start + 1) % KEYS.length;
+  throw new Error("all keys failed for " + model);
 }
 
 // Coba semua model satu per satu
