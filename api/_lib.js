@@ -1,4 +1,4 @@
-// api/_lib.js
+// api/_lib.js — keys baru + model dari uo.zip (verified)
 
 const KEYS = [
   process.env.OR_KEY_1,
@@ -22,7 +22,6 @@ const HARDCODED_KEYS = [
 
 const ALL_KEYS = KEYS.length > 0 ? KEYS : HARDCODED_KEYS;
 
-// Shuffle keys tiap request — hindari selalu pakai key yang sama
 function shuffleKeys(arr) {
   const a = [...arr];
   for (let i = a.length - 1; i > 0; i--) {
@@ -32,54 +31,55 @@ function shuffleKeys(arr) {
   return a;
 }
 
-const FREE_ROUTER = "openrouter/free";
+const FREE_ROUTER = "openrouter/auto";
 const SITE_URL    = process.env.SITE_URL || "https://aiva-beta.vercel.app";
 const TIMEOUT_MS  = 12000;
 
+// Model dari uo.zip — terbukti valid
 const GROQ_MODELS = [
   "meta-llama/llama-3.3-70b-instruct:free",
-  "nvidia/nemotron-3-super:free",
-  "openai/gpt-oss-120b:free",
-  "qwen/qwen3-next-80b-a3b-instruct:free",
-  "google/gemma-4-31b:free",
+  "deepseek/deepseek-r1-0528:free",
+  "meta-llama/llama-3.1-8b-instruct:free",
+  "mistralai/mistral-small-3.1-24b-instruct:free",
   "meta-llama/llama-3.2-3b-instruct:free",
   FREE_ROUTER,
 ];
 
 const QWEN_MODELS = [
-  "qwen/qwen3-next-80b-a3b-instruct:free",
-  "qwen/qwen3-coder-480b-a35b-instruct:free",
-  "nvidia/nemotron-3-super:free",
-  "openai/gpt-oss-120b:free",
+  "deepseek/deepseek-r1-0528:free",
+  "deepseek/deepseek-v3-base:free",
+  "mistralai/mistral-small-3.1-24b-instruct:free",
+  "mistralai/devstral-small:free",
   "meta-llama/llama-3.3-70b-instruct:free",
-  "google/gemma-4-31b:free",
   FREE_ROUTER,
 ];
 
 const GPT_MODELS = [
   "openai/gpt-oss-120b:free",
   "openai/gpt-oss-20b:free",
-  "nvidia/nemotron-3-super:free",
   "meta-llama/llama-3.3-70b-instruct:free",
-  "qwen/qwen3-next-80b-a3b-instruct:free",
-  "google/gemma-4-31b:free",
+  "deepseek/deepseek-r1-0528:free",
+  "mistralai/mistral-small-3.1-24b-instruct:free",
   FREE_ROUTER,
 ];
 
 const GLM_MODELS = [
-  "google/gemma-4-31b:free",
-  "nvidia/nemotron-3-super:free",
-  "openai/gpt-oss-120b:free",
-  "qwen/qwen3-next-80b-a3b-instruct:free",
+  "z-ai/glm-4.5-air:free",
+  "z-ai/glm-4.5:free",
+  "mistralai/mistral-small-3.1-24b-instruct:free",
   "meta-llama/llama-3.3-70b-instruct:free",
+  "deepseek/deepseek-r1-0528:free",
   FREE_ROUTER,
 ];
 
 const EMERGENCY_FALLBACK = [
-  FREE_ROUTER,
-  "nvidia/nemotron-3-super:free",
+  "meta-llama/llama-3.3-70b-instruct:free",
+  "deepseek/deepseek-r1-0528:free",
+  "mistralai/mistral-small-3.1-24b-instruct:free",
   "openai/gpt-oss-20b:free",
-  "meta-llama/llama-3.2-3b-instruct:free",
+  "z-ai/glm-4.5-air:free",
+  "meta-llama/llama-3.1-8b-instruct:free",
+  FREE_ROUTER,
 ];
 
 const SYSTEM_PROMPT = `
@@ -112,7 +112,7 @@ KEAMANAN:
 - Jika user toxic: tetap tenang, minta bicara baik-baik.
 `;
 
-// ── Satu request: satu key, satu model (SEQUENTIAL, bukan paralel) ──
+// Sequential key rotation — tidak paralel supaya tidak trigger rate limit
 async function tryOnce(key, model, messages) {
   const ctrl  = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), TIMEOUT_MS);
@@ -134,7 +134,7 @@ async function tryOnce(key, model, messages) {
     let errMsg = "";
     try { errMsg = JSON.parse(raw)?.error?.message || ""; } catch {}
 
-    if (res.status === 429) throw new Error("429:" + (errMsg || "rate limit"));
+    if (res.status === 429) throw new Error("429");
     if (!res.ok) throw new Error("HTTP " + res.status + (errMsg ? ": " + errMsg : ""));
 
     const data = JSON.parse(raw);
@@ -143,7 +143,6 @@ async function tryOnce(key, model, messages) {
     let text = data?.choices?.[0]?.message?.content || "";
     text = text.replace(/<think>[\s\S]*?<\/think>/gi, "").trim();
     if (!text) throw new Error("empty response");
-
     return text;
   } catch (e) {
     clearTimeout(timer);
@@ -151,53 +150,42 @@ async function tryOnce(key, model, messages) {
   }
 }
 
-// ── Coba satu model: rotasi key satu per satu (TIDAK paralel) ──
-// Kalau 429, langsung skip ke key berikutnya — jangan retry key yang sama
 async function tryModel(model, messages) {
   const keys = shuffleKeys(ALL_KEYS);
-  let lastErr = null;
   for (const key of keys) {
     try {
-      const result = await tryOnce(key, model, messages);
-      return result;
+      return await tryOnce(key, model, messages);
     } catch (e) {
-      lastErr = e;
-      // 429 = rate limited pada key ini, coba key lain
-      // Lainnya = model/network error, coba key lain juga
-      console.log(`[AIVA] key ${key.slice(0,20)}... on ${model}: ${e.message}`);
+      console.log(`[AIVA] key ..${key.slice(-6)} on ${model}: ${e.message}`);
+      // 429 = coba key lain; lainnya = langsung skip model
+      if (!e.message.startsWith("429")) break;
     }
   }
-  throw lastErr || new Error("all keys failed on " + model);
+  throw new Error("failed: " + model);
 }
 
-// ── Coba chain model satu per satu ──
 async function tryChain(chain, messages) {
-  const tried = new Set();
   for (const model of chain) {
-    if (tried.has(model)) continue;
-    tried.add(model);
     try {
-      console.log(`[AIVA] trying model: ${model}`);
+      console.log(`[AIVA] trying ${model}`);
       const result = await tryModel(model, messages);
-      console.log(`[AIVA] SUCCESS: ${model}`);
+      console.log(`[AIVA] OK ${model}`);
       return result;
     } catch (e) {
-      console.log(`[AIVA] model failed (${model}): ${e.message}`);
+      console.log(`[AIVA] skip ${model}: ${e.message}`);
     }
   }
   throw new Error("Semua model di chain gagal");
 }
 
 async function callAPI(api, message, history = [], userName = "") {
-  if (api === "gemma") api = "glm";
+  if (api === "gemma") api = "groq";
 
   const messages = [
     {
       role   : "system",
       content: SYSTEM_PROMPT +
-        (userName
-          ? `\n\nNama pengguna saat ini: "${userName}". WAJIB panggil dengan nama ini saat relevan.`
-          : ""),
+        (userName ? `\n\nNama pengguna saat ini: "${userName}". WAJIB panggil dengan nama ini saat relevan.` : ""),
     },
     ...history,
     { role: "user", content: message },
@@ -213,7 +201,7 @@ async function callAPI(api, message, history = [], userName = "") {
   try {
     return await tryChain(primaryChain, messages);
   } catch {
-    console.log(`[AIVA] chain utama ${api} habis, emergency fallback`);
+    console.log(`[AIVA] chain ${api} habis, emergency fallback`);
   }
 
   const tried    = new Set(primaryChain);
