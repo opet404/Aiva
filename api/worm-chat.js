@@ -1,5 +1,4 @@
 // api/worm-chat.js — Worm Aiva backend via OpenRouter (free models)
-// Identitas dari prompt.txt | Keys reuse dari _lib.js
 
 const fs   = require("fs");
 const path = require("path");
@@ -18,10 +17,10 @@ const SITE_URL   = process.env.SITE_URL || "https://aiva.vercel.app";
 const TIMEOUT_MS = 20000;
 
 const WORM_MODELS = [
-  "meta-llama/llama-3.1-8b-instruct:abliterated"
+  "qwen/qwen3-next-80b-a3b-instruct:free",
+  "qwen/qwen3-coder:free"
 ];
 
-// Baca identitas dari prompt.txt
 let SYSTEM_PROMPT = "";
 try {
   SYSTEM_PROMPT = fs.readFileSync(path.join(__dirname, "..", "prompt.txt"), "utf8").trim();
@@ -29,7 +28,6 @@ try {
   SYSTEM_PROMPT = "Kamu adalah Worm Aiva, asisten AI buatan OpetxDy. Jawab semua pertanyaan secara lengkap dan tuntas.";
 }
 
-// Deteksi bahasa user
 const ID_WORDS = ["aku","saya","kamu","ini","itu","ada","bisa","tolong","apakah",
   "kenapa","bagaimana","berapa","dimana","kapan","iya","tidak","jangan","boleh",
   "yang","dengan","untuk","dari","akan","udah","mau","kalo","kalau","aja","nih",
@@ -42,10 +40,8 @@ function detectLang(text) {
   return "en";
 }
 
-// Round-robin index
 let _kidx = 0;
 
-// Request ke OpenRouter — satu key, satu model
 async function tryKey(key, model, messages) {
   const ctrl  = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), TIMEOUT_MS);
@@ -58,21 +54,17 @@ async function tryKey(key, model, messages) {
         "HTTP-Referer"  : SITE_URL,
         "X-Title"       : "Worm Aiva",
       },
-      body: JSON.stringify({
-        model,
-        messages,
-        temperature : 0.85,
-        max_tokens  : 4096,
-      }),
+      body: JSON.stringify({ model, messages, temperature: 0.85, max_tokens: 4096 }),
       signal: ctrl.signal,
     });
     clearTimeout(timer);
+
+    if (res.status === 429) throw new Error("RATELIMIT");
 
     const data = await res.json();
     if (!res.ok || data.error) throw new Error(data.error?.message || "HTTP " + res.status);
 
     let text = data?.choices?.[0]?.message?.content || "";
-    // Hapus thinking block (DeepSeek R1)
     text = text.replace(/<think>[\s\S]*?<\/think>/gi, "").trim();
     if (!text) throw new Error("empty");
     return text;
@@ -82,40 +74,38 @@ async function tryKey(key, model, messages) {
   }
 }
 
-// Coba satu model dengan key sequential (bukan paralel)
 async function tryModel(model, messages) {
   const start = _kidx;
   for (let i = 0; i < KEYS.length; i++) {
     const idx = (start + i) % KEYS.length;
-    const key = KEYS[idx];
     try {
-      const result = await tryKey(key, model, messages);
+      const result = await tryKey(KEYS[idx], model, messages);
       _kidx = (idx + 1) % KEYS.length;
       return result;
     } catch (e) {
-      console.log(`[worm] key ${idx + 1} failed for ${model}: ${e.message}`);
+      if (e.message === "RATELIMIT") {
+        _kidx = (idx + 1) % KEYS.length;
+        throw e;
+      }
+      console.log(`[worm] key ${idx + 1} error: ${e.message}`);
     }
   }
-  _kidx = (start + 1) % KEYS.length;
-  throw new Error("all keys failed for " + model);
+  throw new Error("ALLFAILED");
 }
 
-// Coba semua model satu per satu
 async function tryChain(messages) {
   for (const model of WORM_MODELS) {
     try {
-      console.log(`[worm] trying ${model}`);
       const result = await tryModel(model, messages);
-      console.log(`[worm] OK ${model}`);
       return result;
     } catch (e) {
+      if (e.message === "RATELIMIT") throw e;
       console.log(`[worm] ${model} failed: ${e.message}`);
     }
   }
-  throw new Error("all models failed");
+  throw new Error("ALLFAILED");
 }
 
-// Handler utama
 module.exports = async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin",  "*");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
@@ -134,7 +124,7 @@ module.exports = async function handler(req, res) {
 
   const systemFull = SYSTEM_PROMPT
     + "\n\n" + langNote
-    + (userName ? `\n\nNama pengguna saat ini: "${userName}". WAJIB panggil dengan nama ini saat relevan. Jika ditanya siapa nama user, jawab dengan nama ini.` : "")
+    + (userName ? `\n\nNama pengguna saat ini: "${userName}". WAJIB panggil dengan nama ini saat relevan.` : "")
     + "\n\nJawab LENGKAP dan TUNTAS. Jangan potong jawaban di tengah.";
 
   const messages = [
@@ -149,10 +139,15 @@ module.exports = async function handler(req, res) {
     const reply = await tryChain(messages);
     return res.status(200).json({ reply });
   } catch (err) {
-    console.error("[worm] all failed:", err.message);
+    const m = err.message || "";
+    const isRateLimit = m === "RATELIMIT" || m.includes("429");
     const errMsg = lang === "id"
-      ? "Worm Aiva lagi gangguan, coba lagi sebentar ya."
-      : "Worm Aiva is temporarily unavailable. Please try again.";
+      ? (isRateLimit
+          ? "⚠️ Worm Aiva lagi sibuk, coba lagi sebentar ya."
+          : "Worm Aiva lagi gangguan, coba lagi sebentar ya.")
+      : (isRateLimit
+          ? "⚠️ Worm Aiva is busy, please try again shortly."
+          : "Worm Aiva is temporarily unavailable. Please try again.");
     return res.status(200).json({ reply: errMsg });
   }
 };
