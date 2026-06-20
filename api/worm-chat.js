@@ -4,13 +4,13 @@ const fs   = require("fs");
 const path = require("path");
 
 const KEYS = [
-  process.env.OR_KEY_1 || "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",
-  process.env.OR_KEY_2 || "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",
-  process.env.OR_KEY_3 || "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",
-  process.env.OR_KEY_4 || "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",
-  process.env.OR_KEY_5 || "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",
-  process.env.OR_KEY_6 || "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",
-  process.env.OR_KEY_7 || "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",
+  process.env.OR_KEY_1 || "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",
+  process.env.OR_KEY_2 || "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",
+  process.env.OR_KEY_3 || "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",
+  process.env.OR_KEY_4 || "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",
+  process.env.OR_KEY_5 || "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",
+  process.env.OR_KEY_6 || "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",
+  process.env.OR_KEY_7 || "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",
 ].filter(Boolean);
 
 const SITE_URL   = process.env.SITE_URL || "https://aiva.vercel.app";
