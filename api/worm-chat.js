@@ -17,8 +17,13 @@ const SITE_URL   = process.env.SITE_URL || "https://aiva.vercel.app";
 const TIMEOUT_MS = 20000;
 
 const WORM_MODELS = [
+  "deepseek/deepseek-r1-0528:free",
+  "deepseek/deepseek-v3-base:free",
+  "mistralai/mistral-small-3.1-24b-instruct:free",
+  "mistralai/devstral-small:free",
+  "google/gemma-3-27b-it:free",
   "meta-llama/llama-3.3-70b-instruct:free",
-  "meta-llama/llama-3.2-3b-instruct:free"
+  FREE_ROUTER,
 ];
 
 let SYSTEM_PROMPT = "";
