@@ -17,8 +17,8 @@ const SITE_URL   = process.env.SITE_URL || "https://aiva.vercel.app";
 const TIMEOUT_MS = 20000;
 
 const WORM_MODELS = [
-  "qwen/qwen3-next-80b-a3b-instruct:free",
-  "qwen/qwen3-coder:free"
+  "meta-llama/llama-3.3-70b-instruct:free",
+  "meta-llama/llama-3.2-3b-instruct:free"
 ];
 
 let SYSTEM_PROMPT = "";
