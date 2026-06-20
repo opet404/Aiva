@@ -1,5 +1,4 @@
-// api/worm-chat.js — Worm Aiva backend via OpenRouter
-
+// api/worm-chat.js
 const fs   = require("fs");
 const path = require("path");
 
@@ -13,8 +12,9 @@ const KEYS = [
   process.env.OR_KEY_7 || "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",
 ].filter(Boolean);
 
-const SITE_URL   = process.env.SITE_URL || "https://aiva.vercel.app";
-const TIMEOUT_MS = 20000;
+const SITE_URL    = process.env.SITE_URL || "https://aiva.vercel.app";
+const TIMEOUT_MS  = 20000;
+const FREE_ROUTER = "openrouter/auto";
 
 const WORM_MODELS = [
   "google/gemma-3-27b-it:free",
@@ -22,10 +22,12 @@ const WORM_MODELS = [
   FREE_ROUTER,
 ];
 
+// ── LOAD PROMPT.TXT DARI ROOT ──
 let SYSTEM_PROMPT = "";
 try {
   SYSTEM_PROMPT = fs.readFileSync(path.join(__dirname, "..", "prompt.txt"), "utf8").trim();
-} catch {
+} catch (e) {
+  // fallback kalo gagal baca
   SYSTEM_PROMPT = "Kamu adalah Worm Aiva, asisten AI buatan OpetxDy. Jawab semua pertanyaan secara lengkap dan tuntas.";
 }
 
@@ -102,7 +104,6 @@ async function tryChain(messages) {
       const msg = e.message || "";
       console.log(`[worm] ${model} failed: ${msg}`);
       if (msg !== "RATELIMIT") allLimit = false;
-      // Lanjut model berikutnya — tiap model punya limit sendiri
     }
   }
   throw new Error(allLimit ? "RATELIMIT" : "ALLFAILED");
