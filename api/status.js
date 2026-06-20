@@ -1,4 +1,4 @@
-// api/status.js — cek status keys & models
+// api/status.js
 module.exports = async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
   if (req.method === "OPTIONS") return res.status(200).end();
@@ -13,16 +13,10 @@ module.exports = async function handler(req, res) {
     process.env.OR_KEY_7 || "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",
   ].filter(Boolean);
 
-  const keys = KEYS.map((k, i) => ({
-    nomor: i + 1,
-    status: "✅ aktif",
-    preview: k.slice(0, 20) + "...",
-  }));
-
   return res.status(200).json({
-    openrouter_keys: keys,
-    total_or_keys: keys.length,
+    openrouter_keys: KEYS.map((k, i) => ({ nomor: i + 1, status: "✅ aktif", preview: k.slice(0, 20) + "..." })),
+    total_or_keys: KEYS.length,
     deployment: "Vercel Serverless",
-    note: "Key rotation: sequential round-robin per request. Model fallback: loop semua model sampai berhasil.",
+    note: "Key rotation: sequential round-robin. Fast-fail on 429.",
   });
 };

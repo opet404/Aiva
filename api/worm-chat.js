@@ -1,4 +1,4 @@
-// api/worm-chat.js — Worm Aiva backend via OpenRouter (free models)
+// api/worm-chat.js — Worm Aiva backend via OpenRouter
 
 const fs   = require("fs");
 const path = require("path");
@@ -17,8 +17,10 @@ const SITE_URL   = process.env.SITE_URL || "https://aiva.vercel.app";
 const TIMEOUT_MS = 20000;
 
 const WORM_MODELS = [
+  "meta-llama/llama-3.1-8b-instruct:abliterated",
   "meta-llama/llama-3.3-70b-instruct:free",
-  "meta-llama/llama-3.2-3b-instruct:free"
+  "mistralai/mistral-small-3.1-24b-instruct:free",
+  "google/gemma-3-27b-it:free",
 ];
 
 let SYSTEM_PROMPT = "";
@@ -49,8 +51,8 @@ async function tryKey(key, model, messages) {
     const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method : "POST",
       headers: {
-        "Authorization": "Bearer " + key,
-        "Content-Type" : "application/json",
+        "Authorization" : "Bearer " + key,
+        "Content-Type"  : "application/json",
         "HTTP-Referer"  : SITE_URL,
         "X-Title"       : "Worm Aiva",
       },
@@ -75,35 +77,36 @@ async function tryKey(key, model, messages) {
 }
 
 async function tryModel(model, messages) {
-  const start = _kidx;
-  for (let i = 0; i < KEYS.length; i++) {
-    const idx = (start + i) % KEYS.length;
-    try {
-      const result = await tryKey(KEYS[idx], model, messages);
-      _kidx = (idx + 1) % KEYS.length;
-      return result;
-    } catch (e) {
-      if (e.message === "RATELIMIT") {
-        _kidx = (idx + 1) % KEYS.length;
-        throw e;
-      }
-      console.log(`[worm] key ${idx + 1} error: ${e.message}`);
+  const key = KEYS[_kidx % KEYS.length];
+  _kidx = (_kidx + 1) % KEYS.length;
+  try {
+    return await tryKey(key, model, messages);
+  } catch (e) {
+    if (e.message !== "RATELIMIT") {
+      const key2 = KEYS[_kidx % KEYS.length];
+      _kidx = (_kidx + 1) % KEYS.length;
+      return await tryKey(key2, model, messages);
     }
+    throw e;
   }
-  throw new Error("ALLFAILED");
 }
 
 async function tryChain(messages) {
+  let allLimit = true;
   for (const model of WORM_MODELS) {
     try {
+      console.log(`[worm] trying ${model}`);
       const result = await tryModel(model, messages);
+      console.log(`[worm] OK ${model}`);
       return result;
     } catch (e) {
-      if (e.message === "RATELIMIT") throw e;
-      console.log(`[worm] ${model} failed: ${e.message}`);
+      const msg = e.message || "";
+      console.log(`[worm] ${model} failed: ${msg}`);
+      if (msg !== "RATELIMIT") allLimit = false;
+      // Lanjut model berikutnya — tiap model punya limit sendiri
     }
   }
-  throw new Error("ALLFAILED");
+  throw new Error(allLimit ? "RATELIMIT" : "ALLFAILED");
 }
 
 module.exports = async function handler(req, res) {
@@ -139,15 +142,11 @@ module.exports = async function handler(req, res) {
     const reply = await tryChain(messages);
     return res.status(200).json({ reply });
   } catch (err) {
-    const m = err.message || "";
-    const isRateLimit = m === "RATELIMIT" || m.includes("429");
+    const m      = err.message || "";
+    const isRL   = m === "RATELIMIT";
     const errMsg = lang === "id"
-      ? (isRateLimit
-          ? "⚠️ Worm Aiva lagi sibuk, coba lagi sebentar ya."
-          : "Worm Aiva lagi gangguan, coba lagi sebentar ya.")
-      : (isRateLimit
-          ? "⚠️ Worm Aiva is busy, please try again shortly."
-          : "Worm Aiva is temporarily unavailable. Please try again.");
+      ? (isRL ? "⚠️ Worm Aiva lagi sibuk, coba lagi sebentar ya." : "Worm Aiva lagi gangguan, coba lagi sebentar ya.")
+      : (isRL ? "⚠️ Worm Aiva is busy, please try again shortly." : "Worm Aiva is temporarily unavailable.");
     return res.status(200).json({ reply: errMsg });
   }
 };

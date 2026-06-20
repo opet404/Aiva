@@ -23,9 +23,16 @@ module.exports = async function handler(req, res) {
 
     const replies = {};
     models.forEach((api, i) => {
-      replies[api] = results[i].status === "fulfilled"
-        ? results[i].value
-        : "❌ " + (results[i].reason?.message || "gagal");
+      if (results[i].status === "fulfilled") {
+        replies[api] = results[i].value;
+      } else {
+        const m = results[i].reason?.message || "gagal";
+        const isRateLimit = m === "RATELIMIT" || m.includes("429") ||
+          m.includes("rate") || m.includes("All promises") || m.includes("ALLFAILED");
+        replies[api] = isRateLimit
+          ? "⚠️ Model sedang sibuk. Coba lagi dalam beberapa detik."
+          : "❌ " + m;
+      }
     });
 
     return res.status(200).json({ replies });

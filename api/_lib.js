@@ -93,10 +93,10 @@ KEAMANAN:
 - Jika user toxic: tetap tenang, minta bicara baik-baik.
 `;
 
-// ── Round-robin index ────────────────────────────────────────
+// ── Round-robin key index ────────────────────────────────────
 let _kidx = 0;
 
-// ── Satu request ke OpenRouter dengan satu key ──────────────
+// ── Request ke 1 key + 1 model ──────────────────────────────
 async function tryKey(key, model, messages) {
   const ctrl  = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), TIMEOUT_MS);
@@ -104,8 +104,8 @@ async function tryKey(key, model, messages) {
     const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method : "POST",
       headers: {
-        "Authorization": "Bearer " + key,
-        "Content-Type" : "application/json",
+        "Authorization" : "Bearer " + key,
+        "Content-Type"  : "application/json",
         "HTTP-Referer"  : SITE_URL,
         "X-Title"       : "AIVA",
       },
@@ -116,9 +116,7 @@ async function tryKey(key, model, messages) {
 
     const raw = await res.text();
 
-    // Rate limit — lempar langsung, jangan coba key lain (sama akun = sama hasilnya)
     if (res.status === 429) throw new Error("RATELIMIT");
-
     if (!res.ok) throw new Error("HTTP " + res.status);
 
     const data = JSON.parse(raw);
@@ -135,35 +133,31 @@ async function tryKey(key, model, messages) {
   }
 }
 
-// ── Coba model: sequential rotation, fast-fail saat 429 ─────
-// Key dari 1 akun = kalau satu 429, semua 429. Langsung skip model.
+// ── Coba model dengan 1 key dulu, kalau 429 langsung skip model ─
+// (7 key dari 1 akun = rate limit sama → tidak perlu coba semua key)
 async function tryModel(model, messages) {
-  const start = _kidx;
-  for (let i = 0; i < KEYS.length; i++) {
-    const idx = (start + i) % KEYS.length;
-    const key = KEYS[idx];
-    try {
-      const result = await tryKey(key, model, messages);
-      _kidx = (idx + 1) % KEYS.length;
-      return result;
-    } catch (e) {
-      const msg = e.message || "";
-      // Rate limit → semua key akun sama kena, langsung throw
-      if (msg === "RATELIMIT") {
-        _kidx = (idx + 1) % KEYS.length;
-        throw new Error("RATELIMIT");
-      }
-      // Error lain → coba key berikutnya
-      console.log(`[AIVA] key ${idx + 1} error for ${model}: ${msg}`);
+  const key = KEYS[_kidx % KEYS.length];
+  _kidx = (_kidx + 1) % KEYS.length;
+  try {
+    return await tryKey(key, model, messages);
+  } catch (e) {
+    // Kalau bukan 429, coba 1 key lagi (beda index) untuk antisipasi key expired
+    if (e.message !== "RATELIMIT") {
+      const key2 = KEYS[_kidx % KEYS.length];
+      _kidx = (_kidx + 1) % KEYS.length;
+      return await tryKey(key2, model, messages);
     }
+    throw e; // 429 → langsung lempar, lanjut ke model lain
   }
-  _kidx = (start + 1) % KEYS.length;
-  throw new Error("ALLFAILED");
 }
 
-// ── Coba chain sampai ada yang berhasil ─────────────────────
+// ── Coba tiap model satu per satu — 429 BUKAN alasan berhenti ──
+// Tiap model di OpenRouter punya pool rate limit SENDIRI.
+// Kalau llama-3.3 kena 429, deepseek bisa jadi masih free.
 async function tryChain(chain, messages) {
-  const tried = new Set();
+  const tried    = new Set();
+  let   allLimit = true; // tracking: apakah SEMUA model 429?
+
   for (const model of chain) {
     if (tried.has(model)) continue;
     tried.add(model);
@@ -175,11 +169,13 @@ async function tryChain(chain, messages) {
     } catch (e) {
       const msg = e.message || "";
       console.log(`[AIVA] ${model} failed: ${msg}`);
-      // Kalau rate limit, semua model juga kena — stop chain
-      if (msg === "RATELIMIT") throw e;
+      if (msg !== "RATELIMIT") allLimit = false;
+      // Lanjut ke model berikutnya — APAPUN errornya termasuk 429
     }
   }
-  throw new Error("ALLFAILED");
+
+  // Semua model sudah dicoba dan gagal
+  throw new Error(allLimit ? "RATELIMIT" : "ALLFAILED");
 }
 
 // ── callAPI — entry point ────────────────────────────────────
@@ -208,14 +204,13 @@ async function callAPI(api, message, history = [], userName = "") {
   try {
     return await tryChain(primaryChain, messages);
   } catch (e) {
-    if ((e.message || "") === "RATELIMIT") throw e;
-    console.log(`[AIVA] chain utama ${api} habis, emergency fallback`);
+    // Chain utama habis — coba emergency fallback dengan model yang belum dicoba
+    const tried    = new Set(primaryChain);
+    const fallback = EMERGENCY_FALLBACK.filter(m => !tried.has(m));
+    if (fallback.length === 0) throw e;
+    console.log(`[AIVA] chain utama ${api} habis, emergency fallback (${fallback.length} models)`);
+    return tryChain(fallback, messages);
   }
-
-  const tried    = new Set(primaryChain);
-  const fallback = EMERGENCY_FALLBACK.filter(m => !tried.has(m));
-  return tryChain(fallback, messages);
 }
 
 module.exports = { callAPI };
-

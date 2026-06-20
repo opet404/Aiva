@@ -21,12 +21,20 @@ module.exports = async function handler(req, res) {
     console.error("[chat] error:", err.message);
     const m = err.message || "";
     let reply;
-    if (m.includes("429") || m.includes("rate") || m.includes("limit"))
+    if (
+      m === "RATELIMIT" ||
+      m.includes("429") ||
+      m.includes("rate") ||
+      m.includes("limit") ||
+      m.includes("All promises") ||
+      m.includes("ALLFAILED")
+    ) {
       reply = "⚠️ Model sedang sibuk. Coba lagi dalam beberapa detik.";
-    else if (m.includes("503") || m.includes("502"))
+    } else if (m.includes("503") || m.includes("502")) {
       reply = "⚠️ Server model sedang down. Coba lagi sebentar.";
-    else
+    } else {
       reply = "❌ " + m;
+    }
     return res.status(200).json({ reply });
   }
 };
