@@ -14,42 +14,43 @@ const KEYS = [
 
 const SITE_URL    = process.env.SITE_URL || "https://aiva.vercel.app";
 const TIMEOUT_MS  = 20000;
-const FREE_ROUTER = "openrouter/auto";
 
-// ── WORM MODELS — PRIORITAS UNTUK UNLIMITED + UNFILTERED ──
+// ── WORM MODELS — YANG MASIH FREE DI OPENROUTER ──
 const WORM_MODELS = [
-  // 1. DEEPSEEK — paling stabil buat Uncensored
-  "deepseek/deepseek-r1-0528:free",
-  "deepseek/deepseek-v3-base:free",
-  "deepseek/deepseek-chat:free",
+  // GOOGLE GEMMA 4 — TERBARU, STABIL
+  "google/gemma-4-26b-a4b:free",
+  "google/gemma-4-31b:free",
+  "google/gemma-3-27b-it:free",
 
-  // 2. VENICE — UNFILTERED, ZERO CENSOR
-  "venice/venice-uncensored:free",
-  "venice/venice-llama-3.3-70b:free",
+  // NVIDIA NEMOTRON — FREE & CEPAT
+  "nvidia/nemotron-3-super:free",
+  "nvidia/nemotron-3-nano-30b-a3b:free",
+  "nvidia/nemotron-3-nano-omni:free",
+  "nvidia/nemotron-3-ultra:free",
 
-  // 3. NOUS — HERMES 3 405B (Uncensored)
+  // QWEN3 — MODEL BARU
+  "qwen/qwen3-next-80b-a3b-instruct:free",
+  "qwen/qwen-2.5-72b-instruct:free",
+
+  // GPT-OSS — FREE DARI OPENAI
+  "openai/gpt-oss-120b:free",
+  "openai/gpt-oss-20b:free",
+
+  // NOUS HERMES 3 — UNFILTERED
   "nousresearch/hermes-3-llama-3.1-405b:free",
 
-  // 4. MISTRAL — BEBAS
-  "mistralai/mistral-small-3.1-24b-instruct:free",
-  "mistralai/devstral-small:free",
-  "mistralai/mistral-7b-instruct:free",
+  // COHERE — MINI CODE
+  "cohere/north-mini-code:free",
 
-  // 5. GOOGLE GEMMA — BEBAS, RESPON CEPAT
-  "google/gemma-3-27b-it:free",
-  "google/gemma-2-27b-it:free",
+  // NVIDIA LLAMA NEMOTRON — RERANK
+  "nvidia/llama-nemotron-rerank-vl-1b:free",
 
-  // 6. META LLAMA — BEBAS + STABIL
+  // NVIDIA NEMOTRON 3.5 — CONTENT SAFETY
+  "nvidia/nemotron-3.5-content-safety:free",
+
+  // META LLAMA — MASIH FREE TAPI RATELIMIT CEPET
   "meta-llama/llama-3.3-70b-instruct:free",
-  "meta-llama/llama-3.1-8b-instruct:free",
   "meta-llama/llama-3.2-3b-instruct:free",
-
-  // 7. QWEN — CODING + GENERAL
-  "qwen/qwen-2.5-72b-instruct:free",
-  "qwen/qwen-2.5-7b-instruct:free",
-
-  // 8. FALLBACK — ROUTER AUTO (JIKA SEMUA GAGAL)
-  FREE_ROUTER,
 ];
 
 // ── LOAD PROMPT.TXT ──
@@ -91,12 +92,10 @@ async function tryKey(key, model, messages) {
         messages, 
         temperature: 0.85, 
         max_tokens: 4096,
-        // ── INI PENTING: SUPPRESS CENSORSHIP ──
         provider: {
-          order: ["OpenRouter", "Azure", "AWS", "GCP"],
+          order: ["OpenRouter"],
           allow_fallbacks: true,
         },
-        transforms: ["middle-out"],
       }),
       signal: ctrl.signal,
     });
@@ -123,17 +122,11 @@ async function tryModel(model, messages) {
   const key = KEYS[_kidx % KEYS.length];
   _kidx = (_kidx + 1) % KEYS.length;
   
-  // KALAU MODELNYA VENICE, PASTI PAKAI KEY YANG BEDA
-  if (model.includes("venice")) {
-    // PAKAI KEY KE-3 ATAU KE-4 (BIAR GA KEKEN LIMIT)
-    const vKey = KEYS[(_kidx + 2) % KEYS.length] || KEYS[0];
-    return await tryKey(vKey, model, messages);
-  }
-
   try {
     return await tryKey(key, model, messages);
   } catch (e) {
-    if (e.message !== "RATELIMIT" && e.message !== "FORBIDDEN") {
+    // KALAU RATELIMIT, COBA 1 KEY LAIN
+    if (e.message === "RATELIMIT" || e.message === "FORBIDDEN") {
       const key2 = KEYS[_kidx % KEYS.length];
       _kidx = (_kidx + 1) % KEYS.length;
       return await tryKey(key2, model, messages);
@@ -143,12 +136,12 @@ async function tryModel(model, messages) {
 }
 
 async function tryChain(messages, retryCount = 0) {
+  const maxRetries = 2;
   let allLimit = true;
-  const maxRetries = 3;
 
   for (const model of WORM_MODELS) {
     try {
-      console.log(`[worm] trying ${model} (attempt ${retryCount + 1})`);
+      console.log(`[worm] trying ${model}`);
       const result = await tryModel(model, messages);
       console.log(`[worm] ✅ OK ${model}`);
       return result;
@@ -156,32 +149,19 @@ async function tryChain(messages, retryCount = 0) {
       const msg = e.message || "";
       console.log(`[worm] ❌ ${model} failed: ${msg}`);
       
-      // KALAU RATELIMIT ATAU FORBIDDEN, LANGSUNG SKIP KE MODEL LAIN
       if (msg === "RATELIMIT" || msg === "FORBIDDEN") {
         allLimit = true;
         continue;
       }
-      
-      // ERROR LAIN (CONNECTION, TIMEOUT, DLL) — COBA LAGI
       allLimit = false;
     }
   }
 
-  // JIKA SEMUA GAGAL KARENA RATELIMIT — RETRY DENGAN KEY LAIN
+  // RETRY DENGAN ROTASI KEY
   if (allLimit && retryCount < maxRetries) {
-    console.log(`[worm] ⚠️ all models rate limited, retrying with new key rotation (${retryCount + 1}/${maxRetries})`);
-    // ROTATE KEY INDEX LEBIH JAUH
-    _kidx = (_kidx + 3) % KEYS.length;
+    console.log(`[worm] 🔄 retry with new key rotation (${retryCount + 1}/${maxRetries})`);
+    _kidx = (_kidx + 5) % KEYS.length;
     return tryChain(messages, retryCount + 1);
-  }
-
-  // FALLBACK TERAKHIR — PAKAI OPENROUTER AUTO DENGAN FORCE UNFILTERED
-  console.log("[worm] 🔥 all models failed, using openrouter/auto as last resort");
-  try {
-    const fallback = await tryModel(FREE_ROUTER, messages);
-    if (fallback) return fallback;
-  } catch (e) {
-    console.log("[worm] 💀 fallback also failed");
   }
 
   throw new Error(allLimit ? "RATELIMIT" : "ALLFAILED");
@@ -226,7 +206,6 @@ module.exports = async function handler(req, res) {
     const isRL   = m === "RATELIMIT";
     const isAll  = m === "ALLFAILED";
     
-    // ── PESAN ERROR YANG JUJUR ──
     let errMsg = lang === "id"
       ? (isRL ? "⚠️ Semua model Worm Aiva kehabisan kuota. Coba lagi dalam 10 detik." 
          : isAll ? "⚠️ Semua model gagal. Coba lagi sebentar."
