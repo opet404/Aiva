@@ -17,8 +17,6 @@ const TIMEOUT_MS  = 20000;
 const FREE_ROUTER = "openrouter/auto";
 
 const WORM_MODELS = [
-  "google/gemma-3-27b-it:free",
-  "meta-llama/llama-3.3-70b-instruct:free",
   "nvidia/nemotron-3-super:free",
   "qwen/qwen3-next-80b-a3b-instruct:free",
   "qwen/qwen3-coder-480b-a35b:free",
