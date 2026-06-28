@@ -1,14 +1,12 @@
-// api/worm-chat.js — SYNOXCLOUD DIRECT (NO GROQ)
+// api/worm-chat.js — SYNOX POLLING (NO GROQ)
 // by OpetxDy | TikTok: @opetxdy2
 
 const fs = require("fs");
 const path = require("path");
 
-const TIMEOUT_MS = 45000;
-
-// ── SYNOXCLOUD ENDPOINT ──
 const SYNOX_URL = "https://api.synoxcloud.xyz/ai-chat/gemma-3-27b-it";
 const SYNOX_SESSION = "oohFG8FYI_08ssPL4Z8FI";
+const TIMEOUT_MS = 30000;
 
 // ── LOAD PROMPT.TXT ──
 let PROMPT_IDENTITY = "";
@@ -16,9 +14,9 @@ try {
   const p = path.join(__dirname, "..", "prompt.txt");
   PROMPT_IDENTITY = fs.readFileSync(p, "utf8").trim();
   console.log(`[worm] ✅ prompt loaded (${PROMPT_IDENTITY.length} chars)`);
-  if (PROMPT_IDENTITY.length > 3000) {
-    PROMPT_IDENTITY = PROMPT_IDENTITY.slice(0, 3000);
-    console.log(`[worm] ⚠️ truncated to 3000 chars`);
+  if (PROMPT_IDENTITY.length > 2000) {
+    PROMPT_IDENTITY = PROMPT_IDENTITY.slice(0, 2000);
+    console.log(`[worm] ⚠️ truncated to 2000 chars`);
   }
 } catch (e) {
   console.log(`[worm] ❌ prompt NOT FOUND`);
@@ -38,72 +36,75 @@ function detectLang(text) {
   return "en";
 }
 
+// ── JOB STORE ──
+const jobs = new Map();
+
 async function callSynox(messages) {
-  const ctrl = new AbortController();
-  const timer = setTimeout(() => ctrl.abort(), TIMEOUT_MS);
+  let fullText = "";
+  for (const m of messages) {
+    if (m.role === "system") fullText += "System: " + m.content + "\n\n";
+    else if (m.role === "user") fullText += "User: " + m.content + "\n";
+    else if (m.role === "assistant") fullText += "Assistant: " + m.content + "\n";
+  }
 
-  try {
-    let fullText = "";
-    for (const m of messages) {
-      if (m.role === "system") fullText += "System: " + m.content + "\n\n";
-      else if (m.role === "user") fullText += "User: " + m.content + "\n";
-      else if (m.role === "assistant") fullText += "Assistant: " + m.content + "\n";
-    }
+  const url = `${SYNOX_URL}?sessionId=${SYNOX_SESSION}`;
 
-    const url = `${SYNOX_URL}?sessionId=${SYNOX_SESSION}`;
+  const res = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ message: fullText }),
+  });
 
-    const res = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ message: fullText }),
-      signal: ctrl.signal,
-    });
-    clearTimeout(timer);
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error(`Synox ${res.status}: ${err}`);
+  }
 
-    if (!res.ok) {
-      const err = await res.text();
-      console.log(`[worm] ❌ Synox error: ${res.status} - ${err}`);
-      throw new Error(`Synox ${res.status}`);
-    }
-
-    const data = await res.json();
-    console.log(`[worm] 📦 Synox response:`, JSON.stringify(data).slice(0, 300));
-
-    let text = data?.response || data?.reply || data?.message || data?.result || data?.text || "";
-    if (!text && typeof data === "string") text = data;
-    if (!text) {
-      const keys = Object.keys(data);
-      for (const key of keys) {
-        if (typeof data[key] === "string" && data[key].length > 10) {
-          text = data[key];
-          break;
-        }
+  const data = await res.json();
+  let text = data?.response || data?.reply || data?.message || data?.result || "";
+  if (!text && typeof data === "string") text = data;
+  if (!text) {
+    const keys = Object.keys(data);
+    for (const key of keys) {
+      if (typeof data[key] === "string" && data[key].length > 10) {
+        text = data[key];
+        break;
       }
     }
-    if (!text) throw new Error("empty response");
-
-    text = text.replace(/<think>[\s\S]*?<\/think>/gi, "").trim();
-    return text;
-  } catch (e) {
-    clearTimeout(timer);
-    throw e;
   }
+  if (!text) throw new Error("empty response");
+  text = text.replace(/<think>[\s\S]*?<\/think>/gi, "").trim();
+  return text;
 }
 
 module.exports = async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
   if (req.method === "OPTIONS") return res.status(200).end();
-  if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
+
+  // ── GET = CEK STATUS ──
+  if (req.method === "GET" && req.query.jobId) {
+    const job = jobs.get(req.query.jobId);
+    if (!job) return res.status(404).json({ error: "Job not found" });
+    if (job.done) {
+      jobs.delete(req.query.jobId);
+      return res.status(200).json({ done: true, reply: job.reply });
+    }
+    return res.status(200).json({ done: false });
+  }
+
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Method not allowed" });
+  }
 
   const { message = "", history = [], userName = "" } = req.body || {};
   if (!message.trim()) return res.status(400).json({ reply: "Pesan kosong!" });
 
   const lang = detectLang(message);
+  const jobId = Date.now().toString(36) + Math.random().toString(36).substr(2, 6);
 
-  // ── PROMPT DIPAKSA ──
   const systemFull = `
 ${PROMPT_IDENTITY}
 
@@ -129,14 +130,18 @@ Pertanyaan: ${message}`;
     { role: "user", content: message },
   ];
 
-  try {
-    const reply = await callSynox(messages);
-    return res.status(200).json({ reply });
-  } catch (err) {
-    console.log(`[worm] 💀 final error: ${err.message}`);
-    const errMsg = lang === "id"
-      ? "Worm Aiva lagi sibuk. Coba lagi 5 detik."
-      : "Worm Aiva is busy. Try again in 5 seconds.";
-    return res.status(200).json({ reply: errMsg });
-  }
+  jobs.set(jobId, { done: false });
+
+  // ── JALANKAN DI BACKGROUND ──
+  (async () => {
+    try {
+      const reply = await callSynox(messages);
+      jobs.set(jobId, { done: true, reply });
+    } catch (err) {
+      jobs.set(jobId, { done: true, reply: `Error: ${err.message}` });
+    }
+  })();
+
+  // ── LANGSUNG BALIK JOB ID ──
+  return res.status(202).json({ jobId, status: "processing" });
 };
