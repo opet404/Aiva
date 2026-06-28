@@ -1,4 +1,3 @@
-// api/worm-chat.js — SYNOX FLEXIBLE PARSE
 const fs = require("fs");
 const path = require("path");
 
