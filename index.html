@@ -15,7 +15,7 @@
   --accent:#3d72f6;--accent2:#7248f5;
   --user-grad:linear-gradient(135deg,#3d72f6,#7248f5);
   --ai-bg:rgba(13,18,40,0.85);--red:#f04444;
-  --r-lg:20px;--r-md:14px;--r-sm:9px;
+  --r-lasyng:20px;--r-md:14px;--r-sm:9px;
   --sidebar-w:272px;--hdr:60px;
   --F:'Syne',sans-serif;--FM:'Space Mono',monospace;
   --ease:cubic-bezier(0.22,1,0.36,1);
@@ -2367,53 +2367,60 @@ async function callGpt(message, history, signal) {
 }
 
 async function callWorm(message, history, signal) {
-  // POST request — pakai signal dari controller
+  console.log("[worm] 📤 POST to /api/worm-chat");
+  
   const resp = await fetch("/api/worm-chat", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ message, history, userName: localStorage.getItem("aivaUserName")||"" }),
     signal: signal || undefined
   });
+  
   if (!resp.ok) throw new Error("Server HTTP " + resp.status);
   const data = await resp.json();
+  console.log("[worm] 📦 POST response:", data);
   
-  // Jika response langsung (mode sync) atau error
   if (data.reply) {
     if (data.reply.startsWith("Server error:")) throw new Error(data.reply);
     return data.reply;
   }
   
-  // Polling mode — ada jobId
   if (data.jobId) {
     const jobId = data.jobId;
+    const interval = data.pollingInterval || 2500;
     let attempts = 0;
-    const maxAttempts = 30; // 30 * 2000ms = 60 detik
+    const maxAttempts = 25;
     
     while (attempts < maxAttempts) {
-      // ⚠️ KRUSIAL: JANGAN pakai signal di sini — polling status HARUS independen
-      // Kalau pakai signal, stopAI() akan abort polling dan muncul "Aborted"
-      await sleep(2000);
-      
-      const statusResp = await fetch(`/api/worm-chat?jobId=${jobId}`);
-      if (!statusResp.ok) throw new Error("Status check failed");
-      const statusData = await statusResp.json();
-      
-      if (statusData.done) {
-        if (statusData.reply && statusData.reply.startsWith("Error:")) {
-          throw new Error(statusData.reply);
-        }
-        return statusData.reply || "Tidak ada respons.";
-      }
+      await sleep(interval);
       attempts++;
+      console.log(`[worm] 🔍 Polling ${attempts}/${maxAttempts}`);
+      
+      try {
+        const statusResp = await fetch(`/api/worm-chat?jobId=${jobId}`);
+        if (!statusResp.ok) {
+          const errText = await statusResp.text();
+          console.log(`[worm] ❌ Status error: ${statusResp.status} - ${errText}`);
+          throw new Error(`Status check failed: ${statusResp.status}`);
+        }
+        
+        const statusData = await statusResp.json();
+        if (statusData.done) {
+          if (statusData.reply && statusData.reply.startsWith("Error:")) {
+            throw new Error(statusData.reply);
+          }
+          return statusData.reply || "Tidak ada respons.";
+        }
+      } catch (fetchErr) {
+        console.log(`[worm] ⚠️ Polling error:`, fetchErr.message);
+        if (attempts >= maxAttempts) throw fetchErr;
+      }
     }
-    throw new Error("Timeout waiting for Worm response (60s)");
+    throw new Error("Timeout waiting for Worm response");
   }
   
   throw new Error("Unknown response format");
 }
-
-function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
-
 async function callAPI(api, message, history) {
   if (api === "groq") return callGroq(message, history);
   if (api === "qwen") return callQwen(message, history);
