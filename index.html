@@ -2366,7 +2366,7 @@ async function callGpt(message, history, signal) {
   return d.reply;
 }
 
-// Worm Aiva — backend custom OpetxDy
+// ── DI index.html, cari fungsi callWorm ──
 async function callWorm(message, history, signal) {
   const resp = await fetch("/api/worm-chat", {
     method: "POST",
@@ -2374,10 +2374,28 @@ async function callWorm(message, history, signal) {
     body: JSON.stringify({ message, history, userName: localStorage.getItem("aivaUserName")||"" }),
     signal: signal || undefined
   });
+
   if (!resp.ok) throw new Error("Server HTTP " + resp.status);
-  const d = await resp.json();
-  if (d.reply && d.reply.startsWith("Server error:")) throw new Error(d.reply);
-  return d.reply;
+  const data = await resp.json();
+
+  // ── KALAU MASIH PROCESSING, POLLING ──
+  if (data.jobId && data.status === "processing") {
+    let done = false;
+    let reply = "";
+    while (!done) {
+      await new Promise(resolve => setTimeout(resolve, 3000)); // tunggu 3 detik
+      const statusResp = await fetch(`/api/worm-chat?jobId=${data.jobId}`);
+      const statusData = await statusResp.json();
+      if (statusData.done) {
+        done = true;
+        reply = statusData.reply;
+      }
+    }
+    return reply;
+  }
+
+  if (data.reply && data.reply.startsWith("Server error:")) throw new Error(data.reply);
+  return data.reply;
 }
 
 // callAPI biasa (single chat — tanpa signal)
