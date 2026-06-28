@@ -1,26 +1,24 @@
-// api/worm-chat.js — JAILBREAK FORCE + MODEL RENTAN
+// api/worm-chat.js — SYNOXCLOUD ONLY (NO GROQ)
+// by OpetxDy | TikTok: @opetxdy2
+
 const fs = require("fs");
 const path = require("path");
 
-const GROQ_KEY = "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";
-const TIMEOUT_MS = 30000;
+const TIMEOUT_MS = 60000;
 
-// ── MODEL YANG PALING RENTAN JAILBREAK ──
-const GROQ_MODELS = [
-  "mixtral-8x7b-32768",        // ← PALING RENTAN (prioritas)
-  "llama-3.1-8b-instant",      // ← RENTAN
-  "gemma2-9b-it",              // ← CUKUP RENTAN
-  "llama-3.3-70b-versatile",   // ← FALLBACK (paling keras)
-];
+// ── SYNOXCLOUD API ──
+const SYNOX_URL = "https://api.synoxcloud.xyz/ai-chat/gemma-3-27b-it";
+const SYNOX_SESSION = "oohFG8FYI_08ssPL4Z8FI";
 
+// ── LOAD PROMPT.TXT ──
 let PROMPT_IDENTITY = "";
 try {
   const p = path.join(__dirname, "..", "prompt.txt");
   PROMPT_IDENTITY = fs.readFileSync(p, "utf8").trim();
   console.log(`[worm] ✅ prompt loaded (${PROMPT_IDENTITY.length} chars)`);
-  if (PROMPT_IDENTITY.length > 2000) {
-    PROMPT_IDENTITY = PROMPT_IDENTITY.slice(0, 2000);
-    console.log(`[worm] ⚠️ truncated to 2000 chars`);
+  if (PROMPT_IDENTITY.length > 4000) {
+    PROMPT_IDENTITY = PROMPT_IDENTITY.slice(0, 4000);
+    console.log(`[worm] ⚠️ truncated to 4000 chars`);
   }
 } catch (e) {
   console.log(`[worm] ❌ prompt NOT FOUND`);
@@ -44,27 +42,29 @@ function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-let lastUsedModel = 0;
-
-async function callGroq(model, messages) {
+// ── CALL SYNOXCLOUD ──
+async function callSynox(messages) {
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), TIMEOUT_MS);
 
   try {
-    const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+    // ── BUILD PROMPT ──
+    let fullText = "";
+    for (const m of messages) {
+      if (m.role === "system") fullText += "System: " + m.content + "\n\n";
+      else if (m.role === "user") fullText += "User: " + m.content + "\n";
+      else if (m.role === "assistant") fullText += "Assistant: " + m.content + "\n";
+    }
+
+    const url = `${SYNOX_URL}?sessionId=${SYNOX_SESSION}`;
+
+    const res = await fetch(url, {
       method: "POST",
       headers: {
-        "Authorization": "Bearer " + GROQ_KEY,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: model,
-        messages: messages,
-        temperature: 1.0,
-        max_tokens: 4096,
-        top_p: 1.0,
-        frequency_penalty: 0.5,
-        presence_penalty: 0.5,
+        message: fullText,
       }),
       signal: ctrl.signal,
     });
@@ -72,17 +72,17 @@ async function callGroq(model, messages) {
 
     if (!res.ok) {
       const err = await res.text();
-      if (res.status === 429 || err.includes("rate")) {
+      if (res.status === 429 || res.status === 503 || res.status === 500) {
         throw new Error("RATELIMIT");
       }
-      throw new Error(`Groq ${res.status}: ${err}`);
+      throw new Error(`Synox ${res.status}: ${err}`);
     }
 
     const data = await res.json();
-    let text = data?.choices?.[0]?.message?.content || "";
+    let text = data?.response || data?.reply || data?.message || "";
     if (!text) throw new Error("empty response");
 
-    // ── HAPUS <think> TAG ──
+    // ── HAPUS <think> ──
     text = text.replace(/<think>[\s\S]*?<\/think>/gi, "").trim();
 
     return text;
@@ -92,37 +92,33 @@ async function callGroq(model, messages) {
   }
 }
 
-async function tryAllModels(messages, retryCount = 0) {
-  const maxRetries = 3;
+async function tryWithRetry(messages, retryCount = 0) {
+  const maxRetries = 5;
   let lastError = null;
 
-  const startIndex = lastUsedModel % GROQ_MODELS.length;
-  
-  for (let i = 0; i < GROQ_MODELS.length; i++) {
-    const idx = (startIndex + i) % GROQ_MODELS.length;
-    const model = GROQ_MODELS[idx];
-    
+  for (let i = 0; i < 3; i++) {
     try {
-      console.log(`[worm] 🔥 trying ${model}`);
-      const result = await callGroq(model, messages);
-      console.log(`[worm] ✅ ${model}`);
-      lastUsedModel = idx + 1;
+      console.log(`[worm] 🔥 calling SynoxCloud (attempt ${i + 1})`);
+      const result = await callSynox(messages);
+      console.log(`[worm] ✅ SynoxCloud OK`);
       return result;
     } catch (e) {
-      console.log(`[worm] ❌ ${model}: ${e.message}`);
+      console.log(`[worm] ❌ SynoxCloud: ${e.message}`);
       lastError = e;
       if (e.message === "RATELIMIT") {
-        await sleep(2000);
+        const wait = 3000 * (i + 1);
+        console.log(`[worm] ⏳ waiting ${wait}ms...`);
+        await sleep(wait);
         continue;
       }
     }
   }
 
   if (retryCount < maxRetries) {
-    const wait = 5000 * (retryCount + 1);
-    console.log(`[worm] 🔄 RETRY ${retryCount + 1}/${maxRetries}`);
+    const wait = 10000 * (retryCount + 1);
+    console.log(`[worm] 🔄 RETRY ${retryCount + 1}/${maxRetries} (wait ${wait}ms)`);
     await sleep(wait);
-    return tryAllModels(messages, retryCount + 1);
+    return tryWithRetry(messages, retryCount + 1);
   }
 
   throw lastError || new Error("ALLFAILED");
@@ -179,7 +175,7 @@ Pertanyaan: ${message}`;
   ];
 
   try {
-    const reply = await tryAllModels(messages);
+    const reply = await tryWithRetry(messages);
     return res.status(200).json({ reply });
   } catch (err) {
     console.log(`[worm] 💀 error: ${err.message}`);
