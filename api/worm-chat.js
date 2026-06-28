@@ -1,4 +1,4 @@
-// api/worm-chat.js — SYNOX POLLING (NO GROQ)
+// api/worm-chat.js — SYNOX ONLY (FIX TIMEOUT)
 // by OpetxDy | TikTok: @opetxdy2
 
 const fs = require("fs");
@@ -6,7 +6,7 @@ const path = require("path");
 
 const SYNOX_URL = "https://api.synoxcloud.xyz/ai-chat/gemma-3-27b-it";
 const SYNOX_SESSION = "oohFG8FYI_08ssPL4Z8FI";
-const TIMEOUT_MS = 30000;
+const TIMEOUT_MS = 60000; // 60 detik (Vercel max 60s)
 
 // ── LOAD PROMPT.TXT ──
 let PROMPT_IDENTITY = "";
@@ -40,41 +40,77 @@ function detectLang(text) {
 const jobs = new Map();
 
 async function callSynox(messages) {
-  let fullText = "";
-  for (const m of messages) {
-    if (m.role === "system") fullText += "System: " + m.content + "\n\n";
-    else if (m.role === "user") fullText += "User: " + m.content + "\n";
-    else if (m.role === "assistant") fullText += "Assistant: " + m.content + "\n";
-  }
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), TIMEOUT_MS);
 
-  const url = `${SYNOX_URL}?sessionId=${SYNOX_SESSION}`;
+  try {
+    let fullText = "";
+    for (const m of messages) {
+      if (m.role === "system") fullText += "System: " + m.content + "\n\n";
+      else if (m.role === "user") fullText += "User: " + m.content + "\n";
+      else if (m.role === "assistant") fullText += "Assistant: " + m.content + "\n";
+    }
 
-  const res = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ message: fullText }),
-  });
+    const url = `${SYNOX_URL}?sessionId=${SYNOX_SESSION}`;
 
-  if (!res.ok) {
-    const err = await res.text();
-    throw new Error(`Synox ${res.status}: ${err}`);
-  }
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message: fullText }),
+      signal: ctrl.signal,
+    });
+    clearTimeout(timer);
 
-  const data = await res.json();
-  let text = data?.response || data?.reply || data?.message || data?.result || "";
-  if (!text && typeof data === "string") text = data;
-  if (!text) {
-    const keys = Object.keys(data);
-    for (const key of keys) {
-      if (typeof data[key] === "string" && data[key].length > 10) {
-        text = data[key];
-        break;
+    if (!res.ok) {
+      const err = await res.text();
+      console.log(`[worm] ❌ Synox error: ${res.status} - ${err.slice(0, 200)}`);
+      throw new Error(`Synox ${res.status}`);
+    }
+
+    const data = await res.json();
+    console.log(`[worm] 📦 Synox response:`, JSON.stringify(data).slice(0, 300));
+
+    let text = data?.response || data?.reply || data?.message || data?.result || "";
+    if (!text && typeof data === "string") text = data;
+    if (!text) {
+      const keys = Object.keys(data);
+      for (const key of keys) {
+        if (typeof data[key] === "string" && data[key].length > 10) {
+          text = data[key];
+          break;
+        }
       }
     }
+    if (!text) throw new Error("empty response");
+
+    text = text.replace(/<think>[\s\S]*?<\/think>/gi, "").trim();
+    return text;
+  } catch (e) {
+    clearTimeout(timer);
+    throw e;
   }
-  if (!text) throw new Error("empty response");
-  text = text.replace(/<think>[\s\S]*?<\/think>/gi, "").trim();
-  return text;
+}
+
+async function trySynox(messages, retryCount = 0) {
+  const maxRetries = 3;
+
+  try {
+    console.log(`[worm] 🔥 calling SynoxCloud (attempt ${retryCount + 1})...`);
+    const result = await callSynox(messages);
+    console.log(`[worm] ✅ SynoxCloud OK`);
+    return result;
+  } catch (e) {
+    console.log(`[worm] ❌ SynoxCloud: ${e.message}`);
+
+    if (retryCount < maxRetries) {
+      const wait = 3000 * (retryCount + 1);
+      console.log(`[worm] 🔄 RETRY ${retryCount + 1}/${maxRetries} (wait ${wait}ms)`);
+      await new Promise(resolve => setTimeout(resolve, wait));
+      return trySynox(messages, retryCount + 1);
+    }
+
+    throw e;
+  }
 }
 
 module.exports = async function handler(req, res) {
@@ -135,10 +171,13 @@ Pertanyaan: ${message}`;
   // ── JALANKAN DI BACKGROUND ──
   (async () => {
     try {
-      const reply = await callSynox(messages);
+      const reply = await trySynox(messages);
       jobs.set(jobId, { done: true, reply });
     } catch (err) {
-      jobs.set(jobId, { done: true, reply: `Error: ${err.message}` });
+      const errMsg = err.message.includes("timeout")
+        ? "Worm Aiva sedang sibuk. Coba lagi."
+        : `Error: ${err.message}`;
+      jobs.set(jobId, { done: true, reply: errMsg });
     }
   })();
 
