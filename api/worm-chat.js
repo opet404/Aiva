@@ -1,10 +1,8 @@
-// api/worm-chat.js — SYNOXCLOUD + TIMEOUT FIX
-// by OpetxDy | TikTok: @opetxdy2
-
+// api/worm-chat.js — SYNOX FLEXIBLE PARSE
 const fs = require("fs");
 const path = require("path");
 
-const TIMEOUT_MS = 25000; // 25 detik (Vercel limit 30s)
+const TIMEOUT_MS = 25000;
 
 const SYNOX_URL = "https://api.synoxcloud.xyz/ai-chat/gemma-3-27b-it";
 const SYNOX_SESSION = "oohFG8FYI_08ssPL4Z8FI";
@@ -37,7 +35,6 @@ function detectLang(text) {
   return "en";
 }
 
-// ── CALL SYNOXCLOUD ──
 async function callSynox(messages) {
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), TIMEOUT_MS);
@@ -62,17 +59,54 @@ async function callSynox(messages) {
 
     if (!res.ok) {
       const err = await res.text();
-      throw new Error(`Synox ${res.status}: ${err}`);
+      console.log(`[worm] ❌ Synox error: ${res.status} - ${err}`);
+      throw new Error(`Synox ${res.status}`);
     }
 
     const data = await res.json();
-    let text = data?.response || data?.reply || data?.message || "";
+    console.log(`[worm] 📦 Synox response:`, JSON.stringify(data).slice(0, 500));
+
+    // ── PARSE FLEKSIBEL ──
+    let text = data?.response || data?.reply || data?.message || data?.result || data?.text || "";
+    if (!text && typeof data === "string") text = data;
+    if (!text) {
+      // ── CEK KALAU ADA FIELD LAIN ──
+      const keys = Object.keys(data);
+      for (const key of keys) {
+        if (typeof data[key] === "string" && data[key].length > 10) {
+          text = data[key];
+          break;
+        }
+      }
+    }
     if (!text) throw new Error("empty response");
 
     text = text.replace(/<think>[\s\S]*?<\/think>/gi, "").trim();
     return text;
   } catch (e) {
     clearTimeout(timer);
+    throw e;
+  }
+}
+
+async function tryWithRetry(messages, retryCount = 0) {
+  const maxRetries = 3;
+
+  try {
+    console.log(`[worm] 🔥 calling SynoxCloud...`);
+    const result = await callSynox(messages);
+    console.log(`[worm] ✅ SynoxCloud OK`);
+    return result;
+  } catch (e) {
+    console.log(`[worm] ❌ SynoxCloud: ${e.message}`);
+
+    if (retryCount < maxRetries) {
+      const wait = 3000 * (retryCount + 1);
+      console.log(`[worm] 🔄 RETRY ${retryCount + 1}/${maxRetries} (wait ${wait}ms)`);
+      await new Promise(resolve => setTimeout(resolve, wait));
+      return tryWithRetry(messages, retryCount + 1);
+    }
+
     throw e;
   }
 }
@@ -116,10 +150,10 @@ Pertanyaan: ${message}`;
   ];
 
   try {
-    const reply = await callSynox(messages);
+    const reply = await tryWithRetry(messages);
     return res.status(200).json({ reply });
   } catch (err) {
-    console.log(`[worm] 💀 error: ${err.message}`);
+    console.log(`[worm] 💀 final error: ${err.message}`);
     const errMsg = lang === "id"
       ? "Worm Aiva lagi sibuk. Coba lagi 5 detik."
       : "Worm Aiva is busy. Try again in 5 seconds.";
