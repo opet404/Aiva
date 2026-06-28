@@ -7,7 +7,14 @@
       "includeFiles": "index.html"
     },
     "api/worm-chat.js": {
-      "includeFiles": "prompt.txt"
+      "includeFiles": "prompt.txt",
+      "maxDuration": 60
+    },
+    "api/chat.js": {
+      "maxDuration": 30
+    },
+    "api/multi-chat.js": {
+      "maxDuration": 30
     }
   },
   "rewrites": [
