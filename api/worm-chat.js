@@ -1,8 +1,10 @@
-// api/worm-chat.js — SYNOX FLEXIBLE PARSE (TIMEOUT DIPERBESAR)
+// api/worm-chat.js — WORM AIVA BACKEND (SYNOXCLOUD)
+// by OpetxDy | TikTok: @opetxdy2
+
 const fs = require("fs");
 const path = require("path");
 
-const TIMEOUT_MS = 55000; // 55 detik (max Vercel 60s)
+const TIMEOUT_MS = 55000;
 
 const SYNOX_URL = "https://api.synoxcloud.xyz/ai-chat/gemma-3-27b-it";
 const SYNOX_SESSION = "oohFG8FYI_08ssPL4Z8FI";
@@ -13,9 +15,9 @@ try {
   const p = path.join(__dirname, "..", "prompt.txt");
   PROMPT_IDENTITY = fs.readFileSync(p, "utf8").trim();
   console.log(`[worm] ✅ prompt loaded (${PROMPT_IDENTITY.length} chars)`);
-  if (PROMPT_IDENTITY.length > 2000) {
-    PROMPT_IDENTITY = PROMPT_IDENTITY.slice(0, 2000);
-    console.log(`[worm] ⚠️ truncated to 2000 chars`);
+  if (PROMPT_IDENTITY.length > 4000) {
+    PROMPT_IDENTITY = PROMPT_IDENTITY.slice(0, 4000);
+    console.log(`[worm] ⚠️ truncated to 4000 chars`);
   }
 } catch (e) {
   console.log(`[worm] ❌ prompt NOT FOUND`);
@@ -88,7 +90,7 @@ async function callSynox(messages) {
 }
 
 async function tryWithRetry(messages, retryCount = 0) {
-  const maxRetries = 2;
+  const maxRetries = 3;
 
   try {
     console.log(`[worm] 🔥 calling SynoxCloud...`);
@@ -122,6 +124,7 @@ module.exports = async function handler(req, res) {
 
   const lang = detectLang(message);
 
+  // ── PROMPT DIPAKSA ──
   const systemFull = `
 ${PROMPT_IDENTITY}
 
