@@ -1,4 +1,4 @@
-// api/worm-chat.js — SYNOX POLLING (60s)
+// api/worm-chat.js — SYNOX POLLING (60s TIMEOUT)
 // by OpetxDy | TikTok: @opetxdy2
 
 const fs = require("fs");
@@ -6,8 +6,9 @@ const path = require("path");
 
 const SYNOX_URL = "https://api.synoxcloud.xyz/ai-chat/gemma-3-27b-it";
 const SYNOX_SESSION = "oohFG8FYI_08ssPL4Z8FI";
-const TIMEOUT_MS = 55000; // 55 detik
+const TIMEOUT_MS = 60000; // 60 detik
 
+// ── LOAD PROMPT.TXT ──
 let PROMPT_IDENTITY = "";
 try {
   const p = path.join(__dirname, "..", "prompt.txt");
@@ -61,7 +62,7 @@ async function callSynox(messages) {
 
     if (!res.ok) {
       const err = await res.text();
-      console.log(`[worm] ❌ Synox error: ${res.status}`);
+      console.log(`[worm] ❌ Synox error: ${res.status} - ${err.slice(0, 200)}`);
       throw new Error(`Synox ${res.status}`);
     }
 
