@@ -2366,13 +2366,15 @@ async function callGpt(message, history, signal) {
   return d.reply;
 }
 
+
 // ── DI index.html, cari fungsi callWorm ──
 async function callWorm(message, history, signal) {
+  // ── KIRIM REQUEST ──
   const resp = await fetch("/api/worm-chat", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ message, history, userName: localStorage.getItem("aivaUserName")||"" }),
-    signal: signal || undefined
+    // ── HAPUS SIGNAL BIAR GA ABORT ──
   });
 
   if (!resp.ok) throw new Error("Server HTTP " + resp.status);
