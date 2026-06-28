@@ -1,4 +1,4 @@
-// api/worm-chat.js — SYNOX ONLY (FIX TIMEOUT)
+// api/worm-chat.js — SYNOX POLLING (60s)
 // by OpetxDy | TikTok: @opetxdy2
 
 const fs = require("fs");
@@ -6,9 +6,8 @@ const path = require("path");
 
 const SYNOX_URL = "https://api.synoxcloud.xyz/ai-chat/gemma-3-27b-it";
 const SYNOX_SESSION = "oohFG8FYI_08ssPL4Z8FI";
-const TIMEOUT_MS = 60000; // 60 detik (Vercel max 60s)
+const TIMEOUT_MS = 55000; // 55 detik
 
-// ── LOAD PROMPT.TXT ──
 let PROMPT_IDENTITY = "";
 try {
   const p = path.join(__dirname, "..", "prompt.txt");
@@ -36,7 +35,6 @@ function detectLang(text) {
   return "en";
 }
 
-// ── JOB STORE ──
 const jobs = new Map();
 
 async function callSynox(messages) {
@@ -63,7 +61,7 @@ async function callSynox(messages) {
 
     if (!res.ok) {
       const err = await res.text();
-      console.log(`[worm] ❌ Synox error: ${res.status} - ${err.slice(0, 200)}`);
+      console.log(`[worm] ❌ Synox error: ${res.status}`);
       throw new Error(`Synox ${res.status}`);
     }
 
@@ -82,33 +80,10 @@ async function callSynox(messages) {
       }
     }
     if (!text) throw new Error("empty response");
-
     text = text.replace(/<think>[\s\S]*?<\/think>/gi, "").trim();
     return text;
   } catch (e) {
     clearTimeout(timer);
-    throw e;
-  }
-}
-
-async function trySynox(messages, retryCount = 0) {
-  const maxRetries = 3;
-
-  try {
-    console.log(`[worm] 🔥 calling SynoxCloud (attempt ${retryCount + 1})...`);
-    const result = await callSynox(messages);
-    console.log(`[worm] ✅ SynoxCloud OK`);
-    return result;
-  } catch (e) {
-    console.log(`[worm] ❌ SynoxCloud: ${e.message}`);
-
-    if (retryCount < maxRetries) {
-      const wait = 3000 * (retryCount + 1);
-      console.log(`[worm] 🔄 RETRY ${retryCount + 1}/${maxRetries} (wait ${wait}ms)`);
-      await new Promise(resolve => setTimeout(resolve, wait));
-      return trySynox(messages, retryCount + 1);
-    }
-
     throw e;
   }
 }
@@ -120,7 +95,6 @@ module.exports = async function handler(req, res) {
 
   if (req.method === "OPTIONS") return res.status(200).end();
 
-  // ── GET = CEK STATUS ──
   if (req.method === "GET" && req.query.jobId) {
     const job = jobs.get(req.query.jobId);
     if (!job) return res.status(404).json({ error: "Job not found" });
@@ -168,19 +142,14 @@ Pertanyaan: ${message}`;
 
   jobs.set(jobId, { done: false });
 
-  // ── JALANKAN DI BACKGROUND ──
   (async () => {
     try {
-      const reply = await trySynox(messages);
+      const reply = await callSynox(messages);
       jobs.set(jobId, { done: true, reply });
     } catch (err) {
-      const errMsg = err.message.includes("timeout")
-        ? "Worm Aiva sedang sibuk. Coba lagi."
-        : `Error: ${err.message}`;
-      jobs.set(jobId, { done: true, reply: errMsg });
+      jobs.set(jobId, { done: true, reply: `Error: ${err.message}` });
     }
   })();
 
-  // ── LANGSUNG BALIK JOB ID ──
   return res.status(202).json({ jobId, status: "processing" });
 };
